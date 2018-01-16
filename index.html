@@ -1,0 +1,522 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>API Reference</title>
+
+    <style>
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .cd {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+}
+.highlight .nn {
+  color: #ffffff;
+}
+.highlight .nl {
+  color: #ffffff;
+}
+.highlight .ni {
+  color: #ffffff;
+}
+.highlight .bp {
+  color: #ffffff;
+}
+.highlight .vg {
+  color: #ffffff;
+}
+.highlight .vi {
+  color: #ffffff;
+}
+.highlight .nv {
+  color: #ffffff;
+}
+.highlight .w {
+  color: #ffffff;
+}
+.highlight {
+  color: #ffffff;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+    </style>
+    <link href="stylesheets/screen.css" rel="stylesheet" media="screen" />
+    <link href="stylesheets/print.css" rel="stylesheet" media="print" />
+      <script src="javascripts/all.js"></script>
+  </head>
+
+  <body class="index" data-languages="[&quot;golang&quot;]">
+    <a href="#" id="nav-button">
+      <span>
+        NAV
+        <img src="images/navbar.png" alt="Navbar" />
+      </span>
+    </a>
+    <div class="toc-wrapper">
+      <img src="images/logo.png" class="logo" alt="Logo" />
+        <div class="lang-selector">
+              <a href="#" data-language-name="golang">golang</a>
+        </div>
+        <div class="search">
+          <input type="text" class="search" id="input-search" placeholder="Search">
+        </div>
+        <ul class="search-results"></ul>
+      <div id="toc" class="toc-list-h1">
+          <li>
+            <a href="#introduction" class="toc-h1 toc-link" data-title="Introduction">Introduction</a>
+          </li>
+          <li>
+            <a href="#installation" class="toc-h1 toc-link" data-title="Installation">Installation</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#install-protoc" class="toc-h2 toc-link" data-title="Installation">Install protoc</a>
+                  </li>
+                  <li>
+                    <a href="#install-protoc-gen-go" class="toc-h2 toc-link" data-title="Installation">Install protoc-gen-go</a>
+                  </li>
+                  <li>
+                    <a href="#install-protoc-gen-twirp" class="toc-h2 toc-link" data-title="Installation">Install protoc-gen-twirp</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#getting-started" class="toc-h1 toc-link" data-title="Getting Started">Getting Started</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#create-proto-file" class="toc-h2 toc-link" data-title="Getting Started">Create Proto File</a>
+                  </li>
+                  <li>
+                    <a href="#auto-generate-code" class="toc-h2 toc-link" data-title="Getting Started">Auto-Generate Code</a>
+                  </li>
+                  <li>
+                    <a href="#implement-the-server" class="toc-h2 toc-link" data-title="Getting Started">Implement the Server</a>
+                  </li>
+                  <li>
+                    <a href="#using-the-client" class="toc-h2 toc-link" data-title="Getting Started">Using the Client</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#updating-twirp" class="toc-h1 toc-link" data-title="Updating Twirp">Updating Twirp</a>
+          </li>
+      </div>
+        <ul class="toc-footer">
+            <li><a href='https://github.com/tripit/slate'>Documentation Powered by Slate</a></li>
+        </ul>
+    </div>
+    <div class="page-wrapper">
+      <div class="dark-box"></div>
+      <div class="content">
+        <h1 id='introduction'>Introduction</h1>
+<p>Twirp is Twitch&#39;s RPC system.</p>
+
+<p>Define your service in a Profobuf file and then Twirp autogenerates Go code with a server interface and fully functional clients. It is similar to gRPC, but designed to integrate easily with Twitch infrastructure (i.e. it can run on HTTP 1.1, not just http/2).</p>
+
+<p>Twirp handles routing and serialization for you in a well-tested, standardized, thoughtful way so you don&#39;t have to. Serialization and deserialization code is error-prone and tricky, and you shouldn&#39;t be wasting your time deciding whether it should be <code>POST /follows/:id/new</code> or <code>POST /:id/follows</code> or whatever. Just get to the real work of building services!</p>
+
+<p>Along the way, you get an autogenerated client and a simple, smart framework for passing error messages. Nice!</p>
+
+<p><img src="https://git-aws.internal.justin.tv/common/twirp/raw/master/overview_diagram.png" alt="twirp-architecture" /></p>
+<h1 id='installation'>Installation</h1>
+<p>Twirp works for any project written in Go1.7+. You&#39;ll need these things, too:</p>
+
+<ul>
+<li><code>protoc</code>, the protobuf compiler</li>
+<li><code>protoc-gen-go</code>, the go plugin for <code>protoc</code></li>
+<li><code>protoc-gen-twirp</code>, the twirp plugin for <code>protoc</code></li>
+</ul>
+<h2 id='install-protoc'>Install protoc</h2>
+<blockquote>
+<p>Run the following command to install <code>protoc</code> using homebrew:</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>brew install protobuf
+</code></pre>
+<p><a href="https://developers.google.com/protocol-buffers/docs/gotutorial">Install Protocol Buffers v3</a>
+, the protoc compiler that is used to auto-generate code. The simplest way to do this is to download pre-compiled binaries for your platform from here:
+<a href="https://github.com/google/protobuf/releases">https://github.com/google/protobuf/releases</a>.</p>
+<h2 id='install-protoc-gen-go'>Install protoc-gen-go</h2>
+<blockquote>
+<p>Download and install <code>protoc-gen-go</code> using the normal Go tools:</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>go get -u github.com/golang/protobuf/protoc-gen-go
+</code></pre>
+<p>The normal Go tools will install <code>protoc-gen-go</code> in <code>$GOBIN</code>, defaulting to <code>$GOPATH/bin</code>.</p>
+
+<div class="clear"></div>
+
+<blockquote>
+<p>Add <code>$GOBIN</code> to your path if you haven&#39;t already:</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$GOPATH</span>/bin
+</code></pre>
+<p>It must be in your <code>$PATH</code> for the protocol compiler, <code>protoc</code>, to find it, so you might need to explicitly add it to your path:</p>
+<h2 id='install-protoc-gen-twirp'>Install protoc-gen-twirp</h2>
+<blockquote>
+<p>Install the Twirp compiler plugin <code>protoc-gen-twirp</code>:</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>go get -u code.justin.tv/common/twirp/protoc-gen-twirp
+</code></pre>
+<p>Installing <code>protoc-gen-twirp</code> will add the executable to your <code>$GOBIN</code> as well. When <code>protoc</code> is run, it will look for plugins such as <code>protoc-gen-twirp</code> and <code>protoc-gen-go</code> in your <code>$PATH</code>.</p>
+<h1 id='getting-started'>Getting Started</h1>
+<p>Let&#39;s skip Hello World, we&#39;ll make a <code>Haberdasher</code> service instead.</p>
+
+<p>The <code>Haberdasher</code> service makes hats. It has only one RPC method <code>MakeHat</code> to make a new hat of a
+particular size.</p>
+<h2 id='create-proto-file'>Create Proto File</h2>
+<blockquote>
+<p>Define your service in a <strong>Proto</strong> file:</p>
+</blockquote>
+<pre class="highlight proto tab-protobuf"><code><span class="c1">// haberdasher.proto
+</span>
+<span class="na">syntax</span> <span class="o">=</span> <span class="s">"proto3"</span><span class="p">;</span>
+
+<span class="kn">package</span> <span class="nn">code</span><span class="o">.</span><span class="n">justin.tv.example.haberdasher</span><span class="p">;</span>
+<span class="k">option</span> <span class="na">go_package</span> <span class="o">=</span> <span class="s">"haberdasher"</span><span class="p">;</span>
+
+<span class="c1">// Haberdasher service makes hats for clients.
+</span><span class="kd">service</span> <span class="n">Haberdasher</span> <span class="p">{</span>
+  <span class="c1">// MakeHat produces a hat of mysterious, randomly-selected color!
+</span>  <span class="k">rpc</span> <span class="n">MakeHat</span><span class="p">(</span><span class="n">Size</span><span class="p">)</span> <span class="k">returns</span> <span class="p">(</span><span class="n">Hat</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Size of a Hat, in inches.
+</span><span class="kd">message</span> <span class="nc">Size</span> <span class="p">{</span>
+  <span class="kt">int32</span> <span class="na">inches</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// must be &gt; 0
+</span><span class="p">}</span>
+
+<span class="c1">// A Hat is a piece of headwear made by a Haberdasher.
+</span><span class="kd">message</span> <span class="nc">Hat</span> <span class="p">{</span>
+  <span class="kt">int32</span> <span class="na">inches</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">string</span> <span class="na">color</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// anything but "invisible"
+</span>  <span class="kt">string</span> <span class="na">name</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// i.e. "bowler"
+</span><span class="p">}</span>
+</code></pre>
+<p>Twirp uses a <strong>Proto</strong> file to generate your service for you. See
+<a href="https://developers.google.com/protocol-buffers/">Protobuf</a> for more information on protobufs.</p>
+
+<p>It&#39;s a good idea to add comments on your Protobuf file. These files can work as the main
+documentation of your API.</p>
+<h2 id='auto-generate-code'>Auto-Generate Code</h2><pre class="highlight shell"><code><span class="gp">$ </span>protoc --proto_path<span class="o">=</span><span class="nv">$GOPATH</span>/src:. --twirp_out<span class="o">=</span>. --go_out<span class="o">=</span>. ./hello_world.proto
+</code></pre>
+<blockquote>
+<p>Twirp will use the above sh command to auto-generate the following files:</p>
+</blockquote>
+<pre class="highlight plaintext"><code>/
+  haberdasher.pb.go    # auto-generated by protoc-gen-go (for protobuf serialization)
+  haberdasher.proto    # original protobuf definition (you created this)
+  haberdasher.twirp.go # auto-generated by protoc-gen-twirp (servers, clients and interfaces)
+</code></pre>
+<p>Run the <code>protoc</code> command pointed at your <code>.proto</code> files to generate <code>{service_name}.pb.go</code> and
+<code>{service_name}.twirp.go</code> in the same directory as your <code>.proto</code> file.</p>
+
+<div class="clear"></div>
+<pre class="highlight go"><code><span class="c">// haberdasher.twirp.go</span><span class="x">
+
+</span><span class="c">// A Haberdasher makes hats for clients.</span><span class="x">
+</span><span class="k">type</span><span class="x"> </span><span class="n">Haberdasher</span><span class="x"> </span><span class="k">interface</span><span class="x"> </span><span class="p">{</span><span class="x">
+    </span><span class="c">// MakeHat produces a hat of mysterious, randomly-selected color!</span><span class="x">
+    </span><span class="n">MakeHat</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span><span class="x"> </span><span class="o">*</span><span class="n">Size</span><span class="p">)</span><span class="x"> </span><span class="p">(</span><span class="o">*</span><span class="n">Hat</span><span class="p">,</span><span class="x"> </span><span class="kt">error</span><span class="p">)</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+<p>Inside <code>habserdasher.twirp.go</code> you should find the following interface along with code to 
+instantiate clients and servers.</p>
+<h2 id='implement-the-server'>Implement the Server</h2>
+<blockquote>
+<p>Our implementation of the server below:</p>
+</blockquote>
+<pre class="highlight go"><code><span class="c">// server.go</span><span class="x">
+
+</span><span class="k">package</span><span class="x"> </span><span class="n">haberdasherserver</span><span class="x">
+
+</span><span class="k">import</span><span class="x"> </span><span class="p">(</span><span class="x">
+    </span><span class="s">"math/rand"</span><span class="x">
+    </span><span class="s">"golang.org/x/net/context"</span><span class="x">
+    </span><span class="s">"code.justin.tv/common/twirp"</span><span class="x">
+    </span><span class="n">pb</span><span class="x"> </span><span class="s">"code.justin.tv/twirpexample/rpc/haberdasher"</span><span class="x">
+</span><span class="p">)</span><span class="x">
+
+</span><span class="c">// Server implements the Haberdasher service</span><span class="x">
+</span><span class="k">type</span><span class="x"> </span><span class="n">Server</span><span class="x"> </span><span class="k">struct</span><span class="x"> </span><span class="p">{}</span><span class="x">
+
+</span><span class="k">func</span><span class="x"> </span><span class="p">(</span><span class="n">s</span><span class="x"> </span><span class="o">*</span><span class="n">Server</span><span class="p">)</span><span class="x"> </span><span class="n">MakeHat</span><span class="p">(</span><span class="n">ctx</span><span class="x"> </span><span class="n">context</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span><span class="x"> </span><span class="n">size</span><span class="x"> </span><span class="o">*</span><span class="n">pb</span><span class="o">.</span><span class="n">Size</span><span class="p">)</span><span class="x"> </span><span class="p">(</span><span class="n">hat</span><span class="x"> </span><span class="o">*</span><span class="n">pb</span><span class="o">.</span><span class="n">Hat</span><span class="p">,</span><span class="x"> </span><span class="kt">error</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
+    </span><span class="k">if</span><span class="x"> </span><span class="n">size</span><span class="o">.</span><span class="n">Inches</span><span class="x"> </span><span class="o">&lt;=</span><span class="x"> </span><span class="m">0</span><span class="x"> </span><span class="p">{</span><span class="x">
+        </span><span class="k">return</span><span class="x"> </span><span class="no">nil</span><span class="p">,</span><span class="x"> </span><span class="n">twirp</span><span class="o">.</span><span class="n">InvalidArgumentError</span><span class="p">(</span><span class="s">"inches"</span><span class="p">,</span><span class="x"> </span><span class="s">"I can't make a hat that small!"</span><span class="p">)</span><span class="x">
+    </span><span class="p">}</span><span class="x">
+    </span><span class="k">return</span><span class="x"> </span><span class="o">&amp;</span><span class="n">pb</span><span class="o">.</span><span class="n">Hat</span><span class="p">{</span><span class="x">
+        </span><span class="n">Inches</span><span class="o">:</span><span class="x">  </span><span class="n">size</span><span class="o">.</span><span class="n">Inches</span><span class="p">,</span><span class="x">
+        </span><span class="n">Color</span><span class="o">:</span><span class="x"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">"white"</span><span class="p">,</span><span class="x"> </span><span class="s">"black"</span><span class="p">,</span><span class="x"> </span><span class="s">"brown"</span><span class="p">,</span><span class="x"> </span><span class="s">"red"</span><span class="p">,</span><span class="x"> </span><span class="s">"blue"</span><span class="p">}[</span><span class="n">rand</span><span class="o">.</span><span class="n">Intn</span><span class="p">(</span><span class="m">4</span><span class="p">)],</span><span class="x">
+        </span><span class="n">Name</span><span class="o">:</span><span class="x">  </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">"bowler"</span><span class="p">,</span><span class="x"> </span><span class="s">"baseball cap"</span><span class="p">,</span><span class="x"> </span><span class="s">"top hat"</span><span class="p">,</span><span class="x"> </span><span class="s">"derby"</span><span class="p">}[</span><span class="n">rand</span><span class="o">.</span><span class="n">Intn</span><span class="p">(</span><span class="m">3</span><span class="p">)],</span><span class="x">
+    </span><span class="p">},</span><span class="x"> </span><span class="no">nil</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+<p>Our server implementation <code>Server</code> must implement all methods in the interface generated by Twirp. 
+Here we implement the function <code>MakeHat</code> that takes in <code>size *pb.Size</code> and outputs a new <code>&amp;pb.Hat{}</code>.</p>
+
+<p>Twirp servers can handle both
+<a href="https://git-aws.internal.justin.tv/common/twirp/wiki/Protobuf-and-JSON">JSON and Protobuf</a>
+requests, distinguishing them by their Content-Type header. Twirp servers can also be configured with
+<a href="https://git-aws.internal.justin.tv/common/twirp/wiki/Server-Hooks">Server Hooks</a>.</p>
+
+<div class="clear"></div>
+
+<blockquote>
+<p>Auto-generated server constructor in <code>haberdasher.twirp.go</code> below:</p>
+</blockquote>
+<pre class="highlight go"><code><span class="k">func</span><span class="x"> </span><span class="n">NewHaberdasherServer</span><span class="p">(</span><span class="n">svc</span><span class="x"> </span><span class="n">Haberdasher</span><span class="p">,</span><span class="x"> </span><span class="n">hooks</span><span class="x"> </span><span class="o">*</span><span class="n">twirp</span><span class="o">.</span><span class="n">ServerHooks</span><span class="p">,</span><span class="x"> </span><span class="n">ctxSrc</span><span class="x"> </span><span class="n">ContextSource</span><span class="p">)</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">Handler</span><span class="x">
+</span></code></pre>
+<p>Then, to serve it over HTTP, use the auto-generated server constructor <code>New{{Service}}Server</code>.
+For Haberdasher this is <code>NewHaberdasherServer</code>.</p>
+
+<div class="clear"></div>
+
+<blockquote>
+<p>Add the following main function to <code>server.go</code>:</p>
+</blockquote>
+<pre class="highlight go"><code><span class="c">// server.go</span><span class="x">
+
+</span><span class="k">func</span><span class="x"> </span><span class="n">main</span><span class="p">()</span><span class="x"> </span><span class="p">{</span><span class="x">
+    </span><span class="n">server</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="o">&amp;</span><span class="n">haberdasherserver</span><span class="o">.</span><span class="n">Server</span><span class="p">{}</span><span class="x"> </span><span class="c">// implements Haberdasher interface</span><span class="x">
+    </span><span class="n">twirpHandler</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">haberdasher</span><span class="o">.</span><span class="n">NewHaberdasherServer</span><span class="p">(</span><span class="n">server</span><span class="p">,</span><span class="x"> </span><span class="no">nil</span><span class="p">,</span><span class="x"> </span><span class="no">nil</span><span class="p">)</span><span class="x">
+
+    </span><span class="n">http</span><span class="o">.</span><span class="n">ListenAndServe</span><span class="p">(</span><span class="s">":8080"</span><span class="p">,</span><span class="x"> </span><span class="n">twirpHandler</span><span class="p">)</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+<p>This constructor wraps your interface implementation as an <code>http.Handler</code>, so you can start serving
+requests with <code>http.ListenAndServe()</code>.</p>
+
+<div class="clear"></div>
+
+<blockquote>
+<p>An example of serving the haberdash server using Goji:</p>
+</blockquote>
+<pre class="highlight go"><code><span class="c">// server.go</span><span class="x">
+
+</span><span class="k">func</span><span class="x"> </span><span class="n">main</span><span class="p">()</span><span class="x"> </span><span class="p">{</span><span class="x">
+    </span><span class="n">server</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="o">&amp;</span><span class="n">haberdasherserver</span><span class="o">.</span><span class="n">Server</span><span class="p">{}</span><span class="x"> </span><span class="c">// implements Haberdasher interface</span><span class="x">
+    </span><span class="n">twirpHandler</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">haberdasher</span><span class="o">.</span><span class="n">NewHaberdasherServer</span><span class="p">(</span><span class="n">server</span><span class="p">,</span><span class="x"> </span><span class="no">nil</span><span class="p">,</span><span class="x"> </span><span class="no">nil</span><span class="p">)</span><span class="x">
+
+    </span><span class="n">mux</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">goji</span><span class="o">.</span><span class="n">NewMux</span><span class="p">()</span><span class="x">
+    </span><span class="n">mux</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="n">pat</span><span class="o">.</span><span class="n">Post</span><span class="p">(</span><span class="n">haberdasher</span><span class="o">.</span><span class="n">NewHaberdasherPathPrefix</span><span class="o">+</span><span class="s">"*"</span><span class="p">),</span><span class="x"> </span><span class="n">twirpHandler</span><span class="p">)</span><span class="x">
+    </span><span class="c">// mux.Handle other things like health checks ...</span><span class="x">
+    </span><span class="n">http</span><span class="o">.</span><span class="n">ListenAndServe</span><span class="p">(</span><span class="s">"localhost:8000"</span><span class="p">,</span><span class="x"> </span><span class="n">mux</span><span class="p">)</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+<p>You can use any type of <strong>mux</strong> to serve the server (eg. Goji).</p>
+<h2 id='using-the-client'>Using the Client</h2>
+<blockquote>
+<p>To use the <code>Haberdasher</code> service from another Go project, just import the auto-generated client
+and then use it like this:</p>
+</blockquote>
+<pre class="highlight go"><code><span class="n">client</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">haberdasher</span><span class="o">.</span><span class="n">NewHaberdasherProtobufClient</span><span class="p">(</span><span class="s">"http://localhost:8000"</span><span class="p">,</span><span class="x"> </span><span class="o">&amp;</span><span class="n">http</span><span class="o">.</span><span class="n">Client</span><span class="p">{})</span><span class="x">
+
+</span><span class="n">hat</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">=</span><span class="x"> </span><span class="n">client</span><span class="o">.</span><span class="n">MakeHat</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">Background</span><span class="p">(),</span><span class="x"> </span><span class="o">&amp;</span><span class="n">example</span><span class="o">.</span><span class="n">Size</span><span class="p">{</span><span class="n">Inches</span><span class="o">:</span><span class="x"> </span><span class="m">12</span><span class="p">})</span><span class="x">
+</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+    </span><span class="k">if</span><span class="x"> </span><span class="n">twerr</span><span class="p">,</span><span class="x"> </span><span class="n">ok</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">err</span><span class="o">.</span><span class="p">(</span><span class="n">twirp</span><span class="o">.</span><span class="n">Error</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
+        </span><span class="k">switch</span><span class="x"> </span><span class="n">twerr</span><span class="o">.</span><span class="n">Code</span><span class="p">()</span><span class="x"> </span><span class="p">{</span><span class="x">
+        </span><span class="k">case</span><span class="x"> </span><span class="n">twirp</span><span class="o">.</span><span class="n">InvalidArgument</span><span class="o">:</span><span class="x">
+            </span><span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Oh no "</span><span class="o">+</span><span class="n">twirp</span><span class="o">.</span><span class="n">Msg</span><span class="p">())</span><span class="x">
+        </span><span class="k">default</span><span class="o">:</span><span class="x">
+            </span><span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">twerr</span><span class="o">.</span><span class="n">Error</span><span class="p">())</span><span class="x">
+        </span><span class="p">}</span><span class="x">
+    </span><span class="p">}</span><span class="x">
+    </span><span class="k">return</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+<p>Clients are automatically generated. YAY!</p>
+
+<p>For each service, there are 2 client constructors:</p>
+
+<ul>
+<li><code>New{{Service}}ProtobufClient</code> for Protobuf requests.</li>
+<li><code>New{{Service}}JSONClient</code> for JSON requests.</li>
+</ul>
+<h1 id='updating-twirp'>Updating Twirp</h1>
+<blockquote>
+<p>If you are using <a href="https://github.com/twitchtv/retool">retool</a>, update using the following command:</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>retool upgrade code.justin.tv/common/twirp/protoc-gen-twirp v4.4.0
+</code></pre>
+<p>Twirp releases are tagged with semantic versioning and releases are managed by Github. See the <a href="https://git-aws.internal.justin.tv/common/twirp/releases">releases</a> page.</p>
+
+<p>To stay up to date, you update protoc-gen-twirp and regenerate your code. It&#39;s simple with <a href="https://github.com/twitchtv/retool">retool</a>.</p>
+
+<div class="clear"></div>
+
+<blockquote>
+<p>Use <code>go install</code> to update twirp if you don&#39;t have retool:</p>
+</blockquote>
+<pre class="highlight go"><code><span class="err">$</span><span class="x"> </span><span class="n">cd</span><span class="x"> </span><span class="err">$</span><span class="n">GOPATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">code</span><span class="o">.</span><span class="n">justin</span><span class="o">.</span><span class="n">tv</span><span class="o">/</span><span class="n">common</span><span class="o">/</span><span class="n">twirp</span><span class="x">
+</span><span class="err">$</span><span class="x"> </span><span class="n">git</span><span class="x"> </span><span class="n">checkout</span><span class="x"> </span><span class="n">v4</span><span class="m">.4.0</span><span class="x">
+</span><span class="err">$</span><span class="x"> </span><span class="k">go</span><span class="x"> </span><span class="n">install</span><span class="x"> </span><span class="o">./</span><span class="n">protoc</span><span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">twirp</span><span class="x">
+</span></code></pre>
+<p>If you&#39;re not using retool, <a href="https://github.com/twitchtv/retool">you should be using retool</a>! But you can also do a system-wide install with checking out the package new version and using go install:</p>
+
+<div class="clear"></div>
+
+<p>With the new version of protoc-gen-twirp, you can re-generate code to update your servers. Then, any of the clients of your service can update their vendored copy of your service to get the latest version.</p>
+
+      </div>
+      <div class="dark-box">
+          <div class="lang-selector">
+                <a href="#" data-language-name="golang">golang</a>
+          </div>
+      </div>
+    </div>
+  </body>
+</html>

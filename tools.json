@@ -1,0 +1,20 @@
+{
+  "Tools": [
+    {
+      "Repository": "github.com/golang/protobuf/protoc-gen-go",
+      "Commit": "c9c7427a2a70d2eb3bafa0ab2dc163e45f143317"
+    },
+    {
+      "Repository": "github.com/kisielk/errcheck",
+      "Commit": "db0ca22445717d1b2c51ac1034440e0a2a2de645"
+    },
+    {
+      "Repository": "github.com/gogo/protobuf/protoc-gen-gofast",
+      "Commit": "30433562cfbf487fe1df7cd26c7bab168d2f14d0"
+    },
+    {
+      "Repository": "github.com/twitchtv/retool",
+      "Commit": "6f6d4930d88c40e23d2b54d12e64f0444e1fb4ef"
+    }
+  ]
+}

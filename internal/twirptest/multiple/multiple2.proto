@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+// test to make sure that multiple proto files in one package works
+package twirp.internal.twirptest.multiple;
+option go_package = "multiple";
+
+message Msg2 {}
+
+service Svc2 {
+  rpc Send(Msg2) returns (Msg2);
+}

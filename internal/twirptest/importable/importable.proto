@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+// Test to make sure that importing other packages doesnt break
+package twirp.internal.twirptest.importable;
+option go_package = "importable";
+
+message Msg {}
+
+service Svc {
+  rpc Send(Msg) returns(Msg);
+}

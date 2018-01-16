@@ -30,6 +30,21 @@ setup:
 	GOPATH=$(CURDIR)/_tools go install github.com/twitchtv/retool/...
 	$(RETOOL) build
 
+# Make commands for twirp docs
+setup_docs:
+	@echo "Ruby >= 2.3.1 must be installed"
+	gem install bundler
+	bundler install --gemfile docs/Gemfile
+
+dev_docs: setup_docs
+	cd docs && bundle exec middleman server
+
+build_docs: setup_docs
+	cd docs && bundle exec middleman build --clean
+
+publish_docs: build_docs
+	git add docs/build && git push origin `git subtree split --prefix docs/build`:gh-pages --force
+	
 # Actual files for testing clients:
 ./build:
 	mkdir build

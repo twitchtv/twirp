@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	client := example.NewHaberdasherJSONClient("localhost:8080", &http.Client{})
+	client := example.NewHaberdasherJSONClient("http://localhost:8080", &http.Client{})
 
 	var (
 		hat *example.Hat

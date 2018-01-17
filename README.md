@@ -40,3 +40,7 @@ release notes and upgrade guides:
 
 ### Contributing
 Check out [CONTRIBUTING.md](./CONTRIBUTING.md) for notes on making contributions.
+
+### License
+
+This library is licensed under the Apache 2.0 License. 

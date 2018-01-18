@@ -2,6 +2,7 @@ package twirptest
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -19,8 +20,6 @@ import (
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/internal/descriptors"
-
-	"golang.org/x/net/context"
 )
 
 func TestServeJSON(t *testing.T) {

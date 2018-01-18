@@ -1,8 +1,12 @@
 sudo: false
 language: go
 go:
+- 1.7
+- 1.8
 - 1.9
 - tip
+install:
+- go get github.com/gogo/protobuf
 script:
 - go install ./...
 - go test -race ./...

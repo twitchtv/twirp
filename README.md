@@ -30,8 +30,12 @@ For more on the motivation behind Twirp (and a comparison to REST APIs and gRPC)
 is a good read.
 
 ### Documentation
-
 Thorough documentation is [on the wiki](https://github.com/twitchtv/twirp/wiki).
+
+### Support and Community
+We have a channel on the Gophers slack, [#twirp](https://gophers.slack.com/messages/twirp), 
+which is the best place to get quick answers to your questions. You can join the 
+Gopher slack [here](https://invite.slack.golangbridge.org/).
 
 ### Releases
 Twirp follows semantic versioning through git tags, and uses Github Releases for

@@ -25,7 +25,6 @@ import (
 )
 
 func loadTestPb(t *testing.T) []*descriptor.FileDescriptorProto {
-	t.Helper()
 	f, err := ioutil.ReadFile(filepath.Join("testdata", "fileset.pb"))
 	require.NoError(t, err, "unable to read testdata protobuf file")
 

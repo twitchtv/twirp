@@ -225,6 +225,7 @@ func recorderHooks() (*twirp.ServerHooks, *requestRecorder) {
 func TestHooks(t *testing.T) {
 	hooks, recorder := recorderHooks()
 	h := PickyHatmaker(1)
+
 	s := httptest.NewServer(NewHaberdasherServer(h, hooks))
 	defer s.Close()
 	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
@@ -323,6 +324,7 @@ func TestHooks(t *testing.T) {
 		rw := &reqRewriter{
 			base: http.DefaultTransport,
 			rewrite: func(r *http.Request) *http.Request {
+				r.ContentLength = 1
 				r.Body = ioutil.NopCloser(io.LimitReader(r.Body, 1))
 				return r
 			},

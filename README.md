@@ -1,4 +1,4 @@
-![Twirp Logo](./logo.png)
+![Twirp Logo](./logo.png) [![Build Status](https://travis-ci.org/twitchtv/twirp.svg?branch=master)](https://travis-ci.org/twitchtv/twirp) [![Go Report Card](https://goreportcard.com/badge/github.com/twitchtv/twirp)](https://goreportcard.com/report/github.com/twitchtv/twirp)
 
 ---
 

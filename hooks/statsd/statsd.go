@@ -15,6 +15,7 @@ package statsd
 
 import (
 	"context"
+	"log"
 	"strings"
 	"time"
 
@@ -56,6 +57,18 @@ func NewStatsdServerHooks(stats Statter) *twirp.ServerHooks {
 		}
 		stats.Inc("twirp."+sanitize(method)+".requests", 1, 1.0)
 		return ctx, nil
+	}
+
+	//RequestDeserialized
+	hooks.RequestDeserialized = func(ctx context.Context) context.Context {
+		req, ok := twirp.RequestObject(ctx)
+		if !ok {
+			log.Print("No request found")
+			return ctx
+		}
+		log.Printf("Request is %v", req)
+		return ctx
+
 	}
 
 	// ResponseSent:

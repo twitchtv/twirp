@@ -55,6 +55,16 @@ func StatusCode(ctx context.Context) (string, bool) {
 	return code, ok
 }
 
+// RequestObject retrieves a pointer to the deserialized request object of the request,
+// returning nil and false if no such object exists
+func RequestObject(ctx context.Context) (interface{}, bool) {
+	req := ctx.Value(contextkeys.RequestObjectKey)
+	if req == nil {
+		return nil, false
+	}
+	return req, true
+}
+
 // WithHTTPRequestHeaders stores an http.Header in a context.Context. When
 // using a Twirp-generated client, you can pass the returned context
 // into any of the request methods, and the stored header will be

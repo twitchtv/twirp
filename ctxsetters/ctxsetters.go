@@ -45,3 +45,7 @@ func WithStatusCode(ctx context.Context, code int) context.Context {
 func WithResponseWriter(ctx context.Context, w http.ResponseWriter) context.Context {
 	return context.WithValue(ctx, contextkeys.ResponseWriterKey, w)
 }
+
+func WithRequestObject(ctx context.Context, requestObject interface{}) context.Context {
+	return context.WithValue(ctx, contextkeys.RequestObjectKey, requestObject)
+}

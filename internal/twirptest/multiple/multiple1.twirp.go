@@ -179,6 +179,9 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
+	ctx = ctxsetters.WithRequestObject(ctx, reqContent)
+
+	ctx = callRequestDeserialized(ctx, s.hooks)
 
 	// Call service method
 	var respContent *Msg1
@@ -666,6 +669,14 @@ func callRequestRouted(ctx context.Context, h *twirp.ServerHooks) (context.Conte
 		return ctx, nil
 	}
 	return h.RequestRouted(ctx)
+}
+
+// Call twirp.ServerHooks.RequestDeserialized if the hook is available
+func callRequestDeserialized(ctx context.Context, h *twirp.ServerHooks) context.Context {
+	if h == nil || h.RequestDeserialized == nil {
+		return ctx
+	}
+	return h.RequestDeserialized(ctx)
 }
 
 // Call twirp.ServerHooks.ResponsePrepared if the hook is available

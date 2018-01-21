@@ -61,4 +61,28 @@ _sym_db.RegisterMessage(Msg2)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\010multiple'))
+
+_SVC2 = _descriptor.ServiceDescriptor(
+  name='Svc2',
+  full_name='twirp.internal.twirptest.multiple.Svc2',
+  file=DESCRIPTOR,
+  index=0,
+  options=None,
+  serialized_start=62,
+  serialized_end=158,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='Send',
+    full_name='twirp.internal.twirptest.multiple.Svc2.Send',
+    index=0,
+    containing_service=None,
+    input_type=_MSG2,
+    output_type=_MSG2,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_SVC2)
+
+DESCRIPTOR.services_by_name['Svc2'] = _SVC2
+
 # @@protoc_insertion_point(module_scope)

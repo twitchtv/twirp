@@ -41,6 +41,10 @@ type ServerHooks struct {
 	// particular method of the Twirp server.
 	RequestRouted func(context.Context) (context.Context, error)
 
+	// RequestDeserialized is called when a request has been deserialized
+	// for a particular method of a the Twirp server and before the service method is called
+	RequestDeserialized func(context.Context) context.Context
+
 	// ResponsePrepared is called when a request has been handled and a
 	// response is ready to be sent to the client.
 	ResponsePrepared func(context.Context) context.Context
@@ -93,6 +97,14 @@ func ChainHooks(hooks ...*ServerHooks) *ServerHooks {
 				}
 			}
 			return ctx, nil
+		},
+		RequestDeserialized: func(ctx context.Context) context.Context {
+			for _, h := range hooks {
+				if h != nil && h.RequestDeserialized != nil {
+					ctx = h.RequestDeserialized(ctx)
+				}
+			}
+			return ctx
 		},
 		ResponsePrepared: func(ctx context.Context) context.Context {
 			for _, h := range hooks {

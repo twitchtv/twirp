@@ -1,5 +1,7 @@
 *.test
 /bin
+/vendor
+/Gopkg.*
 
 clientcompat/pycompat/ENV
 *.pyc

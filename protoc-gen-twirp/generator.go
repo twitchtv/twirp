@@ -167,7 +167,7 @@ func deduceGenPkgName(genFiles []*descriptor.FileDescriptorProto) (string, error
 		name, _ := goPackageName(f)
 		name = stringutils.CleanIdentifier(name)
 		if genPkgName != "" && genPkgName != name {
-			return "", errors.Errorf("files have conflicting package names, must be the same or overriden with go_package: %q and %q", genPkgName, name)
+			return "", errors.Errorf("files have conflicting package names, must be the same or overridden with go_package: %q and %q", genPkgName, name)
 		}
 		genPkgName = name
 	}

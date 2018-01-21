@@ -12,4 +12,5 @@ const (
 	StatusCodeKey
 	RequestHeaderKey
 	ResponseWriterKey
+	RequestObjectKey
 )

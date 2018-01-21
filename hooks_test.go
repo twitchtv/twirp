@@ -35,6 +35,10 @@ func TestChainHooks(t *testing.T) {
 		return context.WithValue(ctx, key, []string{"hook2"})
 	}
 
+	hook3.RequestDeserialized = func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, key, []string{"hook3"})
+	}
+
 	chain := ChainHooks(hook1, hook2, hook3)
 
 	ctx := context.Background()
@@ -60,6 +64,13 @@ func TestChainHooks(t *testing.T) {
 	have = haveCtx.Value(key)
 	if !reflect.DeepEqual(want, have) {
 		t.Errorf("RequestRouted chain has unexpected ctx, have=%v, want=%v", have, want)
+	}
+
+	want = []string{"hook3"}
+	haveCtx = chain.RequestDeserialized(ctx)
+	have = haveCtx.Value(key)
+	if !reflect.DeepEqual(want, have) {
+		t.Errorf("RequestDeserialized chain has unexpected ctx, have=%v, want=%v", have, want)
 	}
 
 	// When only the second chained hook has a handler, it should be called, and

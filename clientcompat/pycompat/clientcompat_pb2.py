@@ -84,7 +84,7 @@ _REQ = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -115,7 +115,7 @@ _RESP = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -146,21 +146,21 @@ _CLIENTCOMPATMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='method', full_name='twirp.clientcompat.ClientCompatMessage.method', index=1,
       number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='request', full_name='twirp.clientcompat.ClientCompatMessage.request', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -217,4 +217,37 @@ _sym_db.RegisterMessage(ClientCompatMessage)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\014clientcompat'))
+
+_COMPATSERVICE = _descriptor.ServiceDescriptor(
+  name='CompatService',
+  full_name='twirp.clientcompat.CompatService',
+  file=DESCRIPTOR,
+  index=0,
+  options=None,
+  serialized_start=277,
+  serialized_end=421,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='Method',
+    full_name='twirp.clientcompat.CompatService.Method',
+    index=0,
+    containing_service=None,
+    input_type=_REQ,
+    output_type=_RESP,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='NoopMethod',
+    full_name='twirp.clientcompat.CompatService.NoopMethod',
+    index=1,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_EMPTY,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_COMPATSERVICE)
+
+DESCRIPTOR.services_by_name['CompatService'] = _COMPATSERVICE
+
 # @@protoc_insertion_point(module_scope)

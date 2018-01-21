@@ -162,6 +162,9 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
+	ctx = ctxsetters.WithRequestObject(ctx, reqContent)
+
+	ctx = callRequestDeserialized(ctx, s.hooks)
 
 	// Call service method
 	var respContent *Msg2

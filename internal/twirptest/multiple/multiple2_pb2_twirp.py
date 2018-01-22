@@ -64,3 +64,12 @@ class Svc2Client(object):
         resp_str = self.__make_request(body=body, full_method=full_method)
         return deserialize(resp_str)
 
+    def same_package_proto_import(self, msg1):
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.multiple.Msg1").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.multiple.Msg1").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "SamePackageProtoImport")
+        body = serialize(msg1)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+

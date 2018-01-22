@@ -13,14 +13,16 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
+import multiple1_pb2 as multiple1__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='multiple2.proto',
   package='twirp.internal.twirptest.multiple',
   syntax='proto3',
-  serialized_pb=_b('\n\x0fmultiple2.proto\x12!twirp.internal.twirptest.multiple\"\x06\n\x04Msg22`\n\x04Svc2\x12X\n\x04Send\x12\'.twirp.internal.twirptest.multiple.Msg2\x1a\'.twirp.internal.twirptest.multiple.Msg2B\nZ\x08multipleb\x06proto3')
-)
+  serialized_pb=_b('\n\x0fmultiple2.proto\x12!twirp.internal.twirptest.multiple\x1a\x0fmultiple1.proto\"\x06\n\x04Msg22\xcc\x01\n\x04Svc2\x12X\n\x04Send\x12\'.twirp.internal.twirptest.multiple.Msg2\x1a\'.twirp.internal.twirptest.multiple.Msg2\x12j\n\x16SamePackageProtoImport\x12\'.twirp.internal.twirptest.multiple.Msg1\x1a\'.twirp.internal.twirptest.multiple.Msg1B\nZ\x08multipleb\x06proto3')
+  ,
+  dependencies=[multiple1__pb2.DESCRIPTOR,])
 
 
 
@@ -44,8 +46,8 @@ _MSG2 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=54,
-  serialized_end=60,
+  serialized_start=71,
+  serialized_end=77,
 )
 
 DESCRIPTOR.message_types_by_name['Msg2'] = _MSG2

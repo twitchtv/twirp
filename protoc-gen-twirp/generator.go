@@ -266,7 +266,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				t.reg.MethodOutputDefinition(m),
 			}
 			for _, def := range defs {
-				if def.File != file {
+				if def.File.GetPackage() != file.GetPackage() {
 					pkg := t.goPackageName(def.File)
 					importPath := path.Dir(goFileName(def.File))
 					deps[pkg] = strconv.Quote(importPath)

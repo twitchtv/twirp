@@ -314,16 +314,6 @@ type TwirpServer interface {
 	ProtocGenTwirpVersion() string
 }
 
-// done returns ctx.Err() if ctx.Done() indicates that the context done
-func done(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return nil
-	}
-}
-
 // WriteError writes an HTTP response with a valid Twirp error format.
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
 func WriteError(resp http.ResponseWriter, err error) {
@@ -576,7 +566,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 		return clientError("failed to marshal proto request", err)
 	}
 	reqBody := bytes.NewBuffer(reqBodyBytes)
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -589,7 +579,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 		return clientError("failed to do request", err)
 	}
 	defer closebody(resp.Body)
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -601,7 +591,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 	if err != nil {
 		return clientError("failed to read response body", err)
 	}
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -619,7 +609,7 @@ func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out
 	if err = marshaler.Marshal(reqBody, in); err != nil {
 		return clientError("failed to marshal json request", err)
 	}
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -632,7 +622,7 @@ func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out
 		return clientError("failed to do request", err)
 	}
 	defer closebody(resp.Body)
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -644,7 +634,7 @@ func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out
 	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
 		return clientError("failed to unmarshal json response", err)
 	}
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 	return nil

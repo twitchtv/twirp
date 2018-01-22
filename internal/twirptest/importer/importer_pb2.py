@@ -31,4 +31,28 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\010importer'))
+
+_SVC2 = _descriptor.ServiceDescriptor(
+  name='Svc2',
+  full_name='twirp.internal.twirptest.importer.Svc2',
+  file=DESCRIPTOR,
+  index=0,
+  options=None,
+  serialized_start=127,
+  serialized_end=225,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='Send',
+    full_name='twirp.internal.twirptest.importer.Svc2.Send',
+    index=0,
+    containing_service=None,
+    input_type=github_dot_com_dot_twitchtv_dot_twirp_dot_internal_dot_twirptest_dot_importable_dot_importable__pb2._MSG,
+    output_type=github_dot_com_dot_twitchtv_dot_twirp_dot_internal_dot_twirptest_dot_importable_dot_importable__pb2._MSG,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_SVC2)
+
+DESCRIPTOR.services_by_name['Svc2'] = _SVC2
+
 # @@protoc_insertion_point(module_scope)

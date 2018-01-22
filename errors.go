@@ -98,7 +98,7 @@ func InvalidArgumentError(argument string, validationMsg string) Error {
 	return err
 }
 
-// RequiredArgumentError is a more scpecific constructor for InvalidArgument
+// RequiredArgumentError is a more specific constructor for InvalidArgument
 // error. Should be used when the argument is required (expected to have a
 // non-zero value).
 func RequiredArgumentError(argument string) Error {
@@ -135,7 +135,7 @@ func InternalErrorWith(err error) Error {
 // ErrorCode represents a Twirp error type.
 type ErrorCode string
 
-// Valid Twirp error types. Most error types are equivalent to GRPC status codes
+// Valid Twirp error types. Most error types are equivalent to gRPC status codes
 // and follow the same semantics.
 const (
 	// Canceled indicates the operation was cancelled (typically by the caller).

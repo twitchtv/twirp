@@ -62,7 +62,7 @@ func StatusCode(ctx context.Context) (string, bool) {
 //
 // This can be used to set custom HTTP headers like authorization tokens or
 // client IDs. But note that HTTP headers are a Twirp implementation detail,
-// only visible by middleware, not by the server implementtion.
+// only visible by middleware, not by the server implementation.
 //
 // WithHTTPRequestHeaders returns an error if the provided http.Header
 // would overwrite a header that is needed by Twirp, like "Content-Type".

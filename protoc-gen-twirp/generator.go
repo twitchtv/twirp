@@ -259,6 +259,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	// method. Make sure to import the package of any such message. First, dedupe
 	// them.
 	deps := make(map[string]string) // Map of package name to quoted import path.
+	ourImportPath := path.Dir(goFileName(file))
 	for _, s := range file.Service {
 		for _, m := range s.Method {
 			defs := []*typemap.MessageDefinition{
@@ -266,9 +267,9 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				t.reg.MethodOutputDefinition(m),
 			}
 			for _, def := range defs {
-				if def.File != file {
+				importPath := path.Dir(goFileName(def.File))
+				if importPath != ourImportPath {
 					pkg := t.goPackageName(def.File)
-					importPath := path.Dir(goFileName(def.File))
 					deps[pkg] = strconv.Quote(importPath)
 				}
 			}

@@ -217,4 +217,37 @@ _sym_db.RegisterMessage(ClientCompatMessage)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\014clientcompat'))
+
+_COMPATSERVICE = _descriptor.ServiceDescriptor(
+  name='CompatService',
+  full_name='twirp.clientcompat.CompatService',
+  file=DESCRIPTOR,
+  index=0,
+  options=None,
+  serialized_start=277,
+  serialized_end=421,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='Method',
+    full_name='twirp.clientcompat.CompatService.Method',
+    index=0,
+    containing_service=None,
+    input_type=_REQ,
+    output_type=_RESP,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='NoopMethod',
+    full_name='twirp.clientcompat.CompatService.NoopMethod',
+    index=1,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_EMPTY,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_COMPATSERVICE)
+
+DESCRIPTOR.services_by_name['CompatService'] = _COMPATSERVICE
+
 # @@protoc_insertion_point(module_scope)

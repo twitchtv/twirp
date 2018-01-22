@@ -121,4 +121,28 @@ _sym_db.RegisterMessage(Size)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\ttwirptest'))
+
+_HABERDASHER = _descriptor.ServiceDescriptor(
+  name='Haberdasher',
+  full_name='twirp.internal.twirptest.Haberdasher',
+  file=DESCRIPTOR,
+  index=0,
+  options=None,
+  serialized_start=117,
+  serialized_end=204,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='MakeHat',
+    full_name='twirp.internal.twirptest.Haberdasher.MakeHat',
+    index=0,
+    containing_service=None,
+    input_type=_SIZE,
+    output_type=_HAT,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_HABERDASHER)
+
+DESCRIPTOR.services_by_name['Haberdasher'] = _HABERDASHER
+
 # @@protoc_insertion_point(module_scope)

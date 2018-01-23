@@ -303,7 +303,7 @@ type TwirpServer interface {
 	http.Handler
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
-	// unmarshaled as a
+	// unmarshalled as a
 	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.
 	//
 	// The returned integer is the index of this particular service within that
@@ -444,7 +444,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 
 	if isHTTPRedirect(statusCode) {
 		// Unexpected redirect: it must be an error from an intermediary.
-		// Twirp clients dont't follow redirects automatically, Twirp only handles
+		// Twirp clients don't follow redirects automatically, Twirp only handles
 		// POST requests, redirects should only happen on GET and HEAD requests.
 		location := resp.Header.Get("Location")
 		msg := fmt.Sprintf("unexpected HTTP status code %d %q received, Location=%q", statusCode, statusText, location)

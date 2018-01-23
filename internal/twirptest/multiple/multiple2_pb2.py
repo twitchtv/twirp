@@ -70,8 +70,8 @@ _SVC2 = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=62,
-  serialized_end=158,
+  serialized_start=80,
+  serialized_end=284,
   methods=[
   _descriptor.MethodDescriptor(
     name='Send',
@@ -80,6 +80,15 @@ _SVC2 = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_MSG2,
     output_type=_MSG2,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='SamePackageProtoImport',
+    full_name='twirp.internal.twirptest.multiple.Svc2.SamePackageProtoImport',
+    index=1,
+    containing_service=None,
+    input_type=multiple1__pb2._MSG1,
+    output_type=multiple1__pb2._MSG1,
     options=None,
   ),
 ])

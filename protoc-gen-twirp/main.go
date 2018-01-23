@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/twitchtv/twirp/internal/gen"
+	"github.com/twitchtv/twirp/exp/gen"
 )
 
 func main() {

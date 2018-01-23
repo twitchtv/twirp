@@ -1036,7 +1036,7 @@ func TestReflection(t *testing.T) {
 	})
 	t.Run("ProtoGenTwirpVersion", func(t *testing.T) {
 		// Should match whatever is in the file at protoc-gen-twirp/version.go
-		file, err := ioutil.ReadFile("../gen/version.go")
+		file, err := ioutil.ReadFile("../../exp/gen/version.go")
 		if err != nil {
 			t.Fatalf("unable to load version file: %v", err)
 		}

@@ -780,10 +780,14 @@ func (t *twirp) generateJSONClient(file *descriptor.FileDescriptorProto, service
 
 	for _, method := range service.Method {
 		methName := methodName(method)
+		pkgName := pkgName(file)
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
 
 		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
 		t.P(`  url := c.urlBase + `, pathPrefixConst, ` + "`, methName, `"`)
 		t.P(`  out := new(`, outputType, `)`)
 		t.P(`  err := doJSONRequest(ctx, c.client, url, in, out)`)

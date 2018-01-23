@@ -84,6 +84,9 @@ func NewSvc1JSONClient(addr string, client *http.Client) Svc1 {
 }
 
 func (c *svc1JSONClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	url := c.urlBase + Svc1PathPrefix + "Send"
 	out := new(Msg1)
 	err := doJSONRequest(ctx, c.client, url, in, out)
@@ -304,7 +307,7 @@ type TwirpServer interface {
 	http.Handler
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
-	// unmarshaled as a
+	// unmarshalled as a
 	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.
 	//
 	// The returned integer is the index of this particular service within that
@@ -445,7 +448,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 
 	if isHTTPRedirect(statusCode) {
 		// Unexpected redirect: it must be an error from an intermediary.
-		// Twirp clients dont't follow redirects automatically, Twirp only handles
+		// Twirp clients don't follow redirects automatically, Twirp only handles
 		// POST requests, redirects should only happen on GET and HEAD requests.
 		location := resp.Header.Get("Location")
 		msg := fmt.Sprintf("unexpected HTTP status code %d %q received, Location=%q", statusCode, statusText, location)

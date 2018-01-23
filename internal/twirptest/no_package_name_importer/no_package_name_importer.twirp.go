@@ -82,6 +82,9 @@ func NewSvc2JSONClient(addr string, client *http.Client) Svc2 {
 }
 
 func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	url := c.urlBase + Svc2PathPrefix + "Method"
 	out := new(no_package_name.Msg)
 	err := doJSONRequest(ctx, c.client, url, in, out)
@@ -302,7 +305,7 @@ type TwirpServer interface {
 	http.Handler
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
-	// unmarshaled as a
+	// unmarshalled as a
 	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.
 	//
 	// The returned integer is the index of this particular service within that
@@ -312,16 +315,6 @@ type TwirpServer interface {
 	// ProtocGenTwirpVersion is the semantic version string of the version of
 	// twirp used to generate this file.
 	ProtocGenTwirpVersion() string
-}
-
-// done returns ctx.Err() if ctx.Done() indicates that the context done
-func done(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return nil
-	}
 }
 
 // WriteError writes an HTTP response with a valid Twirp error format.
@@ -453,7 +446,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 
 	if isHTTPRedirect(statusCode) {
 		// Unexpected redirect: it must be an error from an intermediary.
-		// Twirp clients dont't follow redirects automatically, Twirp only handles
+		// Twirp clients don't follow redirects automatically, Twirp only handles
 		// POST requests, redirects should only happen on GET and HEAD requests.
 		location := resp.Header.Get("Location")
 		msg := fmt.Sprintf("unexpected HTTP status code %d %q received, Location=%q", statusCode, statusText, location)
@@ -576,7 +569,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 		return clientError("failed to marshal proto request", err)
 	}
 	reqBody := bytes.NewBuffer(reqBodyBytes)
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -589,7 +582,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 		return clientError("failed to do request", err)
 	}
 	defer closebody(resp.Body)
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -601,7 +594,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 	if err != nil {
 		return clientError("failed to read response body", err)
 	}
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -619,7 +612,7 @@ func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out
 	if err = marshaler.Marshal(reqBody, in); err != nil {
 		return clientError("failed to marshal json request", err)
 	}
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -632,7 +625,7 @@ func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out
 		return clientError("failed to do request", err)
 	}
 	defer closebody(resp.Body)
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 
@@ -644,7 +637,7 @@ func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out
 	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
 		return clientError("failed to unmarshal json response", err)
 	}
-	if err = done(ctx); err != nil {
+	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
 	return nil

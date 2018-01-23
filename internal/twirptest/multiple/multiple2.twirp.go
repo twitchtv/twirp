@@ -29,15 +29,21 @@ type Svc2 interface {
 
 type svc2ProtobufClient struct {
 	urlBase string
-	client  *http.Client
+	client  HTTPClient
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
-func NewSvc2ProtobufClient(addr string, client *http.Client) Svc2 {
+func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
+	if httpClient, ok := client.(*http.Client); ok {
+		return &svc2ProtobufClient{
+			urlBase: urlBase(addr),
+			client:  withoutRedirects(httpClient),
+		}
+	}
 	return &svc2ProtobufClient{
 		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client:  client,
 	}
 }
 
@@ -54,15 +60,21 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) 
 
 type svc2JSONClient struct {
 	urlBase string
-	client  *http.Client
+	client  HTTPClient
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
-func NewSvc2JSONClient(addr string, client *http.Client) Svc2 {
+func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
+	if httpClient, ok := client.(*http.Client); ok {
+		return &svc2JSONClient{
+			urlBase: urlBase(addr),
+			client:  withoutRedirects(httpClient),
+		}
+	}
 	return &svc2JSONClient{
 		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client:  client,
 	}
 }
 

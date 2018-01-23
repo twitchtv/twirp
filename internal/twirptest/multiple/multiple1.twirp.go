@@ -46,15 +46,21 @@ type Svc1 interface {
 
 type svc1ProtobufClient struct {
 	urlBase string
-	client  *http.Client
+	client  HTTPClient
 }
 
 // NewSvc1ProtobufClient creates a Protobuf client that implements the Svc1 interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
-func NewSvc1ProtobufClient(addr string, client *http.Client) Svc1 {
+func NewSvc1ProtobufClient(addr string, client HTTPClient) Svc1 {
+	if httpClient, ok := client.(*http.Client); ok {
+		return &svc1ProtobufClient{
+			urlBase: urlBase(addr),
+			client:  withoutRedirects(httpClient),
+		}
+	}
 	return &svc1ProtobufClient{
 		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client:  client,
 	}
 }
 
@@ -71,15 +77,21 @@ func (c *svc1ProtobufClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) 
 
 type svc1JSONClient struct {
 	urlBase string
-	client  *http.Client
+	client  HTTPClient
 }
 
 // NewSvc1JSONClient creates a JSON client that implements the Svc1 interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
-func NewSvc1JSONClient(addr string, client *http.Client) Svc1 {
+func NewSvc1JSONClient(addr string, client HTTPClient) Svc1 {
+	if httpClient, ok := client.(*http.Client); ok {
+		return &svc1JSONClient{
+			urlBase: urlBase(addr),
+			client:  withoutRedirects(httpClient),
+		}
+	}
 	return &svc1JSONClient{
 		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client:  client,
 	}
 }
 
@@ -295,6 +307,18 @@ func (s *svc1Server) ProtocGenTwirpVersion() string {
 // =====
 // Utils
 // =====
+
+// HTTPClient is the interface used by generated clients to send HTTP requests.
+// It is fulfilled by *(net/http).Client, which is sufficient for most users.
+// Users can provide their own implementation for special retry policies.
+//
+// HTTPClient implementations should not follow redirects. Redirects are
+// automatically disabled if *(net/http).Client is passed to client
+// constructors. See the withoutRedirects function in this file for more
+// details.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
 
 // TwirpServer is the interface generated server structs will support: they're
 // HTTP handlers with additional methods for accessing metadata about the
@@ -571,7 +595,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtoRequest is common code to make a request to the remote twirp service.
-func doProtoRequest(ctx context.Context, client *http.Client, url string, in, out proto.Message) error {
+func doProtoRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
@@ -614,7 +638,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 }
 
 // doJSONRequest is common code to make a request to the remote twirp service.
-func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out proto.Message) error {
+func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}

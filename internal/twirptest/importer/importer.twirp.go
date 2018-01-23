@@ -46,23 +46,25 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	urlBase string
-	client  *http.Client
+	client *http.Client
+	urls   [1]string
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
 func NewSvc2ProtobufClient(addr string, client *http.Client) Svc2 {
+	prefix := urlBase(addr) + Svc2PathPrefix
 	return &svc2ProtobufClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: withoutRedirects(client),
+		urls: [1]string{
+			prefix + "Send",
+		},
 	}
 }
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	url := c.urlBase + Svc2PathPrefix + "Send"
 	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -71,23 +73,25 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 // ================
 
 type svc2JSONClient struct {
-	urlBase string
-	client  *http.Client
+	client *http.Client
+	urls   [1]string
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
 func NewSvc2JSONClient(addr string, client *http.Client) Svc2 {
+	prefix := urlBase(addr) + Svc2PathPrefix
 	return &svc2JSONClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: withoutRedirects(client),
+		urls: [1]string{
+			prefix + "Send",
+		},
 	}
 }
 
 func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	url := c.urlBase + Svc2PathPrefix + "Send"
 	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 

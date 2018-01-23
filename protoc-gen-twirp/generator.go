@@ -763,30 +763,35 @@ func (t *twirp) generateJSONClient(file *descriptor.FileDescriptorProto, service
 	structName := unexported(servName) + "JSONClient"
 	newJSONClientFunc := "New" + servName + "JSONClient"
 
+	methCnt := strconv.Itoa(len(service.Method))
 	t.P(`type `, structName, ` struct {`)
-	t.P(`  urlBase string`)
 	t.P(`  client *`, t.pkgs["http"], `.Client`)
+	t.P(`  urls    [`, methCnt, `]string`)
 	t.P(`}`)
 	t.P()
 	t.P(`// `, newJSONClientFunc, ` creates a JSON client that implements the `, servName, ` interface.`)
 	t.P(`// It communicates using JSON requests and responses instead of protobuf messages.`)
 	t.P(`func `, newJSONClientFunc, `(addr string, client *`, t.pkgs["http"], `.Client) `, servName, ` {`)
+	t.P(`  prefix := urlBase(addr) + `, pathPrefixConst)
 	t.P(`  return &`, structName, `{`)
-	t.P(`    urlBase: urlBase(addr),`)
 	t.P(`    client:  withoutRedirects(client),`)
+	t.P(`    urls:  [`, methCnt, `]string{`)
+	for _, method := range service.Method {
+		t.P(`    	prefix + "`, methodName(method), `",`)
+	}
+	t.P(`    },`)
 	t.P(`  }`)
 	t.P(`}`)
 	t.P()
 
-	for _, method := range service.Method {
+	for i, method := range service.Method {
 		methName := methodName(method)
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
 
 		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
-		t.P(`  url := c.urlBase + `, pathPrefixConst, ` + "`, methName, `"`)
 		t.P(`  out := new(`, outputType, `)`)
-		t.P(`  err := doJSONRequest(ctx, c.client, url, in, out)`)
+		t.P(`  err := doJSONRequest(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
 		t.P(`  return out, err`)
 		t.P(`}`)
 		t.P()
@@ -799,30 +804,35 @@ func (t *twirp) generateProtobufClient(file *descriptor.FileDescriptorProto, ser
 	structName := unexported(servName) + "ProtobufClient"
 	newProtobufClientFunc := "New" + servName + "ProtobufClient"
 
+	methCnt := strconv.Itoa(len(service.Method))
 	t.P(`type `, structName, ` struct {`)
-	t.P(`  urlBase string`)
 	t.P(`  client *`, t.pkgs["http"], `.Client`)
+	t.P(`  urls    [`, methCnt, `]string`)
 	t.P(`}`)
 	t.P()
 	t.P(`// `, newProtobufClientFunc, ` creates a Protobuf client that implements the `, servName, ` interface.`)
 	t.P(`// It communicates using protobuf messages and can be configured with a custom http.Client.`)
 	t.P(`func `, newProtobufClientFunc, `(addr string, client *`, t.pkgs["http"], `.Client) `, servName, ` {`)
+	t.P(`  prefix := urlBase(addr) + `, pathPrefixConst)
 	t.P(`  return &`, structName, `{`)
-	t.P(`    urlBase: urlBase(addr),`)
 	t.P(`    client:  withoutRedirects(client),`)
+	t.P(`    urls:  [`, methCnt, `]string{`)
+	for _, method := range service.Method {
+		t.P(`    	prefix + "`, methodName(method), `",`)
+	}
+	t.P(`    },`)
 	t.P(`  }`)
 	t.P(`}`)
 	t.P()
 
-	for _, method := range service.Method {
+	for i, method := range service.Method {
 		methName := methodName(method)
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
 
 		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
-		t.P(`  url := c.urlBase + `, pathPrefixConst, ` + "`, methName, `"`)
 		t.P(`  out := new(`, outputType, `)`)
-		t.P(`  err := doProtoRequest(ctx, c.client, url, in, out)`)
+		t.P(`  err := doProtoRequest(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
 		t.P(`  return out, err`)
 		t.P(`}`)
 		t.P()

@@ -41,23 +41,25 @@ type Svc interface {
 // ===================
 
 type svcProtobufClient struct {
-	urlBase string
-	client  *http.Client
+	client *http.Client
+	urls   [1]string
 }
 
 // NewSvcProtobufClient creates a Protobuf client that implements the Svc interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
 func NewSvcProtobufClient(addr string, client *http.Client) Svc {
+	prefix := urlBase(addr) + SvcPathPrefix
 	return &svcProtobufClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: withoutRedirects(client),
+		urls: [1]string{
+			prefix + "Send",
+		},
 	}
 }
 
 func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
-	url := c.urlBase + SvcPathPrefix + "Send"
 	out := new(Msg)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -66,23 +68,25 @@ func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 // ===============
 
 type svcJSONClient struct {
-	urlBase string
-	client  *http.Client
+	client *http.Client
+	urls   [1]string
 }
 
 // NewSvcJSONClient creates a JSON client that implements the Svc interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
 func NewSvcJSONClient(addr string, client *http.Client) Svc {
+	prefix := urlBase(addr) + SvcPathPrefix
 	return &svcJSONClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: withoutRedirects(client),
+		urls: [1]string{
+			prefix + "Send",
+		},
 	}
 }
 
 func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
-	url := c.urlBase + SvcPathPrefix + "Send"
 	out := new(Msg)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 

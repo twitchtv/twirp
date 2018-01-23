@@ -43,23 +43,25 @@ type Haberdasher interface {
 // ===========================
 
 type haberdasherProtobufClient struct {
-	urlBase string
-	client  *http.Client
+	client *http.Client
+	urls   [1]string
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
 func NewHaberdasherProtobufClient(addr string, client *http.Client) Haberdasher {
+	prefix := urlBase(addr) + HaberdasherPathPrefix
 	return &haberdasherProtobufClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: withoutRedirects(client),
+		urls: [1]string{
+			prefix + "MakeHat",
+		},
 	}
 }
 
 func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
-	url := c.urlBase + HaberdasherPathPrefix + "MakeHat"
 	out := new(Hat)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -68,23 +70,25 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 // =======================
 
 type haberdasherJSONClient struct {
-	urlBase string
-	client  *http.Client
+	client *http.Client
+	urls   [1]string
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
 func NewHaberdasherJSONClient(addr string, client *http.Client) Haberdasher {
+	prefix := urlBase(addr) + HaberdasherPathPrefix
 	return &haberdasherJSONClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: withoutRedirects(client),
+		urls: [1]string{
+			prefix + "MakeHat",
+		},
 	}
 }
 
 func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
-	url := c.urlBase + HaberdasherPathPrefix + "MakeHat"
 	out := new(Hat)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 

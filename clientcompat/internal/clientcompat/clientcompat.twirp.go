@@ -43,36 +43,39 @@ type CompatService interface {
 // =============================
 
 type compatServiceProtobufClient struct {
-	urlBase string
-	client  HTTPClient
+	client HTTPClient
+	urls   [2]string
 }
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
 func NewCompatServiceProtobufClient(addr string, client HTTPClient) CompatService {
+	prefix := urlBase(addr) + CompatServicePathPrefix
+	urls := [2]string{
+		prefix + "Method",
+		prefix + "NoopMethod",
+	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &compatServiceProtobufClient{
-			urlBase: urlBase(addr),
-			client:  withoutRedirects(httpClient),
+			client: withoutRedirects(httpClient),
+			urls:   urls,
 		}
 	}
 	return &compatServiceProtobufClient{
-		urlBase: urlBase(addr),
-		client:  client,
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Resp, error) {
-	url := c.urlBase + CompatServicePathPrefix + "Method"
 	out := new(Resp)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
 func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
-	url := c.urlBase + CompatServicePathPrefix + "NoopMethod"
 	out := new(Empty)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 
@@ -81,36 +84,39 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 // =========================
 
 type compatServiceJSONClient struct {
-	urlBase string
-	client  HTTPClient
+	client HTTPClient
+	urls   [2]string
 }
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
 func NewCompatServiceJSONClient(addr string, client HTTPClient) CompatService {
+	prefix := urlBase(addr) + CompatServicePathPrefix
+	urls := [2]string{
+		prefix + "Method",
+		prefix + "NoopMethod",
+	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &compatServiceJSONClient{
-			urlBase: urlBase(addr),
-			client:  withoutRedirects(httpClient),
+			client: withoutRedirects(httpClient),
+			urls:   urls,
 		}
 	}
 	return &compatServiceJSONClient{
-		urlBase: urlBase(addr),
-		client:  client,
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, error) {
-	url := c.urlBase + CompatServicePathPrefix + "Method"
 	out := new(Resp)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
 func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
-	url := c.urlBase + CompatServicePathPrefix + "NoopMethod"
 	out := new(Empty)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 

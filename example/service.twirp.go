@@ -43,29 +43,32 @@ type Haberdasher interface {
 // ===========================
 
 type haberdasherProtobufClient struct {
-	urlBase string
-	client  HTTPClient
+	client HTTPClient
+	urls   [1]string
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
 func NewHaberdasherProtobufClient(addr string, client HTTPClient) Haberdasher {
+	prefix := urlBase(addr) + HaberdasherPathPrefix
+	urls := [1]string{
+		prefix + "MakeHat",
+	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &haberdasherProtobufClient{
-			urlBase: urlBase(addr),
-			client:  withoutRedirects(httpClient),
+			client: withoutRedirects(httpClient),
+			urls:   urls,
 		}
 	}
 	return &haberdasherProtobufClient{
-		urlBase: urlBase(addr),
-		client:  client,
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
-	url := c.urlBase + HaberdasherPathPrefix + "MakeHat"
 	out := new(Hat)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -74,29 +77,32 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 // =======================
 
 type haberdasherJSONClient struct {
-	urlBase string
-	client  HTTPClient
+	client HTTPClient
+	urls   [1]string
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
 func NewHaberdasherJSONClient(addr string, client HTTPClient) Haberdasher {
+	prefix := urlBase(addr) + HaberdasherPathPrefix
+	urls := [1]string{
+		prefix + "MakeHat",
+	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &haberdasherJSONClient{
-			urlBase: urlBase(addr),
-			client:  withoutRedirects(httpClient),
+			client: withoutRedirects(httpClient),
+			urls:   urls,
 		}
 	}
 	return &haberdasherJSONClient{
-		urlBase: urlBase(addr),
-		client:  client,
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
-	url := c.urlBase + HaberdasherPathPrefix + "MakeHat"
 	out := new(Hat)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 

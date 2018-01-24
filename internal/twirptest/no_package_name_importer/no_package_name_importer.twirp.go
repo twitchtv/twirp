@@ -43,23 +43,32 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	urlBase string
-	client  *http.Client
+	client HTTPClient
+	urls   [1]string
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
-func NewSvc2ProtobufClient(addr string, client *http.Client) Svc2 {
+func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
+	prefix := urlBase(addr) + Svc2PathPrefix
+	urls := [1]string{
+		prefix + "Method",
+	}
+	if httpClient, ok := client.(*http.Client); ok {
+		return &svc2ProtobufClient{
+			client: withoutRedirects(httpClient),
+			urls:   urls,
+		}
+	}
 	return &svc2ProtobufClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
-	url := c.urlBase + Svc2PathPrefix + "Method"
 	out := new(no_package_name.Msg)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -68,23 +77,32 @@ func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg
 // ================
 
 type svc2JSONClient struct {
-	urlBase string
-	client  *http.Client
+	client HTTPClient
+	urls   [1]string
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
-func NewSvc2JSONClient(addr string, client *http.Client) Svc2 {
+func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
+	prefix := urlBase(addr) + Svc2PathPrefix
+	urls := [1]string{
+		prefix + "Method",
+	}
+	if httpClient, ok := client.(*http.Client); ok {
+		return &svc2JSONClient{
+			client: withoutRedirects(httpClient),
+			urls:   urls,
+		}
+	}
 	return &svc2JSONClient{
-		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
-	url := c.urlBase + Svc2PathPrefix + "Method"
 	out := new(no_package_name.Msg)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -293,6 +311,18 @@ func (s *svc2Server) ProtocGenTwirpVersion() string {
 // =====
 // Utils
 // =====
+
+// HTTPClient is the interface used by generated clients to send HTTP requests.
+// It is fulfilled by *(net/http).Client, which is sufficient for most users.
+// Users can provide their own implementation for special retry policies.
+//
+// HTTPClient implementations should not follow redirects. Redirects are
+// automatically disabled if *(net/http).Client is passed to client
+// constructors. See the withoutRedirects function in this file for more
+// details.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
 
 // TwirpServer is the interface generated server structs will support: they're
 // HTTP handlers with additional methods for accessing metadata about the
@@ -559,7 +589,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtoRequest is common code to make a request to the remote twirp service.
-func doProtoRequest(ctx context.Context, client *http.Client, url string, in, out proto.Message) error {
+func doProtoRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
@@ -602,7 +632,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 }
 
 // doJSONRequest is common code to make a request to the remote twirp service.
-func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out proto.Message) error {
+func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}

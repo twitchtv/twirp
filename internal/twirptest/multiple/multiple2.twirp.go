@@ -30,36 +30,39 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	urlBase string
-	client  HTTPClient
+	client HTTPClient
+	urls   [2]string
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
 func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
+	prefix := urlBase(addr) + Svc2PathPrefix
+	urls := [2]string{
+		prefix + "Send",
+		prefix + "SamePackageProtoImport",
+	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &svc2ProtobufClient{
-			urlBase: urlBase(addr),
-			client:  withoutRedirects(httpClient),
+			client: withoutRedirects(httpClient),
+			urls:   urls,
 		}
 	}
 	return &svc2ProtobufClient{
-		urlBase: urlBase(addr),
-		client:  client,
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
-	url := c.urlBase + Svc2PathPrefix + "Send"
 	out := new(Msg2)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
 func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
-	url := c.urlBase + Svc2PathPrefix + "SamePackageProtoImport"
 	out := new(Msg1)
-	err := doProtoRequest(ctx, c.client, url, in, out)
+	err := doProtoRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 
@@ -68,36 +71,39 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 // ================
 
 type svc2JSONClient struct {
-	urlBase string
-	client  HTTPClient
+	client HTTPClient
+	urls   [2]string
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
 func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
+	prefix := urlBase(addr) + Svc2PathPrefix
+	urls := [2]string{
+		prefix + "Send",
+		prefix + "SamePackageProtoImport",
+	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &svc2JSONClient{
-			urlBase: urlBase(addr),
-			client:  withoutRedirects(httpClient),
+			client: withoutRedirects(httpClient),
+			urls:   urls,
 		}
 	}
 	return &svc2JSONClient{
-		urlBase: urlBase(addr),
-		client:  client,
+		client: client,
+		urls:   urls,
 	}
 }
 
 func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
-	url := c.urlBase + Svc2PathPrefix + "Send"
 	out := new(Msg2)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
 func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
-	url := c.urlBase + Svc2PathPrefix + "SamePackageProtoImport"
 	out := new(Msg1)
-	err := doJSONRequest(ctx, c.client, url, in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 

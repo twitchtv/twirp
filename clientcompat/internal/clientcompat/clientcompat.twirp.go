@@ -44,15 +44,21 @@ type CompatService interface {
 
 type compatServiceProtobufClient struct {
 	urlBase string
-	client  *http.Client
+	client  HTTPClient
 }
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
 // It communicates using protobuf messages and can be configured with a custom http.Client.
-func NewCompatServiceProtobufClient(addr string, client *http.Client) CompatService {
+func NewCompatServiceProtobufClient(addr string, client HTTPClient) CompatService {
+	if httpClient, ok := client.(*http.Client); ok {
+		return &compatServiceProtobufClient{
+			urlBase: urlBase(addr),
+			client:  withoutRedirects(httpClient),
+		}
+	}
 	return &compatServiceProtobufClient{
 		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client:  client,
 	}
 }
 
@@ -76,15 +82,21 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 
 type compatServiceJSONClient struct {
 	urlBase string
-	client  *http.Client
+	client  HTTPClient
 }
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
 // It communicates using JSON requests and responses instead of protobuf messages.
-func NewCompatServiceJSONClient(addr string, client *http.Client) CompatService {
+func NewCompatServiceJSONClient(addr string, client HTTPClient) CompatService {
+	if httpClient, ok := client.(*http.Client); ok {
+		return &compatServiceJSONClient{
+			urlBase: urlBase(addr),
+			client:  withoutRedirects(httpClient),
+		}
+	}
 	return &compatServiceJSONClient{
 		urlBase: urlBase(addr),
-		client:  withoutRedirects(client),
+		client:  client,
 	}
 }
 
@@ -446,6 +458,18 @@ func (s *compatServiceServer) ProtocGenTwirpVersion() string {
 // Utils
 // =====
 
+// HTTPClient is the interface used by generated clients to send HTTP requests.
+// It is fulfilled by *(net/http).Client, which is sufficient for most users.
+// Users can provide their own implementation for special retry policies.
+//
+// HTTPClient implementations should not follow redirects. Redirects are
+// automatically disabled if *(net/http).Client is passed to client
+// constructors. See the withoutRedirects function in this file for more
+// details.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // TwirpServer is the interface generated server structs will support: they're
 // HTTP handlers with additional methods for accessing metadata about the
 // service. Those accessors are a low-level API for building reflection tools.
@@ -711,7 +735,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtoRequest is common code to make a request to the remote twirp service.
-func doProtoRequest(ctx context.Context, client *http.Client, url string, in, out proto.Message) error {
+func doProtoRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
@@ -754,7 +778,7 @@ func doProtoRequest(ctx context.Context, client *http.Client, url string, in, ou
 }
 
 // doJSONRequest is common code to make a request to the remote twirp service.
-func doJSONRequest(ctx context.Context, client *http.Client, url string, in, out proto.Message) error {
+func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}

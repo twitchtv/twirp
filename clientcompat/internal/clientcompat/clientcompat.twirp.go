@@ -48,7 +48,7 @@ type compatServiceProtobufClient struct {
 }
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
-// It communicates using protobuf messages and can be configured with a custom http.Client.
+// It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewCompatServiceProtobufClient(addr string, client HTTPClient) CompatService {
 	prefix := urlBase(addr) + CompatServicePathPrefix
 	urls := [2]string{
@@ -69,13 +69,13 @@ func NewCompatServiceProtobufClient(addr string, client HTTPClient) CompatServic
 
 func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Resp, error) {
 	out := new(Resp)
-	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
 func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
 	out := new(Empty)
-	err := doProtoRequest(ctx, c.client, c.urls[1], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 
@@ -89,7 +89,7 @@ type compatServiceJSONClient struct {
 }
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
-// It communicates using JSON requests and responses instead of protobuf messages.
+// It communicates using JSON and can be configured with a custom HTTPClient.
 func NewCompatServiceJSONClient(addr string, client HTTPClient) CompatService {
 	prefix := urlBase(addr) + CompatServicePathPrefix
 	urls := [2]string{
@@ -740,8 +740,8 @@ func withoutRedirects(in *http.Client) *http.Client {
 	return &copy
 }
 
-// doProtoRequest is common code to make a request to the remote twirp service.
-func doProtoRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
+// doProtobufRequest is common code to make a request to the remote twirp service.
+func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {

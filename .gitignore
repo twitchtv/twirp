@@ -5,5 +5,3 @@ clientcompat/pycompat/ENV
 *.pyc
 
 build
-
-vendor

@@ -51,7 +51,7 @@ type svc2ProtobufClient struct {
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
-// It communicates using protobuf messages and can be configured with a custom http.Client.
+// It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [1]string{
@@ -71,7 +71,7 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
 	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -85,7 +85,7 @@ type svc2JSONClient struct {
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
-// It communicates using JSON requests and responses instead of protobuf messages.
+// It communicates using JSON and can be configured with a custom HTTPClient.
 func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [1]string{
@@ -591,8 +591,8 @@ func withoutRedirects(in *http.Client) *http.Client {
 	return &copy
 }
 
-// doProtoRequest is common code to make a request to the remote twirp service.
-func doProtoRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
+// doProtobufRequest is common code to make a request to the remote twirp service.
+func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {

@@ -35,7 +35,7 @@ type svc2ProtobufClient struct {
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
-// It communicates using protobuf messages and can be configured with a custom http.Client.
+// It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [2]string{
@@ -56,13 +56,13 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
 	out := new(Msg2)
-	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
 func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
 	out := new(Msg1)
-	err := doProtoRequest(ctx, c.client, c.urls[1], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 
@@ -76,7 +76,7 @@ type svc2JSONClient struct {
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
-// It communicates using JSON requests and responses instead of protobuf messages.
+// It communicates using JSON and can be configured with a custom HTTPClient.
 func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [2]string{

@@ -48,7 +48,7 @@ type haberdasherProtobufClient struct {
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
-// It communicates using protobuf messages and can be configured with a custom http.Client.
+// It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewHaberdasherProtobufClient(addr string, client HTTPClient) Haberdasher {
 	prefix := urlBase(addr) + HaberdasherPathPrefix
 	urls := [1]string{
@@ -68,7 +68,7 @@ func NewHaberdasherProtobufClient(addr string, client HTTPClient) Haberdasher {
 
 func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
 	out := new(Hat)
-	err := doProtoRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
 }
 
@@ -82,7 +82,7 @@ type haberdasherJSONClient struct {
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
-// It communicates using JSON requests and responses instead of protobuf messages.
+// It communicates using JSON and can be configured with a custom HTTPClient.
 func NewHaberdasherJSONClient(addr string, client HTTPClient) Haberdasher {
 	prefix := urlBase(addr) + HaberdasherPathPrefix
 	urls := [1]string{
@@ -588,8 +588,8 @@ func withoutRedirects(in *http.Client) *http.Client {
 	return &copy
 }
 
-// doProtoRequest is common code to make a request to the remote twirp service.
-func doProtoRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
+// doProtobufRequest is common code to make a request to the remote twirp service.
+func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
 	var err error
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {

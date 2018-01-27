@@ -412,13 +412,11 @@ func getCustomHTTPReqHeaders(ctx context.Context) http.Header {
 	return copied
 }
 
-// closebody closes a response or request body and just logs
-// any error encountered while closing, since errors are
-// considered very unusual.
+// closebody closes a response body and ignores any error encountered
+// encountered while closing, intended for use in defers to avoid leaks.
 func closebody(body io.Closer) {
-	if err := body.Close(); err != nil {
-		log.Printf("error closing body: %q", err)
-	}
+	err := body.Close()
+	_ = err // silly, but silences errcheck -blank
 }
 
 // newRequest makes an http.Request from a client, adding common headers.
@@ -628,6 +626,10 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 		return clientError("aborted because context was done", err)
 	}
 
+	if err = resp.Body.Close(); err != nil {
+		return clientError("failed to close response body", err)
+	}
+
 	if err = proto.Unmarshal(respBodyBytes, out); err != nil {
 		return clientError("failed to unmarshal proto response", err)
 	}
@@ -669,6 +671,9 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 	}
 	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
+	}
+	if err = resp.Body.Close(); err != nil {
+		return clientError("failed to close response body", err)
 	}
 	return nil
 }

@@ -243,6 +243,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 		return
 	}
 	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
+	t.P(`import `, t.pkgs["strings"], ` "strings"`)
 	t.P(`import `, t.pkgs["context"], ` "context"`)
 	t.P(`import `, t.pkgs["fmt"], ` "fmt"`)
 	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
@@ -923,10 +924,11 @@ func (t *twirp) generateServerMethod(service *descriptor.ServiceDescriptorProto,
 	methName := stringutils.CamelCase(method.GetName())
 	servStruct := serviceStruct(service)
 	t.P(`func (s *`, servStruct, `) serve`, methName, `(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
-	t.P(`  switch req.Header.Get("Content-Type") {`)
-	t.P(`  case "application/json":`)
+	t.P(`  header := req.Header.Get("Content-Type")`)
+	t.P(`  switch {`)
+	t.P(`  case strings.HasPrefix(header, "application/json"):`)
 	t.P(`    s.serve`, methName, `JSON(ctx, resp, req)`)
-	t.P(`  case "application/protobuf":`)
+	t.P(`  case strings.HasPrefix(header, "application/protobuf"):`)
 	t.P(`    s.serve`, methName, `Protobuf(ctx, resp, req)`)
 	t.P(`  default:`)
 	t.P(`    msg := `, t.pkgs["fmt"], `.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))`)

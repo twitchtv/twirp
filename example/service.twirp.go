@@ -11,6 +11,7 @@ It is generated from these files:
 package example
 
 import bytes "bytes"
+import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -166,10 +167,11 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 }
 
 func (s *haberdasherServer) serveMakeHat(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
+	header := req.Header.Get("Content-Type")
+	switch {
+	case strings.HasPrefix(header, "application/json"):
 		s.serveMakeHatJSON(ctx, resp, req)
-	case "application/protobuf":
+	case strings.HasPrefix(header, "application/protobuf"):
 		s.serveMakeHatProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))

@@ -14,6 +14,7 @@ It is generated from these files:
 package importer
 
 import bytes "bytes"
+import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -169,10 +170,11 @@ func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (s *svc2Server) serveSend(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
+	header := req.Header.Get("Content-Type")
+	switch {
+	case strings.HasPrefix(header, "application/json"):
 		s.serveSendJSON(ctx, resp, req)
-	case "application/protobuf":
+	case strings.HasPrefix(header, "application/protobuf"):
 		s.serveSendProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))

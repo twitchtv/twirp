@@ -11,6 +11,7 @@ It is generated from these files:
 package clientcompat
 
 import bytes "bytes"
+import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -183,10 +184,11 @@ func (s *compatServiceServer) ServeHTTP(resp http.ResponseWriter, req *http.Requ
 }
 
 func (s *compatServiceServer) serveMethod(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
+	header := req.Header.Get("Content-Type")
+	switch {
+	case strings.HasPrefix(header, "application/json"):
 		s.serveMethodJSON(ctx, resp, req)
-	case "application/protobuf":
+	case strings.HasPrefix(header, "application/protobuf"):
 		s.serveMethodProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
@@ -318,10 +320,11 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 }
 
 func (s *compatServiceServer) serveNoopMethod(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
+	header := req.Header.Get("Content-Type")
+	switch {
+	case strings.HasPrefix(header, "application/json"):
 		s.serveNoopMethodJSON(ctx, resp, req)
-	case "application/protobuf":
+	case strings.HasPrefix(header, "application/protobuf"):
 		s.serveNoopMethodProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))

@@ -4,6 +4,7 @@
 package multiple
 
 import bytes "bytes"
+import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -170,10 +171,11 @@ func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (s *svc2Server) serveSend(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
+	header := req.Header.Get("Content-Type")
+	switch {
+	case strings.HasPrefix(header, "application/json"):
 		s.serveSendJSON(ctx, resp, req)
-	case "application/protobuf":
+	case strings.HasPrefix(header, "application/protobuf"):
 		s.serveSendProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
@@ -305,10 +307,11 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 }
 
 func (s *svc2Server) serveSamePackageProtoImport(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
+	header := req.Header.Get("Content-Type")
+	switch {
+	case strings.HasPrefix(header, "application/json"):
 		s.serveSamePackageProtoImportJSON(ctx, resp, req)
-	case "application/protobuf":
+	case strings.HasPrefix(header, "application/protobuf"):
 		s.serveSamePackageProtoImportProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))

@@ -1,4 +1,4 @@
-![Twirp Logo](./logo.png) [![Build Status](https://travis-ci.org/twitchtv/twirp.svg?branch=master)](https://travis-ci.org/twitchtv/twirp) [![Go Report Card](https://goreportcard.com/badge/github.com/twitchtv/twirp)](https://goreportcard.com/report/github.com/twitchtv/twirp)
+![Twirp Logo](./logo.png) [![Build Status](https://travis-ci.org/twitchtv/twirp.svg?branch=master)](https://travis-ci.org/twitchtv/twirp) [![Go Report Card](https://goreportcard.com/badge/github.com/twitchtv/twirp)](https://goreportcard.com/report/github.com/twitchtv/twirp) [![GoDoc](https://godoc.org/github.com/twitchtv/twirp?status.svg)](https://godoc.org/github.com/twitchtv/twirp)
 
 ---
 
@@ -44,6 +44,23 @@ You will also need:
 
 ### Documentation
 Thorough documentation is [on the wiki](https://github.com/twitchtv/twirp/wiki).
+
+### Implementations in other languages
+
+This repo only has the official generators, which write out Go and Python code.
+For other languages, there are third-party generators available:
+
+|    Language    | Repository |
+|----------------|------------|
+| **Java**       | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
+| **JavaScript** | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
+| **JavaScript** | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
+| **Lua**        | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_eclier](https://github.com/Xe/twirp-codegens)
+| **Ruby**       | [github.com/gaffneyc/protoc-gen-twirp_ruby](https://github.com/gaffneyc/protoc-gen-twirp_ruby)
+| **Swagger**    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
+
+This list isn't an endorsement, it's just a convenience to help you find stuff
+for your language.
 
 ### Support and Community
 We have a channel on the Gophers slack, [#twirp](https://gophers.slack.com/messages/twirp),

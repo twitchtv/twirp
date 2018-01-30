@@ -93,7 +93,7 @@ func TestClientSetsRequestContext(t *testing.T) {
 
 // If a server returns a 3xx response, give a clear error message
 func TestClientRedirectError(t *testing.T) {
-	testcase := func(code int, clientMaker func(string, *http.Client) Haberdasher) func(*testing.T) {
+	testcase := func(code int, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that redirects all requests
 			redirecter := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +150,7 @@ func TestClientRedirectError(t *testing.T) {
 }
 
 func TestClientIntermediaryErrors(t *testing.T) {
-	testcase := func(code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, *http.Client) Haberdasher) func(*testing.T) {
+	testcase := func(code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that returns invalid twirp error responses,
 			// simulating a network intermediary.
@@ -282,6 +282,47 @@ func TestClientErrorsCanBeCaused(t *testing.T) {
 	}
 }
 
+func TestCustomHTTPClientInterface(t *testing.T) {
+	// Start up a server just so we can make a working client later.
+	h := PickyHatmaker(1)
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+
+	// Create a custom wrapper to wrap our default client
+	httpClient := &wrappedHTTPClient{
+		client:    http.DefaultClient,
+		wasCalled: false,
+	}
+
+	// Test the JSON client and the Protobuf client with a custom http.Client interface
+	client := NewHaberdasherJSONClient(s.URL, httpClient)
+
+	_, err := client.MakeHat(context.Background(), &Size{1})
+	if err != nil {
+		t.Errorf("MakeHat err=%s", err)
+	}
+
+	// Check if the Do function within the http.Client wrapper gets actually called
+	if !httpClient.wasCalled {
+		t.Errorf("HTTPClient.Do function was not called within the JSONClient")
+	}
+
+	// Reset bool for second test
+	httpClient.wasCalled = false
+
+	client = NewHaberdasherProtobufClient(s.URL, httpClient)
+
+	_, err = client.MakeHat(context.Background(), &Size{1})
+	if err != nil {
+		t.Errorf("MakeHat err=%s", err)
+	}
+
+	// Check if the Do function within the http.Client wrapper gets actually called
+	if !httpClient.wasCalled {
+		t.Errorf("HTTPClient.Do function was not called within the ProtobufClient")
+	}
+}
+
 // failingTransport is a http.RoundTripper which always returns an error.
 type failingTransport struct {
 	err error // the error to return
@@ -298,4 +339,15 @@ func errCause(err error) error {
 		cause = uerr.Err
 	}
 	return cause
+}
+
+// wrappedHTTPClient implements HTTPClient, but can be inspected during tests.
+type wrappedHTTPClient struct {
+	client    *http.Client
+	wasCalled bool
+}
+
+func (c *wrappedHTTPClient) Do(req *http.Request) (resp *http.Response, err error) {
+	c.wasCalled = true
+	return c.client.Do(req)
 }

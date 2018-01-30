@@ -561,8 +561,9 @@ func getCustomHTTPReqHeaders(ctx context.Context) http.Header {
 	return copied
 }
 
-// closebody closes a response body and ignores any error encountered
-// encountered while closing, intended for use in defers to avoid leaks.
+// closebody closes a response or request body and just logs
+// any error encountered while closing, since errors are
+// considered very unusual.
 func closebody(body io.Closer) {
 	if err := body.Close(); err != nil {
 		log.Printf("error closing body: %q", err)

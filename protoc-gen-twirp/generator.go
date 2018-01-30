@@ -397,8 +397,9 @@ func (t *twirp) generateUtils() {
 	t.P(`}`)
 	t.P()
 
-	t.P(`// closebody closes a response body and ignores any error encountered`)
-	t.P(`// encountered while closing, intended for use in defers to avoid leaks.`)
+	t.P(`// closebody closes a response or request body and just logs`)
+	t.P(`// any error encountered while closing, since errors are`)
+	t.P(`// considered very unusual.`)
 	t.P(`func closebody(body io.Closer) {`)
 	t.P(`  if err := body.Close(); err != nil {`)
 	t.P(`    log.Printf("error closing body: %q", err)`)

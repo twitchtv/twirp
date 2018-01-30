@@ -414,8 +414,9 @@ func getCustomHTTPReqHeaders(ctx context.Context) http.Header {
 // closebody closes a response body and ignores any error encountered
 // encountered while closing, intended for use in defers to avoid leaks.
 func closebody(body io.Closer) {
-	err := body.Close()
-	_ = err // silly, but silences errcheck -blank
+	if err := body.Close(); err != nil {
+		log.Printf("error closing body: %q", err)
+	}
 }
 
 // newRequest makes an http.Request from a client, adding common headers.
@@ -589,8 +590,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtobufRequest is common code to make a request to the remote twirp service.
-func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
-	var err error
+func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
 		return clientError("failed to marshal proto request", err)
@@ -608,7 +608,14 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 	if err != nil {
 		return clientError("failed to do request", err)
 	}
-	defer closebody(resp.Body)
+
+	defer func() {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = clientError("failed to close response body", cerr)
+		}
+	}()
+
 	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
@@ -625,10 +632,6 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 		return clientError("aborted because context was done", err)
 	}
 
-	if err = resp.Body.Close(); err != nil {
-		return clientError("failed to close response body", err)
-	}
-
 	if err = proto.Unmarshal(respBodyBytes, out); err != nil {
 		return clientError("failed to unmarshal proto response", err)
 	}
@@ -636,8 +639,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 }
 
 // doJSONRequest is common code to make a request to the remote twirp service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
-	var err error
+func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(reqBody, in); err != nil {
@@ -655,7 +657,14 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 	if err != nil {
 		return clientError("failed to do request", err)
 	}
-	defer closebody(resp.Body)
+
+	defer func() {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = clientError("failed to close response body", cerr)
+		}
+	}()
+
 	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
@@ -670,9 +679,6 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 	}
 	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
-	}
-	if err = resp.Body.Close(); err != nil {
-		return clientError("failed to close response body", err)
 	}
 	return nil
 }

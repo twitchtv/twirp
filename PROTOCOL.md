@@ -129,7 +129,7 @@ message HelloResponse {
 **Proto Request**
 
 ```
-POST /twirp/Echo/Hello HTTP/1.1
+POST /twirp.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/x-protobuf
 Content-Length: 15
@@ -140,7 +140,7 @@ Content-Length: 15
 **JSON Request**
 
 ```
-POST /twirp/Echo/Hello HTTP/1.1
+POST /twirp.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/json
 Content-Length: 27

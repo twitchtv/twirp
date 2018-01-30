@@ -168,10 +168,14 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 
 func (s *haberdasherServer) serveMakeHat(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
-	switch {
-	case strings.HasPrefix(header, "application/json"):
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
 		s.serveMakeHatJSON(ctx, resp, req)
-	case strings.HasPrefix(header, "application/protobuf"):
+	case "application/protobuf":
 		s.serveMakeHatProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))

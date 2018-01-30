@@ -185,10 +185,14 @@ func (s *compatServiceServer) ServeHTTP(resp http.ResponseWriter, req *http.Requ
 
 func (s *compatServiceServer) serveMethod(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
-	switch {
-	case strings.HasPrefix(header, "application/json"):
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
 		s.serveMethodJSON(ctx, resp, req)
-	case strings.HasPrefix(header, "application/protobuf"):
+	case "application/protobuf":
 		s.serveMethodProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
@@ -321,10 +325,14 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 
 func (s *compatServiceServer) serveNoopMethod(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
-	switch {
-	case strings.HasPrefix(header, "application/json"):
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
 		s.serveNoopMethodJSON(ctx, resp, req)
-	case strings.HasPrefix(header, "application/protobuf"):
+	case "application/protobuf":
 		s.serveNoopMethodProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))

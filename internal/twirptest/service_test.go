@@ -112,6 +112,50 @@ func TestServeProtobuf(t *testing.T) {
 	}
 }
 
+type contentTypeOverriderClient struct {
+	contentType string
+	base HTTPClient
+}
+
+func (c *contentTypeOverriderClient) Do(req *http.Request) (*http.Response, error) {
+	req.Header.Set("Content-Type", c.contentType)
+	return c.base.Do(req)
+}
+
+func TestContentTypes(t *testing.T) {
+	h := PickyHatmaker(1)
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+
+	makeClientWithMimeType := func(mime string) Haberdasher {
+		return NewHaberdasherJSONClient(s.URL, &contentTypeOverriderClient{
+			contentType: mime,
+			base: http.DefaultClient,
+		})
+	}
+	expectNoError := func(t *testing.T, mime string) {
+		_, err := makeClientWithMimeType(mime).MakeHat(context.Background(), &Size{1})
+		if err != nil {
+			t.Fatalf("Client using valid mime type %s err=%q", mime, err)
+		}
+	}
+
+	validMimeTypes := []string{
+		"application/json; charset=UTF-8",
+		"application/json",
+	}
+	for _, mime := range validMimeTypes {
+		expectNoError(t, mime)
+	}
+
+	invalidMimeTypes := []string{
+		"application/jsonp",
+	}
+	for _, mime := range invalidMimeTypes {
+		expectBadRouteError(t, makeClientWithMimeType(mime))
+	}
+}
+
 func TestDeadline(t *testing.T) {
 	timeout := 1 * time.Millisecond
 	responseTime := 50 * timeout
@@ -928,6 +972,23 @@ func TestNilResponse(t *testing.T) {
 	}
 }
 
+
+var expectBadRouteError = func(t *testing.T, client Haberdasher) {
+	_, err := client.MakeHat(context.Background(), &Size{1})
+	if err == nil {
+		t.Fatalf("err=nil, expected bad_route")
+	}
+
+	twerr, ok := err.(twirp.Error)
+	if !ok {
+		t.Fatalf("err has type=%T, expected twirp.Error", err)
+	}
+
+	if twerr.Code() != twirp.BadRoute {
+		t.Errorf("err has code=%v, expected %v", twerr.Code(), twirp.BadRoute)
+	}
+}
+
 func TestBadRoute(t *testing.T) {
 	h := PickyHatmaker(1)
 	s := httptest.NewServer(NewHaberdasherServer(h, nil))
@@ -941,22 +1002,6 @@ func TestBadRoute(t *testing.T) {
 	clients := map[string]Haberdasher{
 		"json":     NewHaberdasherJSONClient(s.URL, httpClient),
 		"protobuf": NewHaberdasherProtobufClient(s.URL, httpClient),
-	}
-
-	var expectBadRouteError = func(t *testing.T, client Haberdasher) {
-		_, err := client.MakeHat(context.Background(), &Size{1})
-		if err == nil {
-			t.Fatalf("err=nil, expected bad_route")
-		}
-
-		twerr, ok := err.(twirp.Error)
-		if !ok {
-			t.Fatalf("err has type=%T, expected twirp.Error", err)
-		}
-
-		if twerr.Code() != twirp.BadRoute {
-			t.Errorf("err has code=%v, expected %v", twerr.Code(), twirp.BadRoute)
-		}
 	}
 
 	for name, client := range clients {

@@ -70,7 +70,7 @@ header.
 The **Response-Headers** are just normal HTTP response headers. The
 Twirp wire protocol uses the following headers.
 
-* **Content-Type** The value should be either "application/x-protobuf"
+* **Content-Type** The value should be either "application/protobuf"
   or "application/json" to indicate the encoding of the response
   message. It must match the "Content-Type" header in the request.
 

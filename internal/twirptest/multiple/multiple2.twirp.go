@@ -4,6 +4,7 @@
 package multiple
 
 import bytes "bytes"
+import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -170,7 +171,12 @@ func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (s *svc2Server) serveSend(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
 		s.serveSendJSON(ctx, resp, req)
 	case "application/protobuf":
@@ -305,7 +311,12 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 }
 
 func (s *svc2Server) serveSamePackageProtoImport(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
 		s.serveSamePackageProtoImportJSON(ctx, resp, req)
 	case "application/protobuf":

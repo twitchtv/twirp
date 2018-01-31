@@ -11,6 +11,7 @@ It is generated from these files:
 package twirptest
 
 import bytes "bytes"
+import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -166,7 +167,12 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 }
 
 func (s *haberdasherServer) serveMakeHat(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	switch req.Header.Get("Content-Type") {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
 		s.serveMakeHatJSON(ctx, resp, req)
 	case "application/protobuf":

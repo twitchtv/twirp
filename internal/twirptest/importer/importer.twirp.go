@@ -71,6 +71,9 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 }
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
@@ -105,6 +108,9 @@ func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
 }
 
 func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err

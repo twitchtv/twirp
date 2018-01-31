@@ -68,6 +68,9 @@ func NewHaberdasherProtobufClient(addr string, client HTTPClient) Haberdasher {
 }
 
 func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
@@ -102,6 +105,9 @@ func NewHaberdasherJSONClient(addr string, client HTTPClient) Haberdasher {
 }
 
 func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err

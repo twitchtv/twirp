@@ -46,30 +46,39 @@ func TestClientSetsRequestContext(t *testing.T) {
 	s := httptest.NewServer(NewHaberdasherServer(h, nil))
 	defer s.Close()
 
-	// Make a context with a key-value pair in it. We'll use this
-	// context in our MakeHat call to the client; we expect it to appear
-	// in the request's context.
-	key := "key"
-	val := "value"
-	ctx := context.WithValue(context.Background(), key, val)
 
 	// Make an *http.Client that validates that the key-value is present
 	// in the context.
 	httpClient := &http.Client{
 		Transport: &reqInspector{
 			callback: func(req *http.Request) {
-				have := req.Context().Value(key)
-				if have == nil {
-					t.Error("key not found in context")
+				ctx := req.Context()
+
+				pkgName, exists := twirp.PackageName(ctx)
+				if !exists {
+					t.Error("packageName not found in context")
 					return
 				}
-				haveStr, ok := have.(string)
-				if !ok {
-					t.Errorf("key has wrong type, have=%T, want=string", have)
+				if pkgName != "twirp.internal.twirptest" {
+					t.Errorf("packageName has wrong value, have=%s, want=%s", pkgName, "twirp.internal.twirptest")
+				}
+
+				serviceName, exists := twirp.ServiceName(ctx)
+				if !exists {
+					t.Error("serviceName not found in context")
 					return
 				}
-				if haveStr != val {
-					t.Errorf("key has wrong value, have=%s, want=%s", haveStr, val)
+				if serviceName != "Haberdasher" {
+					t.Errorf("serviceName has wrong value, have=%s, want=%s", pkgName, "Haberdasher")
+				}
+
+				methodName, exists := twirp.MethodName(ctx)
+				if !exists {
+					t.Error("methodName not found in context")
+					return
+				}
+				if methodName != "MakeHat" {
+					t.Errorf("methodName has wrong value, have=%s, want=%s", pkgName, "Haberdasher")
 				}
 			},
 		},
@@ -78,14 +87,14 @@ func TestClientSetsRequestContext(t *testing.T) {
 	// Test the JSON client and the Protobuf client.
 	client := NewHaberdasherJSONClient(s.URL, httpClient)
 
-	_, err := client.MakeHat(ctx, &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
 
 	client = NewHaberdasherProtobufClient(s.URL, httpClient)
 
-	_, err = client.MakeHat(ctx, &Size{1})
+	_, err = client.MakeHat(context.Background(), &Size{1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}

@@ -68,6 +68,9 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 }
 
 func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
@@ -102,6 +105,9 @@ func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
 }
 
 func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err

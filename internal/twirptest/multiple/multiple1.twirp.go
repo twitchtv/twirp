@@ -70,6 +70,9 @@ func NewSvc1ProtobufClient(addr string, client HTTPClient) Svc1 {
 }
 
 func (c *svc1ProtobufClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg1)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
@@ -104,6 +107,9 @@ func NewSvc1JSONClient(addr string, client HTTPClient) Svc1 {
 }
 
 func (c *svc1JSONClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg1)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err

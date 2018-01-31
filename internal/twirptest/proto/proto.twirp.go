@@ -602,8 +602,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtobufRequest is common code to make a request to the remote twirp service.
-func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
-	var err error
+func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
 		return clientError("failed to marshal proto request", err)
@@ -621,7 +620,14 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 	if err != nil {
 		return clientError("failed to do request", err)
 	}
-	defer closebody(resp.Body)
+
+	defer func() {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = clientError("failed to close response body", cerr)
+		}
+	}()
+
 	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}
@@ -645,8 +651,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 }
 
 // doJSONRequest is common code to make a request to the remote twirp service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) error {
-	var err error
+func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(reqBody, in); err != nil {
@@ -664,7 +669,14 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 	if err != nil {
 		return clientError("failed to do request", err)
 	}
-	defer closebody(resp.Body)
+
+	defer func() {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = clientError("failed to close response body", cerr)
+		}
+	}()
+
 	if err = ctx.Err(); err != nil {
 		return clientError("aborted because context was done", err)
 	}

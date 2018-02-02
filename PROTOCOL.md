@@ -108,7 +108,7 @@ message HelloResponse {
 ```
 POST /twirp/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
-Content-Type: application/x-protobuf
+Content-Type: application/protobuf
 Content-Length: 15
 
 <encoded HelloRequest>
@@ -129,7 +129,7 @@ Content-Length: 27
 
 ```
 HTTP/1.1 200 OK
-Content-Type: application/x-protobuf
+Content-Type: application/protobuf
 Content-Length: 15
 
 <encoded HelloResponse>

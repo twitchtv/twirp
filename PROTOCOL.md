@@ -78,7 +78,7 @@ The **Request-Body** is the encoded response message contained in the
 HTTP response body. The encoding is specified by the `Content-Type`
 header.
 
-## Example
+### Example
 
 The following example shows a simple Echo API definition and its
 corresponding wire payloads.
@@ -88,7 +88,7 @@ The example assumes the server base URL is "https://example.com".
 ```proto
 syntax = "proto3";
 
-package twirp;
+package example.echoer;
 
 service Echo {
   rpc Hello(HelloRequest) returns (HelloResponse);
@@ -106,9 +106,9 @@ message HelloResponse {
 **Proto Request**
 
 ```
-POST /twirp.Echo/Hello HTTP/1.1
+POST /twirp/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
-Content-Type: application/protobuf
+Content-Type: application/x-protobuf
 Content-Length: 15
 
 <encoded HelloRequest>
@@ -117,7 +117,7 @@ Content-Length: 15
 **JSON Request**
 
 ```
-POST /twirp.Echo/Hello HTTP/1.1
+POST /twirp/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/json
 Content-Length: 27
@@ -129,7 +129,7 @@ Content-Length: 27
 
 ```
 HTTP/1.1 200 OK
-Content-Type: application/protobuf
+Content-Type: application/x-protobuf
 Content-Length: 15
 
 <encoded HelloResponse>

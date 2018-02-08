@@ -1,0 +1,21 @@
+{
+    "docs": {
+        "Getting started": [
+            "intro",
+            "install",
+            "example",
+            "best_practices"
+        ],
+        "Beyond the basics": [
+            "mux",
+            "headers",
+            "routing",
+            "errors",
+            "hooks",
+            "proto_and_json"
+        ],
+        "Formal specification": [
+            "spec_v5"
+        ]
+    }
+}

@@ -43,7 +43,12 @@ You will also need:
    the Go protobuf generator plugin. Get this with `go get`.
 
 ### Documentation
-Thorough documentation is [on the wiki](https://github.com/twitchtv/twirp/wiki).
+
+Thorough documentation is
+[on the website](https://twitchtv.github.io/twirp/docs/intro.html).
+
+Source for this documentation is in the [docs](./docs) subdirectory. The website
+is generated from that folder using [Docusaurus](https://docusaurus.io/).
 
 ### Implementations in other languages
 

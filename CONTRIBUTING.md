@@ -32,6 +32,20 @@ of cross-language clients are in the [clientcompat](./clientcompat) directory.
 Twirp uses github pull requests. Fork, hack away at your changes, run the test
 suite with `make`, and submit a PR.
 
+## Contributing Documentation ##
+
+Twirp's docs are generated with [Docusaurus](https://docusaurus.io/). You can
+safely edit anything inside the [docs](./docs) directory, adding new pages or
+editing them. You can edit the sidebar by editing
+[website/sidebars.json](./website/sidebars.json).
+
+Then, to render your changes, run docusaurus's local server. To do this:
+
+ 1. [Install docusaurus on your machine](https://docusaurus.io/docs/en/installation.html).
+ 2. `cd website`
+ 3. `npm start`
+ 4. Navigate to http://localhost:3000/.
+
 ## Releasing Versions ##
 
 Releasing versions is the responsibility of the core maintainers. Most people

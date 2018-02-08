@@ -1,0 +1,164 @@
+<html lang="en"><head><meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Usage Example: Haberdasher · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta property="og:title" content="Usage Example: Haberdasher · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="Let&#x27;s make the canonical Twirp example service: a `Haberdasher`."/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Getting started</span></h2></div><div class="navGroups"><div class="navGroup navGroupActive"><h3>Getting started</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem navListItemActive"><a class="navItem navItemActive" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup navGroupActive"><h3>Beyond the basics</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li></ul></div><div class="navGroup navGroupActive"><h3>Formal specification</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li></ul></div></div></section></div><script>
+          var toggler = document.getElementById('navToggler');
+          var nav = document.getElementById('docsNav');
+          toggler.onclick = function() {
+            nav.classList.toggle('docsSliderActive');
+          };
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Usage Example: Haberdasher</h1></header><article><div><span><p>Let's make the canonical Twirp example service: a <code>Haberdasher</code>.</p>
+<p>The <code>Haberdasher</code> service makes hats. It has only one RPC method, <code>MakeHat</code>,
+which makes a new hat of a particular size.</p>
+<p>By the end of this, we'll run a Haberdasher server and have a client that can
+send it requests.</p>
+<p>There are 5 steps here:</p>
+<ol>
+<li><a href="#write-a-protobuf-service-definition">Write a Protobuf service definition</a></li>
+<li><a href="#generate-code">Generate code</a></li>
+<li><a href="#implement-the-server">Implement the server</a></li>
+<li><a href="#mount-and-run-the-server">Mount and run the server</a></li>
+<li><a href="#use-the-client">Use the client</a></li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" name="write-a-protobuf-service-definition"></a><a href="#write-a-protobuf-service-definition" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Write a Protobuf Service Definition</h2>
+<p>Start with the <a href="https://developers.google.com/protocol-buffers/">Protobuf</a>
+definition file, placed in <code>rpc/haberdasher/service.proto</code>:</p>
+<pre><code class="hljs css protobuf">syntax = <span class="hljs-string">"proto3"</span>;
+
+<span class="hljs-keyword">package</span> twirp.example.haberdasher;
+<span class="hljs-keyword">option</span> go_package = <span class="hljs-string">"haberdasher"</span>;
+
+<span class="hljs-comment">// Haberdasher service makes hats for clients.</span>
+<span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">Haberdasher</span> </span>{
+  <span class="hljs-comment">// MakeHat produces a hat of mysterious, randomly-selected color!</span>
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> MakeHat(Size) <span class="hljs-keyword">returns</span> (Hat)</span>;
+}
+
+<span class="hljs-comment">// Size of a Hat, in inches.</span>
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">Size</span> </span>{
+  <span class="hljs-built_in">int32</span> inches = <span class="hljs-number">1</span>; <span class="hljs-comment">// must be &gt; 0</span>
+}
+
+<span class="hljs-comment">// A Hat is a piece of headwear made by a Haberdasher.</span>
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">Hat</span> </span>{
+  <span class="hljs-built_in">int32</span> inches = <span class="hljs-number">1</span>;
+  <span class="hljs-built_in">string</span> color = <span class="hljs-number">2</span>; <span class="hljs-comment">// anything but "invisible"</span>
+  <span class="hljs-built_in">string</span> name = <span class="hljs-number">3</span>; <span class="hljs-comment">// i.e. "bowler"</span>
+}
+</code></pre>
+<p>It's a good idea to add comments on your Protobuf file. These files can work as
+the primary documentation of your API. They'll also show up in the generated Go
+code, so they'll show up in Godoc.</p>
+<h2><a class="anchor" aria-hidden="true" name="generate-code"></a><a href="#generate-code" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Generate code</h2>
+<p>To generate code run the <code>protoc</code> compiler pointed at your service's <code>.proto</code>
+files:</p>
+<pre><code class="hljs css sh">$ protoc --proto_path=<span class="hljs-variable">$GOPATH</span>/src:. --twirp_out=. --go_out=. ./rpc/haberdasher/service.proto
+</code></pre>
+<p>The code is generated in the same directory as the <code>.proto</code> files.</p>
+<p>You should see the generated files next to the <code>service.proto</code> file:</p>
+<pre><code class="hljs css text">/rpc
+  /haberdasher
+    service.pb.go     # <span class="hljs-built_in">auto</span>-generated <span class="hljs-built_in">by</span> protoc-gen-go (<span class="hljs-keyword">for</span> protobuf serialization)
+    service.proto     # original protobuf definition
+    service.twirp.go  # <span class="hljs-built_in">auto</span>-generated <span class="hljs-built_in">by</span> protoc-gen-twirp (servers, clients and interfaces)
+</code></pre>
+<p>If you open the generated <code>.twirp.go</code> file, you will see a Go interface like
+this:</p>
+<pre><code class="hljs css go"><span class="hljs-comment">// A Haberdasher makes hats for clients.</span>
+<span class="hljs-keyword">type</span> Haberdasher <span class="hljs-keyword">interface</span> {
+    <span class="hljs-comment">// MakeHat produces a hat of mysterious, randomly-selected color!</span>
+    MakeHat(context.Context, *Size) (*Hat, error)
+}
+</code></pre>
+<p>along with code to instantiate clients and servers.</p>
+<h2><a class="anchor" aria-hidden="true" name="implement-the-server"></a><a href="#implement-the-server" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implement the Server</h2>
+<p>Now, our job is to write code that fulfills the <code>Haberdasher</code> interface. This
+will be the &quot;backend&quot; full of logic that we'll be serving.</p>
+<p>For example, the implementation could go in
+<code>internal/haberdasherserver/server.go</code>:</p>
+<pre><code class="hljs css go"><span class="hljs-keyword">package</span> haberdasherserver
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"context"</span>
+    <span class="hljs-string">"math/rand"</span>
+
+    <span class="hljs-string">"github.com/twitchtv/twirp"</span>
+    pb <span class="hljs-string">"github.com/twitchtv/twirpexample/rpc/haberdasher"</span>
+)
+
+<span class="hljs-comment">// Server implements the Haberdasher service</span>
+<span class="hljs-keyword">type</span> Server <span class="hljs-keyword">struct</span> {}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">MakeHat</span><span class="hljs-params">(ctx context.Context, size *pb.Size)</span> <span class="hljs-params">(hat *pb.Hat, error)</span></span> {
+    <span class="hljs-keyword">if</span> size.Inches &lt;= <span class="hljs-number">0</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InvalidArgumentError(<span class="hljs-string">"inches"</span>, <span class="hljs-string">"I can't make a hat that small!"</span>)
+    }
+    <span class="hljs-keyword">return</span> &amp;pb.Hat{
+        Inches:  size.Inches,
+        Color: []<span class="hljs-keyword">string</span>{<span class="hljs-string">"white"</span>, <span class="hljs-string">"black"</span>, <span class="hljs-string">"brown"</span>, <span class="hljs-string">"red"</span>, <span class="hljs-string">"blue"</span>}[rand.Intn(<span class="hljs-number">4</span>)],
+        Name:  []<span class="hljs-keyword">string</span>{<span class="hljs-string">"bowler"</span>, <span class="hljs-string">"baseball cap"</span>, <span class="hljs-string">"top hat"</span>, <span class="hljs-string">"derby"</span>}[rand.Intn(<span class="hljs-number">3</span>)],
+    }, <span class="hljs-literal">nil</span>
+}
+</code></pre>
+<p>This meets the <code>Haberdasher</code> interface because it implements the <code>MakeHat</code> method, so we're ready to serve this over Twirp!</p>
+<h2><a class="anchor" aria-hidden="true" name="mount-and-run-the-server"></a><a href="#mount-and-run-the-server" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Mount and run the server</h2>
+<p>To serve our Haberdasher over HTTP, use the auto-generated server constructor
+<code>New{{Service}}Server</code>. For Haberdasher, this is:</p>
+<pre><code class="hljs css go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewHaberdasherServer</span><span class="hljs-params">(svc Haberdasher, hooks *twirp.ServerHooks)</span> <span class="hljs-title">TwirpServer</span>
+</span></code></pre>
+<p>This constructor wraps your interface implementation as an <code>TwirpServer</code>, which
+is a <code>http.Handler</code> with a few extra bells and whistles.</p>
+<p>It's easy to serve a <code>http.Handler</code> straight away with the standard library.
+Just call <code>http.ListenAndServe</code>. For example, you might write the following in
+<code>cmd/server/main.go</code>:</p>
+<pre><code class="hljs css go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"net/http"</span>
+
+    <span class="hljs-string">"github.com/twitchtv/twirpexample/internal/haberdasherserver"</span>
+    <span class="hljs-string">"github.com/twitchtv/twirpexample/rpc/haberdasher"</span>
+)
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+  server := &amp;haberdasherserver.Server{} <span class="hljs-comment">// implements Haberdasher interface</span>
+  twirpHandler := haberdasher.NewHaberdasherServer(server, <span class="hljs-literal">nil</span>)
+
+  http.ListenAndServe(<span class="hljs-string">":8080"</span>, twirpHandler)
+}
+</code></pre>
+<p>If you <code>go run ./cmd/server/main.go</code>, you'll be running your server at
+<code>localhost:8080</code>. All that's left is to create a client!</p>
+<h2><a class="anchor" aria-hidden="true" name="use-the-client"></a><a href="#use-the-client" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use the Client</h2>
+<p>Client stubs are automatically generated, hooray!</p>
+<p>For each service, there are 2 client constructors:</p>
+<ul>
+<li><code>New{{Service}}ProtobufClient</code> for Protobuf requests.</li>
+<li><code>New{{Service}}JSONClient</code> for JSON requests.</li>
+</ul>
+<p>The JSONClient is included as reference, to show that a Twirp server can handle
+JSON requests, but you should really use ProtobufClient (see
+<a href="/twirp/docs/proto_and_json.html">Protobuf vs JSON</a>).</p>
+<p>To use the <code>Haberdasher</code> service from another Go project, just import the
+auto-generated client and then use it. You might do this, in <code>cmd/client/main.go</code>:</p>
+<pre><code class="hljs css go">pacage main
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"context"</span>
+    <span class="hljs-string">"net/http"</span>
+    <span class="hljs-string">"os"</span>
+
+    <span class="hljs-string">"github.com/twitchtv/twirpexample/rpc/haberdasher"</span>
+)
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    client := haberdasher.NewHaberdasherProtobufClient(<span class="hljs-string">"http://localhost:8000"</span>, &amp;http.Client{})
+
+    hat, err := client.MakeHat(context.Background(), &amp;example.Size{Inches: <span class="hljs-number">12</span>})
+    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> {
+        fmt.Printf(<span class="hljs-string">"oh no: %v"</span>, err)
+        os.Exit(<span class="hljs-number">1</span>)
+    }
+    fmt.Printf(<span class="hljs-string">"I have a nice new hat: %+v"</span>, hat)
+}
+</code></pre>
+<p>If you have the server running in another terminal, try running this client with
+<code>go run ./cmd/client/main.go</code>. Enjoy the new hat!</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="install.html">← Installing Twirp</a><a class="docs-next button" href="best_practices.html">Best Practices →</a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2018 Twitch Interactive, Inc.</section></footer></div></body></html>

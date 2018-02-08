@@ -1,0 +1,111 @@
+<html lang="en"><head><meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Meet Twirp! · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta property="og:title" content="Meet Twirp! · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="Twirp is a simple RPC framework built on"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Getting started</span></h2></div><div class="navGroups"><div class="navGroup navGroupActive"><h3>Getting started</h3><ul><li class="navListItem navListItemActive"><a class="navItem navItemActive" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup navGroupActive"><h3>Beyond the basics</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li></ul></div><div class="navGroup navGroupActive"><h3>Formal specification</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li></ul></div></div></section></div><script>
+          var toggler = document.getElementById('navToggler');
+          var nav = document.getElementById('docsNav');
+          toggler.onclick = function() {
+            nav.classList.toggle('docsSliderActive');
+          };
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Meet Twirp!</h1></header><article><div><span><p>Twirp is a simple RPC framework built on
+<a href="https://developers.google.com/protocol-buffers/">protobuf</a>. You define a
+service in a <code>.proto</code> specification file, then Twirp will <em>generate</em> servers and
+clients for that service. It's your job to fill in the &quot;business logic&quot; that
+powers the server, and then generated clients can consume your service straight
+away.</p>
+<p>This doc is an overview of how you use Twirp - how you interact with it, what
+you write, and what it generates.</p>
+<h2><a class="anchor" aria-hidden="true" name="making-a-twirp-service"></a><a href="#making-a-twirp-service" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Making a Twirp Service</h2>
+<p>To make a Twirp service:</p>
+<ol>
+<li>Define your service in a <strong>Proto</strong> file.</li>
+<li>Use the <code>protoc</code> command to generate go code from the <strong>Proto</strong> file, it
+will generate an <strong>interface</strong>, a <strong>client</strong> and some <strong>server utils</strong> (to
+easily start an http listener).</li>
+<li>Implement the generated <strong>interface</strong> to implement the service.</li>
+</ol>
+<p>For example, a HelloWorld <strong>Proto</strong> file:</p>
+<pre><code class="hljs css protobuf">syntax = <span class="hljs-string">"proto3"</span>;
+<span class="hljs-keyword">package</span> twitch.twirp.example.helloworld;
+<span class="hljs-keyword">option</span> go_package = <span class="hljs-string">"helloworld"</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">HelloWorld</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> Hello(HelloReq) <span class="hljs-keyword">returns</span> (HelloResp)</span>;
+}
+
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">HelloReq</span> </span>{
+  <span class="hljs-built_in">string</span> subject = <span class="hljs-number">1</span>;
+}
+
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">HelloResp</span> </span>{
+  <span class="hljs-built_in">string</span> text = <span class="hljs-number">1</span>;
+}
+</code></pre>
+<p>From which Twirp can auto-generate this <strong>interface</strong> (running the <code>protoc</code> command):</p>
+<pre><code class="hljs css go"><span class="hljs-keyword">type</span> HelloWorld <span class="hljs-keyword">interface</span> {
+    Hello(context.Context, *HelloReq) (*HelloResp, error)
+}
+</code></pre>
+<p>You provide the <strong>implementation</strong>:</p>
+<pre><code class="hljs css go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"context"</span>
+    <span class="hljs-string">"net/http"</span>
+
+    pb <span class="hljs-string">"github.com/twitchtv/twirp-example/rpc/helloworld"</span>
+)
+
+<span class="hljs-keyword">type</span> HelloWorldServer <span class="hljs-keyword">struct</span>{}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *HelloWorldServer)</span> <span class="hljs-title">Hello</span><span class="hljs-params">(ctx context.Context, req *pb.HelloReq)</span> <span class="hljs-params">(*pb.HelloResp, error)</span></span> {
+    <span class="hljs-keyword">return</span> &amp;pb.HelloResp{Text: <span class="hljs-string">"Hello "</span> + req.Subject}, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-comment">// Run the implementation in a local server</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    twirpHandler := pb.NewHelloWorldServer(&amp;HelloWorldServer{}, <span class="hljs-literal">nil</span>)
+    <span class="hljs-comment">// You can use any mux you like - NewHelloWorldServer gives you an http.Handler.</span>
+    mux := http.NewServeMux()
+    <span class="hljs-comment">// The generated code includes a const, &lt;ServiceName&gt;PathPrefix, which</span>
+    <span class="hljs-comment">// can be used to mount your service on a mux.</span>
+    mux.Handle(pb.HelloWorldPathPrefix, twirpHandler)
+    http.ListenAndServe(<span class="hljs-string">":8080"</span>, mux)
+}
+</code></pre>
+<p>And voila! Now you can just use the auto-generated <strong>Client</strong> to make remote calls to your new service:</p>
+<pre><code class="hljs css go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"context"</span>
+    <span class="hljs-string">"fmt"</span>
+    <span class="hljs-string">"net/http"</span>
+
+    pb <span class="hljs-string">"github.com/twitchtv/twirp-example/rpc/helloworld"</span>
+)
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    client := pb.NewHelloWorldProtobufClient(<span class="hljs-string">"http://localhost:8080"</span>, &amp;http.Client{})
+
+    resp, err := client.Hello(context.Background(), &amp;pb.HelloReq{Subject: <span class="hljs-string">"World"</span>})
+    <span class="hljs-keyword">if</span> err == <span class="hljs-literal">nil</span> {
+        fmt.Println(resp.Text) <span class="hljs-comment">// prints "Hello World"</span>
+    }
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" name="why-this-is-good"></a><a href="#why-this-is-good" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Why this is good</h2>
+<p>There's no need to worry about JSON serialization or HTTP verbs/routes! Twirp
+<a href="/twirp/docs/routing.html">routing and serialization</a> handles that for you, reducing the risk
+of introducing bugs. Both JSON and Protobuf are supported. The
+<a href="https://developers.google.com/protocol-buffers/docs/proto3">Protobuf protocol</a>
+is designed to allow backwards compatible changes (unlike JSON, it is trivial to
+rename fields), it is faster than JSON and also works well as documentation for
+your service, because it is easy to tell what a service does by just looking at
+the Proto file.</p>
+<h2><a class="anchor" aria-hidden="true" name="what-s-next"></a><a href="#what-s-next" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>What's next?</h2>
+<ul>
+<li><a href="/twirp/docs/install.html">Install Twirp</a>: instructions to install or upgrade Twirp tools
+for code auto-generation (protoc, protoc-gen-go and protoc-gen-twirp).</li>
+<li><a href="/twirp/docs/example.html">Usage Example</a>: step by step guide to build an awesome
+Haberdasher service.</li>
+<li><a href="/twirp/docs/routing.html">How Twirp routes requests</a>: learn more about how Twirp works
+under the covers.</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="install.html">Installing Twirp →</a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2018 Twitch Interactive, Inc.</section></footer></div></body></html>

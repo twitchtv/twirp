@@ -1,0 +1,94 @@
+<html lang="en"><head><meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Using custom HTTP Headers · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta property="og:title" content="Using custom HTTP Headers · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="Sometimes, you need to send custom HTTP headers."/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup navGroupActive"><h3>Getting started</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup navGroupActive"><h3>Beyond the basics</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem navListItemActive"><a class="navItem navItemActive" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li></ul></div><div class="navGroup navGroupActive"><h3>Formal specification</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li></ul></div></div></section></div><script>
+          var toggler = document.getElementById('navToggler');
+          var nav = document.getElementById('docsNav');
+          toggler.onclick = function() {
+            nav.classList.toggle('docsSliderActive');
+          };
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Using custom HTTP Headers</h1></header><article><div><span><p>Sometimes, you need to send custom HTTP headers.</p>
+<p>For Twirp, HTTP headers are a transport implementation detail. You should not
+have to worry about them, but maybe your HTTP middleware requires them.</p>
+<p>If so, there's nothing the Twirp spec that <em>forbids</em> extra headers, so go ahead.
+The rest of this doc is a guide on how to do this.</p>
+<h2><a class="anchor" aria-hidden="true" name="client-side"></a><a href="#client-side" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Client side</h2>
+<h3><a class="anchor" aria-hidden="true" name="send-http-headers-with-client-requests"></a><a href="#send-http-headers-with-client-requests" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Send HTTP Headers with client requests</h3>
+<p>Use <code>twirp.WithHTTPRequestHeaders</code> to attach the <code>http.Header</code> to a particular
+<code>context.Context</code>, then use that context in the client request:</p>
+<pre><code class="hljs css go"><span class="hljs-comment">// Given a client ...</span>
+client := haberdasher.NewHaberdasherProtobufClient(addr, &amp;http.Client{})
+
+<span class="hljs-comment">// Given some headers ...</span>
+header := <span class="hljs-built_in">make</span>(http.Header)
+header.Set(<span class="hljs-string">"Twitch-Authorization"</span>, <span class="hljs-string">"uDRlDxQYbFVXarBvmTncBoWKcZKqrZTY"</span>)
+header.Set(<span class="hljs-string">"Twitch-Client-ID"</span>, <span class="hljs-string">"FrankerZ"</span>)
+
+<span class="hljs-comment">// Attach the headers to a context</span>
+ctx := context.Background()
+ctx, err := twirp.WithHTTPRequestHeaders(ctx, header)
+<span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> {
+  log.Printf(<span class="hljs-string">"twirp error setting headers: %s"</span>, err)
+  <span class="hljs-keyword">return</span>
+}
+
+<span class="hljs-comment">// And use the context in the request. Headers will be included in the request!</span>
+resp, err := client.MakeHat(ctx, &amp;haberdasher.Size{Inches: <span class="hljs-number">7</span>})
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" name="read-http-headers-from-responses"></a><a href="#read-http-headers-from-responses" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Read HTTP Headers from responses</h3>
+<p>Twirp client responses are structs that depend only on the Protobuf response.
+HTTP headers can not be used by the Twirp client in any way.</p>
+<p>However, remember that the Twirp client is instantiated with an <code>http.Client</code>,
+which can be configured with any <code>http.RoundTripper</code> transport. You could make a
+RoundTripper that reads some response headers and does something with them.</p>
+<h2><a class="anchor" aria-hidden="true" name="server-side"></a><a href="#server-side" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Server side</h2>
+<h3><a class="anchor" aria-hidden="true" name="send-http-headers-on-server-responses"></a><a href="#send-http-headers-on-server-responses" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Send HTTP Headers on server responses</h3>
+<p>In your server implementation code, set response headers one by one with the
+helper <code>twirp.SetHTTPResponseHeader</code>, using the same context provided by the
+handler. For example:</p>
+<pre><code class="hljs css go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(h *myServer)</span> <span class="hljs-title">MyRPC</span><span class="hljs-params">(ctx context.Context, req *pb.Req)</span> <span class="hljs-params">(*pb.Resp, error)</span></span> {
+
+  <span class="hljs-comment">// Add Cache-Control custom header to HTTP response</span>
+  err := twirp.SetHTTPResponseHeader(ctx, <span class="hljs-string">"Cache-Control"</span>, <span class="hljs-string">"public, max-age=60"</span>)
+  <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InternalErrorWith(err)
+  }
+
+  <span class="hljs-keyword">return</span> &amp;pb.Resp{}, <span class="hljs-literal">nil</span>
+}
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" name="read-http-headers-from-requests"></a><a href="#read-http-headers-from-requests" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Read HTTP Headers from requests</h3>
+<p>Twirp server methods are abstracted away from HTTP, therefore they don't have
+direct access to HTTP Headers.</p>
+<p>However, they receive the <code>http.Request</code>'s <code>context.Context</code> as parameter that
+can be modified by HTTP middleware before being used by the Twirp method.</p>
+<p>In more detail, you could do the following:</p>
+<ul>
+<li>Write some middleware (a <code>func(http.Handler) http.Handler)</code> that reads the
+header's value and stores it in the request context.</li>
+<li>Wrap your Twirp server with the middleware you wrote.</li>
+<li>Inside your service, pull the header value out through the context.</li>
+</ul>
+<p>For example, lets say you want to read the 'User-Agent' HTTP header inside a
+twirp server method. You might write this middleware:</p>
+<pre><code class="hljs css go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">WithUserAgent</span><span class="hljs-params">(base http.Handler)</span> <span class="hljs-title">http</span>.<span class="hljs-title">Handler</span></span> {
+    <span class="hljs-keyword">return</span> http.HandlerFunc(<span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(w http.ResponseWriter, r *http.Request)</span></span> {
+        ctx := r.Context()
+        ua := r.Header.Get(<span class="hljs-string">"User-Agent"</span>)
+        ctx = context.WithValue(ctx, <span class="hljs-string">"user-agent"</span>, ua)
+        r = r.WithContext(ctx)
+
+        base.ServeHTTP(w, r)
+    })
+}
+</code></pre>
+<p>Then, you could wrap your generated Twirp server with this middleware:</p>
+<pre><code class="hljs css go">h := haberdasher.NewHaberdasherServer(...)
+wrapped := WithUserAgent(h)
+http.ListenAndServe(<span class="hljs-string">":8080"</span>, wrapped)
+</code></pre>
+<p>Now, in your application code, you would have access to the header through the
+context, so you can do whatever you like with it:</p>
+<pre><code class="hljs css go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(h *haberdasherImpl)</span> <span class="hljs-title">MakeHat</span><span class="hljs-params">(ctx context.Context, req *pb.MakeHatRequest)</span> <span class="hljs-params">(*pb.Hat, error)</span></span> {
+    ua := ctx.Value(<span class="hljs-string">"user-agent"</span>).(<span class="hljs-keyword">string</span>)
+    log.Printf(<span class="hljs-string">"user agent: %v"</span>, ua)
+}
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="mux.html">← Muxing Twirp services</a><a class="docs-next button" href="routing.html">HTTP Routing and Serialization →</a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2018 Twitch Interactive, Inc.</section></footer></div></body></html>

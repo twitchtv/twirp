@@ -21,7 +21,7 @@ const siteConfig = {
     url: 'https://twitchtv.github.io' /* your website url */,
     baseUrl: '/twirp/' /* base url for your project */,
     organizationName: 'twitchtv',
-    projectName: 'Twirp',
+    projectName: 'twirp',
     headerLinks: [
         {doc: 'intro', label: 'Docs'},
         {doc: 'spec_v5', label: 'Spec'},

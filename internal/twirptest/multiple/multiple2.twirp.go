@@ -8,7 +8,6 @@ import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
-import log "log"
 import http "net/http"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
@@ -202,6 +201,15 @@ func (s *svc2Server) serveSend(ctx context.Context, resp http.ResponseWriter, re
 
 func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+
+	defer func() {
+		closeErr := req.Body.Close()
+		if err == nil && closeErr != nil {
+			closeErr = wrapErr(closeErr, "failed to close request body")
+			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
+		}
+	}()
+
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
@@ -209,7 +217,6 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
-	defer closebody(req.Body)
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
@@ -254,13 +261,23 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
 	if _, err = resp.Write(buf.Bytes()); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+		err = wrapErr(err, "failed to write response to client")
+		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
 	}
 	callResponseSent(ctx, s.hooks)
 }
 
 func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+
+	defer func() {
+		closeErr := req.Body.Close()
+		if err == nil && closeErr != nil {
+			closeErr = wrapErr(closeErr, "failed to close request body")
+			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
+		}
+	}()
+
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
@@ -268,7 +285,6 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
-	defer closebody(req.Body)
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -317,7 +333,8 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
 	if _, err = resp.Write(respBytes); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+		err = wrapErr(err, "failed to write response to client")
+		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -342,6 +359,15 @@ func (s *svc2Server) serveSamePackageProtoImport(ctx context.Context, resp http.
 
 func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+
+	defer func() {
+		closeErr := req.Body.Close()
+		if err == nil && closeErr != nil {
+			closeErr = wrapErr(closeErr, "failed to close request body")
+			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
+		}
+	}()
+
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
@@ -349,7 +375,6 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
-	defer closebody(req.Body)
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
@@ -394,13 +419,23 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
 	if _, err = resp.Write(buf.Bytes()); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+		err = wrapErr(err, "failed to write response to client")
+		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
 	}
 	callResponseSent(ctx, s.hooks)
 }
 
 func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+
+	defer func() {
+		closeErr := req.Body.Close()
+		if err == nil && closeErr != nil {
+			closeErr = wrapErr(closeErr, "failed to close request body")
+			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
+		}
+	}()
+
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
@@ -408,7 +443,6 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
-	defer closebody(req.Body)
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -457,7 +491,8 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
 	if _, err = resp.Write(respBytes); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+		err = wrapErr(err, "failed to write response to client")
+		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
 	}
 	callResponseSent(ctx, s.hooks)
 }

@@ -14,3 +14,10 @@
 
 @media only screen and (min-width: 1500px) {
 }
+
+.mainContainer .wrapper p,
+.blockElement p,
+.mainContainer .wrapper ul li,
+.mainContainer .wrapper ol li {
+    line-height: 1.5;
+}

@@ -42,15 +42,12 @@ the following components.
   typically published via API documentation or service discovery.
   Currently, it should only contain URL `scheme` and `authority`. For
   example, "https://example.com".
-
 * **Package** is the proto `package` name for an API, which is often
   considered as an API version. For example,
   `example.calendar.v1`. This component is omitted if the API
   definition doesn't have a package name.
-
 * **Service** is the proto `service` name for an API. For example,
   `CalendarService`.
-
 * **Method** is the proto `rpc` name for an API method. For example,
   `CreateEvent`.
 
@@ -151,30 +148,20 @@ Content-Length: 27
 {"message":"Hello, World!"}
 ```
 
-## Errors
+## Twirp Errors
 
-Twirp error responses are always JSON-encoded, regardless of
-the request's Content-Type, with a corresponding
-`Content-Type: application/json` header. This ensures that
-the errors are human-readable in any setting.
-
-Twirp errors are a JSON object with three keys:
-
-* **code**: One of the Twirp error codes as a string.
-* **msg**: A human-readable message describing the error
-  as a string.
-* **meta**: An object with string keys and values holding
-  arbitrary additional metadata describing the error.
+Twirp responses may also be non-200 errors. Twirp errors are
+JSON responses with the keys `code`, `msg` and (optional) `meta`.
 
 Example:
-```
+```json
 {
-    "code": "permission_denied",
-    "msg": "thou shall not pass",
-    "meta": {
-        "target": "Balrog"
-    }
+  "code": "permission_denied",
+  "msg": "thou shall not pass",
+  "meta": {
+    "target": "Balrog"
+  }
 }
 ```
 
-For more information, see https://github.com/twitchtv/twirp/wiki/Errors.
+For more information see the [Errors Spec](spec_v5_errors.md).

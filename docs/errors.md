@@ -10,12 +10,15 @@ error)`.
 Twirp clients always return errors that can be cast to `twirp.Error`. Even
 transport-level errors will be `twirp.Error`s.
 
-Twirp server implementations can return regular errors, but if they do, they
+Twirp server implementations can return regular non-twirp errors too, but those
 will be wrapped with `twirp.InternalErrorWith(err)`, so they are also
 `twirp.Error` values when received by the clients.
 
-Don't be afraid to check the source code for details, it is pretty
-straightforward: [errors.go](https://github.com/twitchtv/twirp/blob/master/errors.go)
+Check the [Errors Spec](spec_v5_errors.md) for more information on error
+codes and the wire protocol.
+
+Also don't be afraid to open the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go) 
+for details, it is pretty straightforward.
 
 ### twirp.Error interface
 
@@ -35,8 +38,7 @@ type Error interface {
 
 ### Error Codes
 
-The possible values for `ErrorCode` are inspired by
-[gRPC status codes](https://godoc.org/google.golang.org/grpc/codes):
+Each error code is defined by a constant in the `twirp` package:
 
 ```
 ErrorCode            JSON/String             HTTP status code
@@ -63,7 +65,7 @@ NoError            | ""                    | 200 OK
 
 The most common ErrorCodes are probably `InvalidArgument`, `NotFound` and `Internal`.
 
-Documentation for each ErrorCode is in [the godoc page](https://godoc.org/github.com/twitchtv/twirp#ErrorCode).
+For more information see the [Errors Spec](spec_v5_errors.md).
 
 ### Metadata
 

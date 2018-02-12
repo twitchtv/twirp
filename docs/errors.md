@@ -14,7 +14,7 @@ Twirp server implementations can return regular errors too, but those
 will be wrapped with `twirp.InternalErrorWith(err)`, so they are also
 `twirp.Error` values when received by the clients.
 
-Check the [Errors Spec](spec_v5_errors.md) for more information on error
+Check the [Errors Spec](spec_v5.md) for more information on error
 codes and the wire protocol.
 
 Also don't be afraid to open the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go) 
@@ -60,9 +60,7 @@ Each error code is defined by a constant in the `twirp` package:
 | Unavailable        | "unavailable"         | 503 Service Unavailable
 | DataLoss           | "dataloss"            | 500 Internal Server Error
 
-The most common ErrorCodes are probably `InvalidArgument`, `NotFound` and `Internal`.
-
-For more information see the [Errors Spec](spec_v5_errors.md).
+For more information on each code, see the [Errors Spec](spec_v5.md).
 
 ### HTTP Errors from Intermediary Proxies
 

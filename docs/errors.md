@@ -40,25 +40,25 @@ type Error interface {
 
 Each error code is defined by a constant in the `twirp` package:
 
-| twirp.ErrorCode    | JSON/String           |  HTTP status code
-| ------------------ | --------------------- | ------------------
-| Canceled           | "canceled"            | 408 RequestTimeout
-| Unknown            | "unknown"             | 500 Internal Server Error
-| InvalidArgument    | "invalid_argument"    | 400 BadRequest
-| DeadlineExceeded   | "deadline_exceeded"   | 408 RequestTimeout
-| NotFound           | "not_found"           | 404 Not Found
-| BadRoute           | "bad_route"           | 404 Not Found
-| AlreadyExists      | "already_exists"      | 409 Conflict
-| PermissionDenied   | "permission_denied"   | 403 Forbidden
-| Unauthenticated    | "unauthenticated"     | 401 Unauthorized
-| ResourceExhausted  | "resource_exhausted"  | 403 Forbidden
-| FailedPrecondition | "failed_precondition" | 412 Precondition Failed
-| Aborted            | "aborted"             | 409 Conflict
-| OutOfRange         | "out_of_range"        | 400 Bad Request
-| Unimplemented      | "unimplemented"       | 501 Not Implemented
-| Internal           | "internal"            | 500 Internal Server Error
-| Unavailable        | "unavailable"         | 503 Service Unavailable
-| DataLoss           | "dataloss"            | 500 Internal Server Error
+| twirp.ErrorCode    | JSON/String         |  HTTP status code
+| ------------------ | ------------------- | ------------------
+| Canceled           | canceled            | 408 RequestTimeout
+| Unknown            | unknown             | 500 Internal Server Error
+| InvalidArgument    | invalid_argument    | 400 BadRequest
+| DeadlineExceeded   | deadline_exceeded   | 408 RequestTimeout
+| NotFound           | not_found           | 404 Not Found
+| BadRoute           | bad_route           | 404 Not Found
+| AlreadyExists      | already_exists      | 409 Conflict
+| PermissionDenied   | permission_denied   | 403 Forbidden
+| Unauthenticated    | unauthenticated     | 401 Unauthorized
+| ResourceExhausted  | resource_exhausted  | 403 Forbidden
+| FailedPrecondition | failed_precondition | 412 Precondition Failed
+| Aborted            | aborted             | 409 Conflict
+| OutOfRange         | out_of_range        | 400 Bad Request
+| Unimplemented      | unimplemented       | 501 Not Implemented
+| Internal           | internal            | 500 Internal Server Error
+| Unavailable        | unavailable         | 503 Service Unavailable
+| DataLoss           | dataloss            | 500 Internal Server Error
 
 For more information on each code, see the [Errors Spec](spec_v5.md).
 
@@ -71,16 +71,16 @@ errors depending on the HTTP status of the invalid responses:
 
 | HTTP status code         |  Twirp Error Code
 | ------------------------ | ------------------
-| 3xx (redirects)          | internal
-| 400 Bad Request          | internal
-| 401 Unauthorized         | unauthenticated
-| 403 Forbidden            | permission_denied
-| 404 Not Found            | bad_route
-| 429 Too Many Requests    | unavailable
-| 502 Bad Gateway          | unavailable
-| 503 Service Unavailable  | unavailable
-| 504 Gateway Timeout      | unavailable
-| ... other                | unknown
+| 3xx (redirects)          | Internal
+| 400 Bad Request          | Internal
+| 401 Unauthorized         | Unauthenticated
+| 403 Forbidden            | PermissionDenied
+| 404 Not Found            | BadRoute
+| 429 Too Many Requests    | Unavailable
+| 502 Bad Gateway          | Unavailable
+| 503 Service Unavailable  | Unavailable
+| 504 Gateway Timeout      | Unavailable
+| ... other                | Unknown
 
 Additional metadata is added to make it easy to identify intermediary errors:
 

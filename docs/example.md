@@ -111,7 +111,7 @@ import (
 // Server implements the Haberdasher service
 type Server struct {}
 
-func (s *Server) MakeHat(ctx context.Context, size *pb.Size) (hat *pb.Hat, error) {
+func (s *Server) MakeHat(ctx context.Context, size *pb.Size) (hat *pb.Hat, err error) {
     if size.Inches <= 0 {
         return nil, twirp.InvalidArgumentError("inches", "I can't make a hat that small!")
     }

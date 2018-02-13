@@ -162,7 +162,7 @@ Twirp errors are a JSON object with the keys:
 * **msg**: A human-readable message describing the error
   as a string.
 * **meta**: (optional) An object with string values holding
- arbitrary additional metadata describing the error.
+  arbitrary additional metadata describing the error.
 
 Example:
 

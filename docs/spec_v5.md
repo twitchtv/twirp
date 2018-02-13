@@ -151,52 +151,50 @@ Content-Length: 27
 
 ## Errors
 
-Erros are non-200 JSON responses with the keys:
+Twirp error responses are always JSON-encoded, regardless of
+the request's Content-Type, with a corresponding
+`Content-Type: application/json` header. This ensures that
+the errors are human-readable in any setting.
 
-* **code**: (string) One of the valid Twirp error codes.
-* **msg**: (string) Human-readable message describing the error.
-* **meta**: (optional object) arbitrary additional metadata 
-  describing the error. Keys and values must be strings.
+Twirp errors are a JSON object with the keys:
+
+* **code**: One of the Twirp error codes as a string.
+* **msg**: A human-readable message describing the error as a string.
+* **meta**: (optional) An object with string values holding
+ arbitrary additional metadata describing the error.
 
 Example:
 
 ```json
 {
+  "code": "internal",
+  "msg": "Something went wrong"
+}
+```
+
+Example with metadata:
+
+```json
+{
   "code": "permission_denied",
-  "msg": "thou shall not pass",
+  "msg": "Thou shall not pass",
   "meta": {
-    "target": "Balrog"
+    "target": "Balrog",
+    "power": "999"
   }
 }
 ```
 
-### Error Responses are JSON
+### Error Codes
 
-Twirp error responses are always JSON-encoded, the response Content-Type
-header is always `application/json`, regardless of the request's 
-Content-Type (protbuf requests also respond with json errors).
-This ensures that errors are human-readable and easy to parse by intermediary proxies.
+Twirp errors always include an error code. This code is represented
+as a string and must be one of a fixed set of codes, listed in the 
+table below. Each code has an associated HTTP Status Code. When a 
+server responds with the given error code, it must set the 
+corresponding HTTP Status Code for the response.
 
-Example Error Response:
-
-```
-HTTP/1.1 500 Internal Server Error
-Content-Type: application/json
-Content-Length: 48
-
-{"code":"internal","msg":"Something went wrong"}
-```
-
-### Twirp Error Codes
-
-The possible values for the Error "code" are intentionaly similar to
-[gRPC status codes](https://godoc.org/google.golang.org/grpc/codes).
-
-Twirp services must respond with status `200` for non-error responses.
-For error responses, the staus depends on the Twirp Error Code.
-
-| Twirp Error Code | HTTP Status | Description
-| ---- | ---- | ----
+| Twirp Error Code    | HTTP Status | Description
+| ------------------- | ----------- | -----------
 | canceled            | 408 | The operation was cancelled.
 | unknown             | 500 | An unknown error occurred. For example, this can be used when handling errors raised by APIs that do not return any error information.
 | invalid_argument    | 400 | The client specified an invalid argument. This indicates arguments that are invalid regardless of the state of the system (i.e. a malformed file name, required argument, number out of range, etc.).
@@ -216,23 +214,3 @@ For error responses, the staus depends on the Twirp Error Code.
 | dataloss            | 500 | The operation resulted in unrecoverable data loss or corruption.
 
 
-### Metadata
-
-In adition to `code` and `msg`, Twirp Error responses may have a `meta` field with
-arbitrary string metadata. For example:
-
-```json
-{
-  "code": "invalid_argument",
-  "msg": "please use a smaller size",
-  "meta": {
-    "argument": "size",
-    "max_allowed": "1000"
-  }
-}
-```
-
-Error metadata can only have string values. This is to simplify error parsing by clients.
-If your service requires errors with complex metadata, you should consider adding client
-wrappers on top of the auto-generated clients, or just include business-logic errors as
-part of the Protobuf messages (add an error field to proto messages).

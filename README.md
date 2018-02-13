@@ -55,14 +55,14 @@ is generated from that folder using [Docusaurus](https://docusaurus.io/).
 This repo only has the official generators, which write out Go and Python code.
 For other languages, there are third-party generators available:
 
-|    Language    | Repository |
-|----------------|------------|
-| **Java**       | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
-| **JavaScript** | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
-| **JavaScript** | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
-| **Lua**        | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_eclier](https://github.com/Xe/twirp-codegens)
-| **Ruby**       | [github.com/gaffneyc/protoc-gen-twirp_ruby](https://github.com/gaffneyc/protoc-gen-twirp_ruby)
-| **Swagger**    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
+|    Language    | Clients | Servers | Repository |
+|----------------|---------|---------|------------|
+| **Java**       |    ✓    |         | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
+| **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
+| **JavaScript** |    ✓    |         | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
+| **Ruby**       |    ✓    |         | [github.com/gaffneyc/protoc-gen-twirp_ruby](https://github.com/gaffneyc/protoc-gen-twirp_ruby)
+| **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
+| **Swagger**    |    ✓    |    ✓    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
 
 This list isn't an endorsement, it's just a convenience to help you find stuff
 for your language.

@@ -159,7 +159,8 @@ the errors are human-readable in any setting.
 Twirp errors are a JSON object with the keys:
 
 * **code**: One of the Twirp error codes as a string.
-* **msg**: A human-readable message describing the error as a string.
+* **msg**: A human-readable message describing the error
+  as a string.
 * **meta**: (optional) An object with string values holding
  arbitrary additional metadata describing the error.
 

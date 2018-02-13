@@ -86,7 +86,7 @@ will be the &quot;backend&quot; full of logic that we'll be serving.</p>
 <span class="hljs-comment">// Server implements the Haberdasher service</span>
 <span class="hljs-keyword">type</span> Server <span class="hljs-keyword">struct</span> {}
 
-<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">MakeHat</span><span class="hljs-params">(ctx context.Context, size *pb.Size)</span> <span class="hljs-params">(hat *pb.Hat, error)</span></span> {
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">MakeHat</span><span class="hljs-params">(ctx context.Context, size *pb.Size)</span> <span class="hljs-params">(hat *pb.Hat, err error)</span></span> {
     <span class="hljs-keyword">if</span> size.Inches &lt;= <span class="hljs-number">0</span> {
         <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InvalidArgumentError(<span class="hljs-string">"inches"</span>, <span class="hljs-string">"I can't make a hat that small!"</span>)
     }

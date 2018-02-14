@@ -264,9 +264,12 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(buf.Bytes()); err != nil {
-		err = wrapErr(err, "failed to write response to client")
-		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -327,9 +330,10 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(respBytes); err != nil {
-		err = wrapErr(err, "failed to write response to client")
-		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -404,9 +408,12 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(buf.Bytes()); err != nil {
-		err = wrapErr(err, "failed to write response to client")
-		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -467,9 +474,10 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(respBytes); err != nil {
-		err = wrapErr(err, "failed to write response to client")
-		callError(ctx, s.hooks, twirp.InternalErrorWith(err))
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }

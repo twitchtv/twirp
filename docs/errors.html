@@ -7,11 +7,13 @@
         </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Errors</h1></header><article><div><span><p>You probably noticed that all methods on a Twirp-made interface return <code>(..., error)</code>.</p>
 <p>Twirp clients always return errors that can be cast to <code>twirp.Error</code>. Even
 transport-level errors will be <code>twirp.Error</code>s.</p>
-<p>Twirp server implementations can return regular errors, but if they do, they
+<p>Twirp server implementations can return regular errors too, but those
 will be wrapped with <code>twirp.InternalErrorWith(err)</code>, so they are also
 <code>twirp.Error</code> values when received by the clients.</p>
-<p>Don't be afraid to check the source code for details, it is pretty
-straightforward: <a href="https://github.com/twitchtv/twirp/blob/master/errors.go">errors.go</a></p>
+<p>Check the <a href="/twirp/docs/spec_v5.html">Errors Spec</a> for more information on error
+codes and the wire protocol.</p>
+<p>Also don't be afraid to open the <a href="https://github.com/twitchtv/twirp/blob/master/errors.go">source code</a>
+for details, it is pretty straightforward.</p>
 <h3><a class="anchor" aria-hidden="true" name="twirperror-interface"></a><a href="#twirperror-interface" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>twirp.Error interface</h3>
 <p>Twirp Errors have this interface:</p>
 <pre><code class="hljs css go"><span class="hljs-keyword">type</span> Error <span class="hljs-keyword">interface</span> {
@@ -26,31 +28,63 @@ straightforward: <a href="https://github.com/twitchtv/twirp/blob/master/errors.g
 }
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" name="error-codes"></a><a href="#error-codes" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Error Codes</h3>
-<p>The possible values for <code>ErrorCode</code> are inspired by
-<a href="https://godoc.org/google.golang.org/grpc/codes">gRPC status codes</a>:</p>
-<pre><code class="hljs">ErrorCode            JSON/String             HTTP status code
--------------------  ----------------------  -------------------
-Canceled           | <span class="hljs-string">"canceled"</span>            | 408 RequestTimeout
-Unknown            | <span class="hljs-string">"unknown"</span>             | 500 Internal<span class="hljs-built_in"> Server </span><span class="hljs-builtin-name">Error</span>
-InvalidArgument    | <span class="hljs-string">"invalid_argument"</span>    | 400 BadRequest
-DeadlineExceeded   | <span class="hljs-string">"deadline_exceeded"</span>   | 408 RequestTimeout
-NotFound           | <span class="hljs-string">"not_found"</span>           | 404 <span class="hljs-keyword">Not</span> Found
-BadRoute           | <span class="hljs-string">"bad_route"</span>           | 404 <span class="hljs-keyword">Not</span> Found
-AlreadyExists      | <span class="hljs-string">"already_exists"</span>      | 409 Conflict
-PermissionDenied   | <span class="hljs-string">"permission_denied"</span>   | 403 Forbidden
-Unauthenticated    | <span class="hljs-string">"unauthenticated"</span>     | 401 Unauthorized
-ResourceExhausted  | <span class="hljs-string">"resource_exhausted"</span>  | 403 Forbidden
-FailedPrecondition | <span class="hljs-string">"failed_precondition"</span> | 412 Precondition Failed
-Aborted            | <span class="hljs-string">"aborted"</span>             | 409 Conflict
-OutOfRange         | <span class="hljs-string">"out_of_range"</span>        | 400 Bad Request
-Unimplemented      | <span class="hljs-string">"unimplemented"</span>       | 501 <span class="hljs-keyword">Not</span> Implemented
-Internal           | <span class="hljs-string">"internal"</span>            | 500 Internal<span class="hljs-built_in"> Server </span><span class="hljs-builtin-name">Error</span>
-Unavailable        | <span class="hljs-string">"unavailable"</span>         | 503<span class="hljs-built_in"> Service </span>Unavailable
-DataLoss           | <span class="hljs-string">"dataloss"</span>            | 500 Internal<span class="hljs-built_in"> Server </span><span class="hljs-builtin-name">Error</span>
-NoError            | <span class="hljs-string">""</span>                    | 200 OK
-</code></pre>
-<p>The most common ErrorCodes are probably <code>InvalidArgument</code>, <code>NotFound</code> and <code>Internal</code>.</p>
-<p>Documentation for each ErrorCode is in <a href="https://godoc.org/github.com/twitchtv/twirp#ErrorCode">the godoc page</a>.</p>
+<p>Each error code is defined by a constant in the <code>twirp</code> package:</p>
+<table>
+<thead>
+<tr><th>twirp.ErrorCode</th><th>JSON/String</th><th>HTTP status code</th></tr>
+</thead>
+<tbody>
+<tr><td>Canceled</td><td>canceled</td><td>408 RequestTimeout</td></tr>
+<tr><td>Unknown</td><td>unknown</td><td>500 Internal Server Error</td></tr>
+<tr><td>InvalidArgument</td><td>invalid_argument</td><td>400 BadRequest</td></tr>
+<tr><td>DeadlineExceeded</td><td>deadline_exceeded</td><td>408 RequestTimeout</td></tr>
+<tr><td>NotFound</td><td>not_found</td><td>404 Not Found</td></tr>
+<tr><td>BadRoute</td><td>bad_route</td><td>404 Not Found</td></tr>
+<tr><td>AlreadyExists</td><td>already_exists</td><td>409 Conflict</td></tr>
+<tr><td>PermissionDenied</td><td>permission_denied</td><td>403 Forbidden</td></tr>
+<tr><td>Unauthenticated</td><td>unauthenticated</td><td>401 Unauthorized</td></tr>
+<tr><td>ResourceExhausted</td><td>resource_exhausted</td><td>403 Forbidden</td></tr>
+<tr><td>FailedPrecondition</td><td>failed_precondition</td><td>412 Precondition Failed</td></tr>
+<tr><td>Aborted</td><td>aborted</td><td>409 Conflict</td></tr>
+<tr><td>OutOfRange</td><td>out_of_range</td><td>400 Bad Request</td></tr>
+<tr><td>Unimplemented</td><td>unimplemented</td><td>501 Not Implemented</td></tr>
+<tr><td>Internal</td><td>internal</td><td>500 Internal Server Error</td></tr>
+<tr><td>Unavailable</td><td>unavailable</td><td>503 Service Unavailable</td></tr>
+<tr><td>DataLoss</td><td>dataloss</td><td>500 Internal Server Error</td></tr>
+</tbody>
+</table>
+<p>For more information on each code, see the <a href="/twirp/docs/spec_v5.html">Errors Spec</a>.</p>
+<h3><a class="anchor" aria-hidden="true" name="http-errors-from-intermediary-proxies"></a><a href="#http-errors-from-intermediary-proxies" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>HTTP Errors from Intermediary Proxies</h3>
+<p>It is also possible for Twirp Clients to receive HTTP responses with non-200 status
+codes but without an expected error message. For example, proxies or load balancers
+might return a &quot;503 Service Temporarily Unavailable&quot; body, which cannot be
+deserialized into a Twirp error.</p>
+<p>In these cases, generated Go clients will return twirp.Errors with a code which
+depends upon the HTTP status of the invalid response:</p>
+<table>
+<thead>
+<tr><th>HTTP status code</th><th>Twirp Error Code</th></tr>
+</thead>
+<tbody>
+<tr><td>3xx (redirects)</td><td>Internal</td></tr>
+<tr><td>400 Bad Request</td><td>Internal</td></tr>
+<tr><td>401 Unauthorized</td><td>Unauthenticated</td></tr>
+<tr><td>403 Forbidden</td><td>PermissionDenied</td></tr>
+<tr><td>404 Not Found</td><td>BadRoute</td></tr>
+<tr><td>429 Too Many Requests</td><td>Unavailable</td></tr>
+<tr><td>502 Bad Gateway</td><td>Unavailable</td></tr>
+<tr><td>503 Service Unavailable</td><td>Unavailable</td></tr>
+<tr><td>504 Gateway Timeout</td><td>Unavailable</td></tr>
+<tr><td>... other</td><td>Unknown</td></tr>
+</tbody>
+</table>
+<p>Additional metadata is added to make it easy to identify intermediary errors:</p>
+<ul>
+<li><code>&quot;http_error_from_intermediary&quot;: &quot;true&quot;</code></li>
+<li><code>&quot;status_code&quot;: string</code> (original status code on the HTTP response, e.g. <code>&quot;500&quot;</code>).</li>
+<li><code>&quot;body&quot;: string</code> (original non-Twirp error response as string).</li>
+<li><code>&quot;location&quot;: url-string</code> (only on 3xx reponses, matching the <code>Location</code> header).</li>
+</ul>
 <h3><a class="anchor" aria-hidden="true" name="metadata"></a><a href="#metadata" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metadata</h3>
 <p>You can add arbitrary string metadata to any error. For example, the service may return an error like this:</p>
 <pre><code class="hljs css go"><span class="hljs-keyword">if</span> unavailable {
@@ -67,33 +101,8 @@ NoError            | <span class="hljs-string">""</span>                    | 20
     }
 }
 </code></pre>
-<h3><a class="anchor" aria-hidden="true" name="constructors"></a><a href="#constructors" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Constructors</h3>
-<pre><code class="hljs css go"><span class="hljs-comment">// Generic constructor</span>
-twirp.NewError(code twirp.ErrorCode, msg <span class="hljs-keyword">string</span>) twirp.Error
-
-<span class="hljs-comment">// Convenience constructors for common errors</span>
-twirp.NotFoundError(msg <span class="hljs-keyword">string</span>) twirp.Error
-twirp.InvalidArgumentError(arg, msg  <span class="hljs-keyword">string</span>) twirp.Error
-twirp.RequiredArgumentError(arg  <span class="hljs-keyword">string</span>) twirp.Error
-twirp.InternalError(msg  <span class="hljs-keyword">string</span>) twirp.Error
-twirp.InternalErrorWith(err error) twirp.Error
-</code></pre>
-<h3><a class="anchor" aria-hidden="true" name="errors-responses-are-json"></a><a href="#errors-responses-are-json" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Errors responses are JSON</h3>
-<p>Errors returned by Twirp servers use non-200 HTTP status codes and always have
-JSON-encoded bodies (even if the request was Protobuf-encoded). The body JSON
-has three fields {code, msg, meta}.</p>
-<p>For example, an error returned from a Twirp method like this:</p>
-<pre><code class="hljs css go">twerr := twirp.NewError(twirp.PermissionDenied, <span class="hljs-string">"thou shall not pass"</span>)
-twerr = twerr.WithMeta(<span class="hljs-string">"target"</span>, <span class="hljs-string">"Balrog"</span>)
-<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twerr
-</code></pre>
-<p>serializes to this JSON response body:</p>
-<pre><code class="hljs css json">{
-    <span class="hljs-attr">"code"</span>: <span class="hljs-string">"permission_denied"</span>,
-    <span class="hljs-attr">"msg"</span>: <span class="hljs-string">"thou shall not pass"</span>,
-    <span class="hljs-attr">"meta"</span>: {
-        <span class="hljs-attr">"target"</span>: <span class="hljs-string">"Balrog"</span>
-    }
-}
-</code></pre>
+<p>Error metadata can only have string values. This is to simplify error parsing by clients.
+If your service requires errors with complex metadata, you should consider adding client
+wrappers on top of the auto-generated clients, or just include business-logic errors as
+part of the Protobuf messages (add an error field to proto messages).</p>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="routing.html">← HTTP Routing and Serialization</a><a class="docs-next button" href="hooks.html">Server Hooks →</a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2018 Twitch Interactive, Inc.</section></footer></div></body></html>

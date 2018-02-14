@@ -10,12 +10,15 @@ error)`.
 Twirp clients always return errors that can be cast to `twirp.Error`. Even
 transport-level errors will be `twirp.Error`s.
 
-Twirp server implementations can return regular errors, but if they do, they
+Twirp server implementations can return regular errors too, but those
 will be wrapped with `twirp.InternalErrorWith(err)`, so they are also
 `twirp.Error` values when received by the clients.
 
-Don't be afraid to check the source code for details, it is pretty
-straightforward: [errors.go](https://github.com/twitchtv/twirp/blob/master/errors.go)
+Check the [Errors Spec](spec_v5.md) for more information on error
+codes and the wire protocol.
+
+Also don't be afraid to open the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go) 
+for details, it is pretty straightforward.
 
 ### twirp.Error interface
 
@@ -35,35 +38,59 @@ type Error interface {
 
 ### Error Codes
 
-The possible values for `ErrorCode` are inspired by
-[gRPC status codes](https://godoc.org/google.golang.org/grpc/codes):
+Each error code is defined by a constant in the `twirp` package:
 
-```
-ErrorCode            JSON/String             HTTP status code
--------------------  ----------------------  -------------------
-Canceled           | "canceled"            | 408 RequestTimeout
-Unknown            | "unknown"             | 500 Internal Server Error
-InvalidArgument    | "invalid_argument"    | 400 BadRequest
-DeadlineExceeded   | "deadline_exceeded"   | 408 RequestTimeout
-NotFound           | "not_found"           | 404 Not Found
-BadRoute           | "bad_route"           | 404 Not Found
-AlreadyExists      | "already_exists"      | 409 Conflict
-PermissionDenied   | "permission_denied"   | 403 Forbidden
-Unauthenticated    | "unauthenticated"     | 401 Unauthorized
-ResourceExhausted  | "resource_exhausted"  | 403 Forbidden
-FailedPrecondition | "failed_precondition" | 412 Precondition Failed
-Aborted            | "aborted"             | 409 Conflict
-OutOfRange         | "out_of_range"        | 400 Bad Request
-Unimplemented      | "unimplemented"       | 501 Not Implemented
-Internal           | "internal"            | 500 Internal Server Error
-Unavailable        | "unavailable"         | 503 Service Unavailable
-DataLoss           | "dataloss"            | 500 Internal Server Error
-NoError            | ""                    | 200 OK
-```
+| twirp.ErrorCode    | JSON/String         |  HTTP status code
+| ------------------ | ------------------- | ------------------
+| Canceled           | canceled            | 408 RequestTimeout
+| Unknown            | unknown             | 500 Internal Server Error
+| InvalidArgument    | invalid_argument    | 400 BadRequest
+| DeadlineExceeded   | deadline_exceeded   | 408 RequestTimeout
+| NotFound           | not_found           | 404 Not Found
+| BadRoute           | bad_route           | 404 Not Found
+| AlreadyExists      | already_exists      | 409 Conflict
+| PermissionDenied   | permission_denied   | 403 Forbidden
+| Unauthenticated    | unauthenticated     | 401 Unauthorized
+| ResourceExhausted  | resource_exhausted  | 403 Forbidden
+| FailedPrecondition | failed_precondition | 412 Precondition Failed
+| Aborted            | aborted             | 409 Conflict
+| OutOfRange         | out_of_range        | 400 Bad Request
+| Unimplemented      | unimplemented       | 501 Not Implemented
+| Internal           | internal            | 500 Internal Server Error
+| Unavailable        | unavailable         | 503 Service Unavailable
+| DataLoss           | dataloss            | 500 Internal Server Error
 
-The most common ErrorCodes are probably `InvalidArgument`, `NotFound` and `Internal`.
+For more information on each code, see the [Errors Spec](spec_v5.md).
 
-Documentation for each ErrorCode is in [the godoc page](https://godoc.org/github.com/twitchtv/twirp#ErrorCode).
+### HTTP Errors from Intermediary Proxies
+
+It is also possible for Twirp Clients to receive HTTP responses with non-200 status
+codes but without an expected error message. For example, proxies or load balancers 
+might return a "503 Service Temporarily Unavailable" body, which cannot be 
+deserialized into a Twirp error.
+
+In these cases, generated Go clients will return twirp.Errors with a code which 
+depends upon the HTTP status of the invalid response:
+
+| HTTP status code         |  Twirp Error Code
+| ------------------------ | ------------------
+| 3xx (redirects)          | Internal
+| 400 Bad Request          | Internal
+| 401 Unauthorized         | Unauthenticated
+| 403 Forbidden            | PermissionDenied
+| 404 Not Found            | BadRoute
+| 429 Too Many Requests    | Unavailable
+| 502 Bad Gateway          | Unavailable
+| 503 Service Unavailable  | Unavailable
+| 504 Gateway Timeout      | Unavailable
+| ... other                | Unknown
+
+Additional metadata is added to make it easy to identify intermediary errors:
+
+* `"http_error_from_intermediary": "true"`
+* `"status_code": string` (original status code on the HTTP response, e.g. `"500"`).
+* `"body": string` (original non-Twirp error response as string).
+* `"location": url-string` (only on 3xx reponses, matching the `Location` header).
 
 ### Metadata
 
@@ -88,42 +115,8 @@ if twerr.Code() == twirp.Unavailable {
 }
 ```
 
-### Constructors
+Error metadata can only have string values. This is to simplify error parsing by clients.
+If your service requires errors with complex metadata, you should consider adding client
+wrappers on top of the auto-generated clients, or just include business-logic errors as
+part of the Protobuf messages (add an error field to proto messages).
 
-```go
-// Generic constructor
-twirp.NewError(code twirp.ErrorCode, msg string) twirp.Error
-
-// Convenience constructors for common errors
-twirp.NotFoundError(msg string) twirp.Error
-twirp.InvalidArgumentError(arg, msg  string) twirp.Error
-twirp.RequiredArgumentError(arg  string) twirp.Error
-twirp.InternalError(msg  string) twirp.Error
-twirp.InternalErrorWith(err error) twirp.Error
-```
-
-### Errors responses are JSON
-
-Errors returned by Twirp servers use non-200 HTTP status codes and always have
-JSON-encoded bodies (even if the request was Protobuf-encoded). The body JSON
-has three fields {code, msg, meta}.
-
-For example, an error returned from a Twirp method like this:
-
-```go
-twerr := twirp.NewError(twirp.PermissionDenied, "thou shall not pass")
-twerr = twerr.WithMeta("target", "Balrog")
-return nil, twerr
-```
-
-serializes to this JSON response body:
-
-```json
-{
-    "code": "permission_denied",
-    "msg": "thou shall not pass",
-    "meta": {
-        "target": "Balrog"
-    }
-}
-```

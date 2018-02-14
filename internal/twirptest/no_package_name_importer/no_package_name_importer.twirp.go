@@ -191,15 +191,6 @@ func (s *svc2Server) serveMethod(ctx context.Context, resp http.ResponseWriter, 
 
 func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-
-	defer func() {
-		closeErr := req.Body.Close()
-		if err == nil && closeErr != nil {
-			closeErr = wrapErr(closeErr, "failed to close request body")
-			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
-		}
-	}()
-
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
@@ -259,15 +250,6 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 
 func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-
-	defer func() {
-		closeErr := req.Body.Close()
-		if err == nil && closeErr != nil {
-			closeErr = wrapErr(closeErr, "failed to close request body")
-			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
-		}
-	}()
-
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {

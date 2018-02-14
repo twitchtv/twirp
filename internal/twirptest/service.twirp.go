@@ -191,15 +191,6 @@ func (s *haberdasherServer) serveMakeHat(ctx context.Context, resp http.Response
 
 func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-
-	defer func() {
-		closeErr := req.Body.Close()
-		if err == nil && closeErr != nil {
-			closeErr = wrapErr(closeErr, "failed to close request body")
-			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
-		}
-	}()
-
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
@@ -259,15 +250,6 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 
 func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-
-	defer func() {
-		closeErr := req.Body.Close()
-		if err == nil && closeErr != nil {
-			closeErr = wrapErr(closeErr, "failed to close request body")
-			callError(ctx, s.hooks, twirp.InternalErrorWith(closeErr))
-		}
-	}()
-
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {

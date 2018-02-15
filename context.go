@@ -67,6 +67,9 @@ func StatusCode(ctx context.Context) (string, bool) {
 // WithHTTPRequestHeaders returns an error if the provided http.Header
 // would overwrite a header that is needed by Twirp, like "Content-Type".
 func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
+	if _, ok := h["Accept"]; ok {
+		return nil, errors.New("provided header cannot set Accept")
+	}
 	if _, ok := h["Content-Type"]; ok {
 		return nil, errors.New("provided header cannot set Content-Type")
 	}

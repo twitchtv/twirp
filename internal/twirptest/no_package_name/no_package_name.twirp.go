@@ -438,6 +438,7 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	if customHeader := getCustomHTTPReqHeaders(ctx); customHeader != nil {
 		req.Header = customHeader
 	}
+	req.Header.Set("Accept", contentType)
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Twirp-Version", "v5.2.0")
 	return req, nil

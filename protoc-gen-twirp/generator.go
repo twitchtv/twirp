@@ -418,6 +418,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  if customHeader := getCustomHTTPReqHeaders(ctx); customHeader != nil {`)
 	t.P(`    req.Header = customHeader`)
 	t.P(`  }`)
+	t.P(`  req.Header.Set("Accept", contentType)`)
 	t.P(`  req.Header.Set("Content-Type", contentType)`)
 	t.P(`  req.Header.Set("Twirp-Version", "`, gen.Version, `")`)
 	t.P(`  return req, nil`)

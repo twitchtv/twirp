@@ -178,7 +178,7 @@ To use the `Haberdasher` service from another Go project, just import the
 auto-generated client and then use it. You might do this, in `cmd/client/main.go`:
 
 ```go
-pacage main
+package main
 
 import (
     "context"

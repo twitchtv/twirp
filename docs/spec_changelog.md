@@ -1,5 +1,5 @@
 ---
-id: "spec_v5"
+id: "spec_changelog"
 title: "Twirp Wire Protocol Changelog"
 sidebar_label: "Changelog"
 ---

@@ -10,30 +10,6 @@ v6 of Twirp is not released or considered stable; instead, this
 document lists planned changes which may be available in prerelease
 distributions.
 
-## Changes from v5
-
-### URL scheme
-
-In [v5](./PROTOCOL.md), URLs followed this format:
-
-**URL ::= Base-URL "/twirp/" [ Package "." ] Service "/" Method**
-
-In v6, the "/twirp/" prefix is removed:
-
-**URL ::= Base-URL "/" [ Package "." ] Service "/" Method**
-
-The "/twirp/" prefix is removed for three reasons:
-
- - Trademark concerns: some very large organizations don't want to
-   take any legal risks and are concerned that "twirp" could become
-   trademarked.
- - Feels like advertising: To some users, putting "twirp" in all your
-   routes feels like it's just supposed to pump Twirp's brand, and
-   provides no value back to users.
- - Homophonous with "twerp": In some Very Serious settings (like
-   government websites), it's not okay that "twirp" sounds like
-   "twerp", which means something like "insignificant pest."
-
 ## Overview
 
 The Twirp wire protocol is a simple RPC protocol based on HTTP and

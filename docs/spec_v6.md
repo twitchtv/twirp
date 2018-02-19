@@ -29,11 +29,11 @@ proto messages, and works with any HTTP client and any HTTP version.
 
 ### URLs
 
-In [ABNF syntax](https://tools.ietf.org/html/rfc5234), Twirp's URLs
+In [BNF syntax](https://tools.ietf.org/html/rfc5234), Twirp's URLs
 have the following format:
 
 ```bnf
-URL ::= Base-URL "/" [ Package "." ] Service "/" Method
+URL ::= Base-URL "/" [ Package "/" ] Service "/" Method
 ```
 
 The Twirp wire protocol uses HTTP URLs to specify the RPC
@@ -41,10 +41,12 @@ endpoints on the server for sending the requests. Such direct mapping
 makes the request routing simple and efficient. The Twirp URLs have
 the following components.
 
-* **Base-URL** is the virtual location of a Twirp API server, which is
-  typically published via API documentation or service discovery.
-  Currently, it should only contain URL `scheme` and `authority`. For
-  example, "https://example.com".
+* **Base-URL** is the virtual location of a Twirp API server, which is typically
+  published via API documentation or service discovery. It should be a RFC 3986
+  URL. In the language of
+  [RFC 3986 Section 3](https://tools.ietf.org/html/rfc3986?#section-3), it must
+  have scheme and authority components. It may have a path component. It must
+  not have query or fragment components.
 * **Package** is the proto `package` name for an API, which is often
   considered as an API version. For example,
   `example.calendar.v1`. This component is omitted if the API
@@ -89,7 +91,7 @@ header.
 The following example shows a simple Echo API definition and its
 corresponding wire payloads.
 
-The example assumes the server base URL is "https://example.com".
+The example assumes the server base URL is "https://example.com/userprefix".
 
 ```proto
 syntax = "proto3";
@@ -112,7 +114,7 @@ message HelloResponse {
 **Proto Request**
 
 ```
-POST /example.echoer.Echo/Hello HTTP/1.1
+POST /userprefix/example.echoer/Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/protobuf
 Content-Length: 15
@@ -123,7 +125,7 @@ Content-Length: 15
 **JSON Request**
 
 ```
-POST /example.echoer.Echo/Hello HTTP/1.1
+POST /userprefix/example.echoer/Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/json
 Content-Length: 27

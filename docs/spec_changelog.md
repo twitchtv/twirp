@@ -12,13 +12,25 @@ This document lists changes to the Twirp specification.
 
 In [v5](./PROTOCOL.md), URLs followed this format:
 
+```bnf
 **URL ::= Base-URL "/twirp/" [ Package "." ] Service "/" Method**
+```
 
-In v6, the "/twirp/" prefix is removed:
+Version 6 changes this format to remove the mandatory `"/twirp"` prefix, and
+changes `Package` and `Service` to be delimited with a `/` instead of a `.`
+character:
 
-**URL ::= Base-URL "/" [ Package "." ] Service "/" Method**
+```bnf
+**URL ::= Base-URL "/" [ Package "/" ] Service "/" Method**
+```
 
-The "/twirp/" prefix is removed for three reasons:
+Also, `Base-URL` can now contain a path component - in other words, it's legal
+to set any prefix you like.
+
+If you loved the old `/twirp` prefix, you can still use it by using a base URL
+that ends with `/twirp`. You're no longer forced into use it, however.
+
+The "/twirp/" prefix is no longer required for three reasons:
 
  - Trademark concerns: some very large organizations don't want to
    take any legal risks and are concerned that "twirp" could become

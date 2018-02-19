@@ -27,23 +27,6 @@ the client can communicate with the server by making RPC calls.
 The Twirp wire protocol supports both binary and JSON encodings of
 proto messages, and works with any HTTP client and any HTTP version.
 
-## Overview
-
-The Twirp wire protocol is a simple RPC protocol based on HTTP and
-Protocol Buffers (proto). The protocol uses HTTP URLs to specify the
-RPC endpoints, and sends/receives proto messages as HTTP
-request/response bodies.
-
-To use Twirp, developers first define their APIs using proto files,
-then use Twirp tools to generate the client and the server libraries.
-The generated libraries implement the Twirp wire protocol, using the
-standard HTTP library provided by the programming language runtime or
-the operating system. Once the client and the server are implemented,
-the client can communicate with the server by making RPC calls.
-
-The Twirp wire protocol supports both binary and JSON encodings of
-proto messages, and works with any HTTP client and any HTTP version.
-
 ### URLs
 
 In [ABNF syntax](https://tools.ietf.org/html/rfc5234), Twirp's URLs

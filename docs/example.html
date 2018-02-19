@@ -138,7 +138,7 @@ JSON requests, but you should really use ProtobufClient (see
 <a href="/twirp/docs/proto_and_json.html">Protobuf vs JSON</a>).</p>
 <p>To use the <code>Haberdasher</code> service from another Go project, just import the
 auto-generated client and then use it. You might do this, in <code>cmd/client/main.go</code>:</p>
-<pre><code class="hljs css go">pacage main
+<pre><code class="hljs css go"><span class="hljs-keyword">package</span> main
 
 <span class="hljs-keyword">import</span> (
     <span class="hljs-string">"context"</span>
@@ -149,9 +149,9 @@ auto-generated client and then use it. You might do this, in <code>cmd/client/ma
 )
 
 <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
-    client := haberdasher.NewHaberdasherProtobufClient(<span class="hljs-string">"http://localhost:8000"</span>, &amp;http.Client{})
+    client := haberdasher.NewHaberdasherProtobufClient(<span class="hljs-string">"http://localhost:8080"</span>, &amp;http.Client{})
 
-    hat, err := client.MakeHat(context.Background(), &amp;example.Size{Inches: <span class="hljs-number">12</span>})
+    hat, err := client.MakeHat(context.Background(), &amp;haberdasher.Size{Inches: <span class="hljs-number">12</span>})
     <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> {
         fmt.Printf(<span class="hljs-string">"oh no: %v"</span>, err)
         os.Exit(<span class="hljs-number">1</span>)

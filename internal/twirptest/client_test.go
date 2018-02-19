@@ -47,7 +47,6 @@ func TestClientSetsRequestContext(t *testing.T) {
 	s := httptest.NewServer(NewHaberdasherServer(h, nil))
 	defer s.Close()
 
-
 	// Make an *http.Client that validates that the key-value is present
 	// in the context.
 	httpClient := &http.Client{
@@ -93,6 +92,55 @@ func TestClientSetsRequestContext(t *testing.T) {
 		t.Errorf("MakeHat err=%s", err)
 	}
 
+	client = NewHaberdasherProtobufClient(s.URL, httpClient)
+
+	_, err = client.MakeHat(context.Background(), &Size{1})
+	if err != nil {
+		t.Errorf("MakeHat err=%s", err)
+	}
+}
+
+func TestClientSetsAcceptHeader(t *testing.T) {
+	// Start up a server just so we can make a working client later.
+	h := PickyHatmaker(1)
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+
+	// Make an *http.Client that validates that the correct accept header is present
+	// in the request.
+	httpClient := &http.Client{
+		Transport: &reqInspector{
+			callback: func(req *http.Request) {
+				if req.Header.Get("Accept") != "application/json" {
+					t.Error("Accept header not found in req")
+					return
+				}
+			},
+		},
+	}
+
+	// Test the JSON client
+	client := NewHaberdasherJSONClient(s.URL, httpClient)
+
+	_, err := client.MakeHat(context.Background(), &Size{1})
+	if err != nil {
+		t.Errorf("MakeHat err=%s", err)
+	}
+
+	// Make an *http.Client that validates that the correct accept header is present
+	// in the request.
+	httpClient = &http.Client{
+		Transport: &reqInspector{
+			callback: func(req *http.Request) {
+				if req.Header.Get("Accept") != "application/protobuf" {
+					t.Error("Accept header not found in req")
+					return
+				}
+			},
+		},
+	}
+
+	// test the Protobuf client.
 	client = NewHaberdasherProtobufClient(s.URL, httpClient)
 
 	_, err = client.MakeHat(context.Background(), &Size{1})

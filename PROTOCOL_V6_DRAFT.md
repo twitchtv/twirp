@@ -6,30 +6,6 @@ v6 of Twirp is not released or considered stable; instead, this
 document lists planned changes which may be available in prerelease
 distributions.
 
-## Changes from v5
-
-### URL scheme
-
-In [v5](./PROTOCOL.md), URLs followed this format:
-
-**URL ::= Base-URL "/twirp/" [ Package "." ] Service "/" Method**
-
-In v6, the "/twirp/" prefix is removed:
-
-**URL ::= Base-URL "/" [ Package "." ] Service "/" Method**
-
-The "/twirp/" prefix is removed for three reasons:
-
- - Trademark concerns: some very large organizations don't want to
-   take any legal risks and are concerned that "twirp" could become
-   trademarked.
- - Feels like advertising: To some users, putting "twirp" in all your
-   routes feels like it's just supposed to pump Twirp's brand, and
-   provides no value back to users.
- - Homophonous with "twerp": In some Very Serious settings (like
-   government websites), it's not okay that "twirp" sounds like
-   "twerp", which means something like "insignificant pest."
-
 ## Overview
 
 The Twirp wire protocol is a simple RPC protocol based on HTTP and
@@ -59,10 +35,11 @@ endpoints on the server for sending the requests. Such direct mapping
 makes the request routing simple and efficient. The Twirp URLs have
 the following components.
 
-* **Base-URL** is the virtual location of a Twirp API server, which is
-  typically published via API documentation or service discovery.
-  Currently, it should only contain URL `scheme` and `authority`. For
-  example, "https://example.com".
+* **Base-URL** is the virtual location of a Twirp API server, which
+  is typically published via API documentation or service discovery.
+  It must be a RFC 3986 URL with no "query" or "fragment" components.
+  For example, "https://example.com" or
+  "http://example.com:80/path/prefix".
 
 * **Package** is the proto `package` name for an API, which is often
   considered as an API version. For example,
@@ -110,7 +87,8 @@ header.
 The following example shows a simple Echo API definition and its
 corresponding wire payloads.
 
-The example assumes the server base URL is "https://example.com".
+The example assumes the server base URL is
+"https://example.com/userprefix".
 
 ```proto
 syntax = "proto3";
@@ -133,7 +111,7 @@ message HelloResponse {
 **Proto Request**
 
 ```
-POST /example.echoer.Echo/Hello HTTP/1.1
+POST /userprefix/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/protobuf
 Content-Length: 15
@@ -144,7 +122,7 @@ Content-Length: 15
 **JSON Request**
 
 ```
-POST /example.echoer.Echo/Hello HTTP/1.1
+POST /userprefix/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/json
 Content-Length: 27

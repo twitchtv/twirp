@@ -50,9 +50,8 @@ type ServerHooks struct {
 	// does not return a context.
 	ResponseSent func(context.Context)
 
-	// Error hook is called when a request responds with an Error,
-	// either by the service implementation or by Twirp itself.
-	// The Error is passed as argument to the hook.
+	// Error hook is called when an error occurs while handling a request. The
+	// Error is passed as argument to the hook.
 	Error func(context.Context, Error) context.Context
 }
 

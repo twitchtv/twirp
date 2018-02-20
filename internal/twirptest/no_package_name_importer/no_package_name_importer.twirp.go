@@ -15,7 +15,6 @@ import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
-import log "log"
 import http "net/http"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
@@ -199,7 +198,6 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 		return
 	}
 
-	defer closebody(req.Body)
 	reqContent := new(no_package_name.Msg)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
@@ -243,8 +241,12 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(buf.Bytes()); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -258,7 +260,6 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 		return
 	}
 
-	defer closebody(req.Body)
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -306,8 +307,10 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(respBytes); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -378,9 +381,23 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	resp.WriteHeader(statusCode)                          // HTTP response status code
 
 	respBody := marshalErrorToJSON(twerr)
-	_, err2 := resp.Write(respBody)
-	if err2 != nil {
-		log.Printf("unable to send error message %q: %s", twerr, err2)
+	_, writeErr := resp.Write(respBody)
+	if writeErr != nil {
+		// We have three options here. We could log the error, call the Error
+		// hook, or just silently ignore the error.
+		//
+		// Logging is unacceptable because we don't have a user-controlled
+		// logger; writing out to stderr without permission is too rude.
+		//
+		// Calling the Error hook would confuse users: it would mean the Error
+		// hook got called twice for one request, which is likely to lead to
+		// duplicated log messages and metrics, no matter how well we document
+		// the behavior.
+		//
+		// Silently ignoring the error is our least-bad option. It's highly
+		// likely that the connection is broken and the original 'err' says
+		// so anyway.
+		_ = writeErr
 	}
 
 	callResponseSent(ctx, hooks)
@@ -419,15 +436,6 @@ func getCustomHTTPReqHeaders(ctx context.Context) http.Header {
 		copy(copied[k], vv)
 	}
 	return copied
-}
-
-// closebody closes a response or request body and just logs
-// any error encountered while closing, since errors are
-// considered very unusual.
-func closebody(body io.Closer) {
-	if err := body.Close(); err != nil {
-		log.Printf("error closing body: %q", err)
-	}
 }
 
 // newRequest makes an http.Request from a client, adding common headers.

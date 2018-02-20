@@ -8,7 +8,6 @@ import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
-import log "log"
 import http "net/http"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
@@ -209,7 +208,6 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
-	defer closebody(req.Body)
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
@@ -253,8 +251,12 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(buf.Bytes()); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -268,7 +270,6 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
-	defer closebody(req.Body)
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -316,8 +317,10 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(respBytes); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -349,7 +352,6 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
-	defer closebody(req.Body)
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
@@ -393,8 +395,12 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(buf.Bytes()); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -408,7 +414,6 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
-	defer closebody(req.Body)
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -456,8 +461,10 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if _, err = resp.Write(respBytes); err != nil {
-		log.Printf("errored while writing response to client, but already sent response status code to 200: %s", err)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }

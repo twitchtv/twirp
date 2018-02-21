@@ -33,7 +33,7 @@ In [BNF syntax](https://tools.ietf.org/html/rfc5234), Twirp's URLs
 have the following format:
 
 ```bnf
-URL ::= Base-URL "/" [ Package "/" ] Service "/" Method
+URL ::= Base-URL "/" [ Package "." ] Service "/" Method
 ```
 
 The Twirp wire protocol uses HTTP URLs to specify the RPC
@@ -114,7 +114,7 @@ message HelloResponse {
 **Proto Request**
 
 ```
-POST /userprefix/example.echoer/Echo/Hello HTTP/1.1
+POST /userprefix/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/protobuf
 Content-Length: 15
@@ -125,7 +125,7 @@ Content-Length: 15
 **JSON Request**
 
 ```
-POST /userprefix/example.echoer/Echo/Hello HTTP/1.1
+POST /userprefix/example.echoer.Echo/Hello HTTP/1.1
 Host: example.com
 Content-Type: application/json
 Content-Length: 27

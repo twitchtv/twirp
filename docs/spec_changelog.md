@@ -16,12 +16,10 @@ In [v5](./PROTOCOL.md), URLs followed this format:
 **URL ::= Base-URL "/twirp/" [ Package "." ] Service "/" Method**
 ```
 
-Version 6 changes this format to remove the mandatory `"/twirp"` prefix, and
-changes `Package` and `Service` to be delimited with a `/` instead of a `.`
-character:
+Version 6 changes this format to remove the mandatory `"/twirp"` prefix:
 
 ```bnf
-**URL ::= Base-URL "/" [ Package "/" ] Service "/" Method**
+**URL ::= Base-URL "/" [ Package "." ] Service "/" Method**
 ```
 
 Also, `Base-URL` can now contain a path component - in other words, it's legal

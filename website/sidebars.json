@@ -15,7 +15,8 @@
             "proto_and_json"
         ],
         "Formal specification": [
-            "spec_v5"
+            "spec_v5",
+            "spec_v6"
         ]
     }
 }

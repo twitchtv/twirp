@@ -103,11 +103,11 @@ service Echo {
 }
 
 message HelloRequest {
-  string message;
+  string message = 1;
 }
 
 message HelloResponse {
-  string message;
+  string message = 1;
 }
 ```
 
@@ -201,7 +201,7 @@ corresponding HTTP Status Code for the response.
 
 | Twirp Error Code    | HTTP Status | Description
 | ------------------- | ----------- | -----------
-| canceled            | 408 | The operation was cancelled.
+| canceled            | 408 | The operation was canceled.
 | unknown             | 500 | An unknown error occurred. For example, this can be used when handling errors raised by APIs that do not return any error information.
 | invalid_argument    | 400 | The client specified an invalid argument. This indicates arguments that are invalid regardless of the state of the system (i.e. a malformed file name, required argument, number out of range, etc.).
 | deadline_exceeded   | 408 | Operation expired before completion. For operations that change the state of the system, this error may be returned even if the operation has completed successfully (timeout).

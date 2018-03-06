@@ -157,7 +157,7 @@ func (s *compatServiceServer) writeError(ctx context.Context, resp http.Response
 // CompatServicePathPrefix is used for all URL paths on a twirp CompatService server.
 // Requests are always: POST CompatServicePathPrefix/method
 // It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
-const CompatServicePathPrefix = "/twirp/twirp.clientcompat.CompatService/"
+const CompatServicePathPrefix = "/twirp.clientcompat.CompatService/"
 
 func (s *compatServiceServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -180,10 +180,10 @@ func (s *compatServiceServer) ServeHTTP(resp http.ResponseWriter, req *http.Requ
 	}
 
 	switch req.URL.Path {
-	case "/twirp/twirp.clientcompat.CompatService/Method":
+	case "/twirp.clientcompat.CompatService/Method":
 		s.serveMethod(ctx, resp, req)
 		return
-	case "/twirp/twirp.clientcompat.CompatService/NoopMethod":
+	case "/twirp.clientcompat.CompatService/NoopMethod":
 		s.serveNoopMethod(ctx, resp, req)
 		return
 	default:

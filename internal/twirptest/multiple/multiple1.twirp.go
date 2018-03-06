@@ -139,7 +139,7 @@ func (s *svc1Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 // Svc1PathPrefix is used for all URL paths on a twirp Svc1 server.
 // Requests are always: POST Svc1PathPrefix/method
 // It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
-const Svc1PathPrefix = "/twirp/twirp.internal.twirptest.multiple.Svc1/"
+const Svc1PathPrefix = "/twirp.internal.twirptest.multiple.Svc1/"
 
 func (s *svc1Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -162,7 +162,7 @@ func (s *svc1Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	switch req.URL.Path {
-	case "/twirp/twirp.internal.twirptest.multiple.Svc1/Send":
+	case "/twirp.internal.twirptest.multiple.Svc1/Send":
 		s.serveSend(ctx, resp, req)
 		return
 	default:

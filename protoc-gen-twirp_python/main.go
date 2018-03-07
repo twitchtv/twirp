@@ -87,6 +87,7 @@ func (g *generator) generateFile(file *descriptor.FileDescriptorProto) *plugin.C
 	g.P(`        self.code = code`)
 	g.P(`        self.message = message`)
 	g.P(`        self.meta = meta`)
+	g.P(`        super(TwirpException, self).__init__(message)`)
 	g.P()
 	g.P(`    @classmethod`)
 	g.P(`    def from_http_err(cls, err):`)

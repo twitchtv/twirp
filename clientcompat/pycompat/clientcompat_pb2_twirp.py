@@ -18,6 +18,7 @@ class TwirpException(httplib.HTTPException):
         self.code = code
         self.message = message
         self.meta = meta
+        super(TwirpException, self).__init__(message)
 
     @classmethod
     def from_http_err(cls, err):

@@ -18,3 +18,12 @@ service Haberdasher {
   // MakeHat produces a hat of mysterious, randomly-selected color!
   rpc MakeHat(Size) returns (Hat);
 }
+
+message Req {}
+message Resp {}
+service Streamer {
+  rpc Transact(Req) returns (Resp);
+  rpc Upload(stream Req) returns (Resp);
+  rpc Download(Req) returns (stream Resp);
+  rpc Communicate(stream Req) returns (stream Resp);
+}

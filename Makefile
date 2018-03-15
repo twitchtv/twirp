@@ -41,7 +41,7 @@ setup:
 	go build -o build/clientcompat ./clientcompat
 
 ./build/venv: ./build
-	virtualenv ./build/venv
+	virtualenv --python=python2.7 ./build/venv
 
 ./build/venv/bin/pycompat.py: ./build/venv
 	./build/venv/bin/pip install --upgrade ./clientcompat/pycompat

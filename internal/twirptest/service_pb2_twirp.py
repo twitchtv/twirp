@@ -78,3 +78,63 @@ class HaberdasherClient(object):
         resp_str = self.__make_request(body=body, full_method=full_method)
         return deserialize(resp_str)
 
+class StreamerClient(object):
+    def __init__(self, server_address):
+        """Creates a new client for the Streamer service.
+
+        Args:
+            server_address: The address of the server to send requests to, in
+                the full protocol://host:port form.
+        """
+        self.__target = server_address
+        self.__service_name = "twirp.internal.twirptest.Streamer"
+
+    def __make_request(self, body, full_method):
+        req = Request(
+            url=self.__target + "/twirp" + full_method,
+            data=body,
+            headers={"Content-Type": "application/protobuf"},
+        )
+        try:
+            resp = urlopen(req)
+        except HTTPError as err:
+            raise TwirpException.from_http_err(err)
+
+        return resp.read()
+
+    def transact(self, req):
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.Req").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.Resp").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "Transact")
+        body = serialize(req)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+
+    def upload(self, req):
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.Req").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.Resp").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "Upload")
+        body = serialize(req)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+
+    def download(self, req):
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.Req").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.Resp").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "Download")
+        body = serialize(req)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+
+    def communicate(self, req):
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.Req").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.Resp").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "Communicate")
+        body = serialize(req)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+

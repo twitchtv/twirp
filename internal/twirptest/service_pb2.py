@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twirp.internal.twirptest',
   syntax='proto3',
-  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.HatB\x0bZ\ttwirptestb\x06proto3')
+  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\"\x05\n\x03Req\"\x06\n\x04Resp2W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.Hat2\xbf\x02\n\x08Streamer\x12I\n\x08Transact\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp\x12I\n\x06Upload\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp(\x01\x12K\n\x08\x44ownload\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp0\x01\x12P\n\x0b\x43ommunicate\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp(\x01\x30\x01\x42\x0bZ\ttwirptestb\x06proto3')
 )
 
 
@@ -100,8 +100,58 @@ _SIZE = _descriptor.Descriptor(
   serialized_end=115,
 )
 
+
+_REQ = _descriptor.Descriptor(
+  name='Req',
+  full_name='twirp.internal.twirptest.Req',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=117,
+  serialized_end=122,
+)
+
+
+_RESP = _descriptor.Descriptor(
+  name='Resp',
+  full_name='twirp.internal.twirptest.Resp',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=124,
+  serialized_end=130,
+)
+
 DESCRIPTOR.message_types_by_name['Hat'] = _HAT
 DESCRIPTOR.message_types_by_name['Size'] = _SIZE
+DESCRIPTOR.message_types_by_name['Req'] = _REQ
+DESCRIPTOR.message_types_by_name['Resp'] = _RESP
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Hat = _reflection.GeneratedProtocolMessageType('Hat', (_message.Message,), dict(
@@ -118,6 +168,20 @@ Size = _reflection.GeneratedProtocolMessageType('Size', (_message.Message,), dic
   ))
 _sym_db.RegisterMessage(Size)
 
+Req = _reflection.GeneratedProtocolMessageType('Req', (_message.Message,), dict(
+  DESCRIPTOR = _REQ,
+  __module__ = 'service_pb2'
+  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.Req)
+  ))
+_sym_db.RegisterMessage(Req)
+
+Resp = _reflection.GeneratedProtocolMessageType('Resp', (_message.Message,), dict(
+  DESCRIPTOR = _RESP,
+  __module__ = 'service_pb2'
+  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.Resp)
+  ))
+_sym_db.RegisterMessage(Resp)
+
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\ttwirptest'))
@@ -128,8 +192,8 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=117,
-  serialized_end=204,
+  serialized_start=132,
+  serialized_end=219,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeHat',
@@ -144,5 +208,56 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
 _sym_db.RegisterServiceDescriptor(_HABERDASHER)
 
 DESCRIPTOR.services_by_name['Haberdasher'] = _HABERDASHER
+
+
+_STREAMER = _descriptor.ServiceDescriptor(
+  name='Streamer',
+  full_name='twirp.internal.twirptest.Streamer',
+  file=DESCRIPTOR,
+  index=1,
+  options=None,
+  serialized_start=222,
+  serialized_end=541,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='Transact',
+    full_name='twirp.internal.twirptest.Streamer.Transact',
+    index=0,
+    containing_service=None,
+    input_type=_REQ,
+    output_type=_RESP,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='Upload',
+    full_name='twirp.internal.twirptest.Streamer.Upload',
+    index=1,
+    containing_service=None,
+    input_type=_REQ,
+    output_type=_RESP,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='Download',
+    full_name='twirp.internal.twirptest.Streamer.Download',
+    index=2,
+    containing_service=None,
+    input_type=_REQ,
+    output_type=_RESP,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='Communicate',
+    full_name='twirp.internal.twirptest.Streamer.Communicate',
+    index=3,
+    containing_service=None,
+    input_type=_REQ,
+    output_type=_RESP,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_STREAMER)
+
+DESCRIPTOR.services_by_name['Streamer'] = _STREAMER
 
 # @@protoc_insertion_point(module_scope)

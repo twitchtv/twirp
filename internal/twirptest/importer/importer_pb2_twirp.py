@@ -70,3 +70,12 @@ class Svc2Client(object):
         resp_str = self.__make_request(body=body, full_method=full_method)
         return deserialize(resp_str)
 
+    def stream(self, msg):
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.importable.Msg").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.importable.Msg").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "Stream")
+        body = serialize(msg)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+

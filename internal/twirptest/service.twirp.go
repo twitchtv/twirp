@@ -323,6 +323,818 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
 }
 
+// ==================
+// Streamer Interface
+// ==================
+
+type Streamer interface {
+	Transact(context.Context, *Req) (*Resp, error)
+
+	Upload(context.Context, *Req) (*Resp, error)
+
+	Download(context.Context, *Req) (*Resp, error)
+
+	Communicate(context.Context, *Req) (*Resp, error)
+}
+
+// ========================
+// Streamer Protobuf Client
+// ========================
+
+type streamerProtobufClient struct {
+	client HTTPClient
+	urls   [4]string
+}
+
+// NewStreamerProtobufClient creates a Protobuf client that implements the Streamer interface.
+// It communicates using Protobuf and can be configured with a custom HTTPClient.
+func NewStreamerProtobufClient(addr string, client HTTPClient) Streamer {
+	prefix := urlBase(addr) + StreamerPathPrefix
+	urls := [4]string{
+		prefix + "Transact",
+		prefix + "Upload",
+		prefix + "Download",
+		prefix + "Communicate",
+	}
+	if httpClient, ok := client.(*http.Client); ok {
+		return &streamerProtobufClient{
+			client: withoutRedirects(httpClient),
+			urls:   urls,
+		}
+	}
+	return &streamerProtobufClient{
+		client: client,
+		urls:   urls,
+	}
+}
+
+func (c *streamerProtobufClient) Transact(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Transact")
+	out := new(Resp)
+	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
+	return out, err
+}
+
+func (c *streamerProtobufClient) Upload(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Upload")
+	out := new(Resp)
+	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
+	return out, err
+}
+
+func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	out := new(Resp)
+	err := doProtobufRequest(ctx, c.client, c.urls[2], in, out)
+	return out, err
+}
+
+func (c *streamerProtobufClient) Communicate(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
+	out := new(Resp)
+	err := doProtobufRequest(ctx, c.client, c.urls[3], in, out)
+	return out, err
+}
+
+// ====================
+// Streamer JSON Client
+// ====================
+
+type streamerJSONClient struct {
+	client HTTPClient
+	urls   [4]string
+}
+
+// NewStreamerJSONClient creates a JSON client that implements the Streamer interface.
+// It communicates using JSON and can be configured with a custom HTTPClient.
+func NewStreamerJSONClient(addr string, client HTTPClient) Streamer {
+	prefix := urlBase(addr) + StreamerPathPrefix
+	urls := [4]string{
+		prefix + "Transact",
+		prefix + "Upload",
+		prefix + "Download",
+		prefix + "Communicate",
+	}
+	if httpClient, ok := client.(*http.Client); ok {
+		return &streamerJSONClient{
+			client: withoutRedirects(httpClient),
+			urls:   urls,
+		}
+	}
+	return &streamerJSONClient{
+		client: client,
+		urls:   urls,
+	}
+}
+
+func (c *streamerJSONClient) Transact(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Transact")
+	out := new(Resp)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
+	return out, err
+}
+
+func (c *streamerJSONClient) Upload(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Upload")
+	out := new(Resp)
+	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
+	return out, err
+}
+
+func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	out := new(Resp)
+	err := doJSONRequest(ctx, c.client, c.urls[2], in, out)
+	return out, err
+}
+
+func (c *streamerJSONClient) Communicate(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
+	out := new(Resp)
+	err := doJSONRequest(ctx, c.client, c.urls[3], in, out)
+	return out, err
+}
+
+// =======================
+// Streamer Server Handler
+// =======================
+
+type streamerServer struct {
+	Streamer
+	hooks *twirp.ServerHooks
+}
+
+func NewStreamerServer(svc Streamer, hooks *twirp.ServerHooks) TwirpServer {
+	return &streamerServer{
+		Streamer: svc,
+		hooks:    hooks,
+	}
+}
+
+// writeError writes an HTTP response with a valid Twirp error format, and triggers hooks.
+// If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
+func (s *streamerServer) writeError(ctx context.Context, resp http.ResponseWriter, err error) {
+	writeError(ctx, resp, err, s.hooks)
+}
+
+// StreamerPathPrefix is used for all URL paths on a twirp Streamer server.
+// Requests are always: POST StreamerPathPrefix/method
+// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+const StreamerPathPrefix = "/twirp/twirp.internal.twirptest.Streamer/"
+
+func (s *streamerServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithResponseWriter(ctx, resp)
+
+	var err error
+	ctx, err = callRequestReceived(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	if req.Method != "POST" {
+		msg := fmt.Sprintf("unsupported method %q (only POST is allowed)", req.Method)
+		err = badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	switch req.URL.Path {
+	case "/twirp/twirp.internal.twirptest.Streamer/Transact":
+		s.serveTransact(ctx, resp, req)
+		return
+	case "/twirp/twirp.internal.twirptest.Streamer/Upload":
+		s.serveUpload(ctx, resp, req)
+		return
+	case "/twirp/twirp.internal.twirptest.Streamer/Download":
+		s.serveDownload(ctx, resp, req)
+		return
+	case "/twirp/twirp.internal.twirptest.Streamer/Communicate":
+		s.serveCommunicate(ctx, resp, req)
+		return
+	default:
+		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
+		err = badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, err)
+		return
+	}
+}
+
+func (s *streamerServer) serveTransact(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveTransactJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveTransactProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *streamerServer) serveTransactJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Transact")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	reqContent := new(Req)
+	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
+	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request json")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Transact(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Transact. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	var buf bytes.Buffer
+	marshaler := &jsonpb.Marshaler{OrigName: true}
+	if err = marshaler.Marshal(&buf, respContent); err != nil {
+		err = wrapErr(err, "failed to marshal json response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.WriteHeader(http.StatusOK)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Transact")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		err = wrapErr(err, "failed to read request body")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+	reqContent := new(Req)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request proto")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Transact(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Transact. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		err = wrapErr(err, "failed to marshal proto response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveUpload(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveUploadJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveUploadProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *streamerServer) serveUploadJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Upload")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	reqContent := new(Req)
+	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
+	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request json")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Upload(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Upload. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	var buf bytes.Buffer
+	marshaler := &jsonpb.Marshaler{OrigName: true}
+	if err = marshaler.Marshal(&buf, respContent); err != nil {
+		err = wrapErr(err, "failed to marshal json response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.WriteHeader(http.StatusOK)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveUploadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Upload")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		err = wrapErr(err, "failed to read request body")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+	reqContent := new(Req)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request proto")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Upload(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Upload. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		err = wrapErr(err, "failed to marshal proto response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveDownload(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveDownloadJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveDownloadProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *streamerServer) serveDownloadJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	reqContent := new(Req)
+	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
+	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request json")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Download(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Download. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	var buf bytes.Buffer
+	marshaler := &jsonpb.Marshaler{OrigName: true}
+	if err = marshaler.Marshal(&buf, respContent); err != nil {
+		err = wrapErr(err, "failed to marshal json response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.WriteHeader(http.StatusOK)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		err = wrapErr(err, "failed to read request body")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+	reqContent := new(Req)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request proto")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Download(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Download. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		err = wrapErr(err, "failed to marshal proto response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveCommunicate(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveCommunicateJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveCommunicateProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *streamerServer) serveCommunicateJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	reqContent := new(Req)
+	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
+	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request json")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Communicate(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Communicate. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	var buf bytes.Buffer
+	marshaler := &jsonpb.Marshaler{OrigName: true}
+	if err = marshaler.Marshal(&buf, respContent); err != nil {
+		err = wrapErr(err, "failed to marshal json response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.WriteHeader(http.StatusOK)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) serveCommunicateProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		err = wrapErr(err, "failed to read request body")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+	reqContent := new(Req)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request proto")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *Resp
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Communicate(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Communicate. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		err = wrapErr(err, "failed to marshal proto response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *streamerServer) ServiceDescriptor() ([]byte, int) {
+	return twirpFileDescriptor0, 1
+}
+
+func (s *streamerServer) ProtocGenTwirpVersion() string {
+	return "v5.3.0"
+}
+
+// ReqStream represents a stream of Req messages.
+type ReqStream interface {
+	Next(context.Context) (*Req, error)
+	End(error)
+}
+
+// RespStream represents a stream of Resp messages.
+type RespStream interface {
+	Next(context.Context) (*Resp, error)
+	End(error)
+}
+
 // =====
 // Utils
 // =====
@@ -744,17 +1556,22 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 186 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x4e, 0x2d, 0x2a,
-	0xcb, 0x4c, 0x4e, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0x28, 0x29, 0xcf, 0x2c, 0x2a,
-	0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52, 0x8b, 0x4b,
-	0x94, 0x9c, 0xb9, 0x98, 0x3d, 0x12, 0x4b, 0x84, 0x84, 0xb8, 0x58, 0x8a, 0x33, 0xab, 0x52, 0x25,
-	0x18, 0x15, 0x18, 0x35, 0x58, 0x83, 0xc0, 0x6c, 0x21, 0x11, 0x2e, 0xd6, 0xe4, 0xfc, 0x9c, 0xfc,
-	0x22, 0x09, 0x26, 0x05, 0x46, 0x0d, 0xce, 0x20, 0x08, 0x07, 0xa4, 0x32, 0x2f, 0x31, 0x37, 0x55,
-	0x82, 0x19, 0x2c, 0x08, 0x66, 0x2b, 0xc9, 0x71, 0xb1, 0x04, 0x83, 0x74, 0x88, 0x71, 0xb1, 0x65,
-	0xe6, 0x25, 0x67, 0xa4, 0x16, 0x43, 0xcd, 0x81, 0xf2, 0x8c, 0xc2, 0xb9, 0xb8, 0x3d, 0x12, 0x93,
-	0x52, 0x8b, 0x52, 0x12, 0x8b, 0x33, 0x52, 0x8b, 0x84, 0x3c, 0xb8, 0xd8, 0x7d, 0x13, 0xb3, 0x53,
-	0x41, 0xf6, 0xca, 0xe9, 0xe1, 0x72, 0x99, 0x1e, 0xc8, 0x44, 0x29, 0x59, 0xdc, 0xf2, 0x1e, 0x89,
-	0x25, 0x4e, 0xdc, 0x51, 0x9c, 0x70, 0x81, 0x24, 0x36, 0xb0, 0x5f, 0x8d, 0x01, 0x01, 0x00, 0x00,
-	0xff, 0xff, 0x97, 0xbc, 0x6e, 0xa2, 0xfc, 0x00, 0x00, 0x00,
+	// 271 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x52, 0x4d, 0x4b, 0xc3, 0x40,
+	0x10, 0x65, 0x9b, 0x0f, 0xd3, 0x09, 0x5e, 0x16, 0x91, 0x50, 0x30, 0x94, 0x9c, 0x72, 0x0a, 0xa5,
+	0xfe, 0x03, 0xeb, 0x21, 0x45, 0x04, 0x49, 0x15, 0xc1, 0xdb, 0x34, 0x1d, 0xe8, 0x62, 0xb2, 0x9b,
+	0xee, 0x8e, 0x16, 0xfc, 0x73, 0xfe, 0x35, 0x49, 0x2c, 0xde, 0xda, 0x4b, 0xbd, 0xbd, 0x8f, 0x7d,
+	0x6f, 0xdf, 0x61, 0xe0, 0xd2, 0x91, 0xfd, 0x54, 0x35, 0x15, 0x9d, 0x35, 0x6c, 0x64, 0xc2, 0x7b,
+	0x65, 0xbb, 0x42, 0x69, 0x26, 0xab, 0xb1, 0x29, 0x06, 0xca, 0xe4, 0x38, 0x5b, 0x80, 0x57, 0x22,
+	0x4b, 0x09, 0xbe, 0x53, 0x5f, 0x94, 0x88, 0xa9, 0xc8, 0x83, 0x6a, 0xc0, 0xf2, 0x0a, 0x82, 0xda,
+	0x34, 0xc6, 0x26, 0xa3, 0xa9, 0xc8, 0xc7, 0xd5, 0x2f, 0xe9, 0x5f, 0x6a, 0x6c, 0x29, 0xf1, 0x06,
+	0x71, 0xc0, 0x59, 0x0a, 0xfe, 0xaa, 0x4f, 0x5c, 0x43, 0xa8, 0x74, 0xbd, 0x25, 0x77, 0xe8, 0x39,
+	0xb0, 0x2c, 0x00, 0xaf, 0xa2, 0x5d, 0x16, 0x82, 0x5f, 0x91, 0xeb, 0xe6, 0xaf, 0x10, 0x97, 0xb8,
+	0x26, 0xbb, 0x41, 0xb7, 0x25, 0x2b, 0x4b, 0xb8, 0x78, 0xc4, 0x77, 0xea, 0x67, 0xa4, 0xc5, 0xb1,
+	0xa1, 0x45, 0xff, 0xc1, 0xe4, 0xe6, 0xb8, 0x5f, 0x22, 0xcf, 0xbf, 0x47, 0x10, 0xad, 0xd8, 0x12,
+	0xb6, 0x64, 0xe5, 0x12, 0xa2, 0x67, 0x8b, 0xda, 0x61, 0xcd, 0xf2, 0x44, 0xae, 0xa2, 0xdd, 0x24,
+	0x3d, 0x65, 0xbb, 0x4e, 0x2e, 0x21, 0x7c, 0xe9, 0x1a, 0x83, 0x9b, 0x33, 0x8b, 0x72, 0x21, 0x1f,
+	0x20, 0xba, 0x37, 0x7b, 0xfd, 0x0f, 0x65, 0x33, 0x21, 0x9f, 0x20, 0x5e, 0x98, 0xb6, 0xfd, 0xd0,
+	0xaa, 0x46, 0xa6, 0xb3, 0xc7, 0xcd, 0xc4, 0x5d, 0xfc, 0x36, 0xfe, 0x53, 0xd7, 0xe1, 0x70, 0x3c,
+	0xb7, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x81, 0x64, 0xbb, 0x2f, 0x4d, 0x02, 0x00, 0x00,
 }

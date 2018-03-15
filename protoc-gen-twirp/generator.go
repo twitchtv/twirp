@@ -44,6 +44,10 @@ type twirp struct {
 	pkgs          map[string]string
 	pkgNamesInUse map[string]bool
 
+	// Map to record whether we've generated Stream types for request and response
+	// types.
+	streamTypes map[string]bool
+
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
 	fileToGoPackageName map[*descriptor.FileDescriptorProto]string
@@ -61,6 +65,7 @@ func newGenerator() *twirp {
 	t := &twirp{
 		pkgs:                make(map[string]string),
 		pkgNamesInUse:       make(map[string]bool),
+		streamTypes:         make(map[string]bool),
 		fileToGoPackageName: make(map[*descriptor.FileDescriptorProto]string),
 		output:              bytes.NewBuffer(nil),
 	}
@@ -191,6 +196,10 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 	// For each service, generate client stubs and server
 	for i, service := range file.Service {
 		t.generateService(file, service, i)
+
+		// For streaming RPCs, we need to define Stream types. This won't do
+		// anything if the service has no streaming RPCs.
+		t.generateStreamTypesForService(service)
 	}
 
 	// Util functions only generated once per package
@@ -1101,6 +1110,35 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P()
 }
 
+func (t *twirp) generateStreamTypesForService(service *descriptor.ServiceDescriptorProto) {
+	for _, method := range service.Method {
+		if method.GetClientStreaming() {
+			t.generateStreamType(t.goTypeName(method.GetInputType()))
+		}
+		if method.GetServerStreaming() {
+			t.generateStreamType(t.goTypeName(method.GetOutputType()))
+		}
+	}
+}
+
+func (t *twirp) generateStreamType(typeName string) {
+	if t.streamTypes[typeName] {
+		// already generated
+		return
+	}
+	defer func() {
+		t.streamTypes[typeName] = true
+	}()
+
+	streamTypeName := withoutPackageName(typeName) + "Stream"
+	t.P(`// `, streamTypeName, ` represents a stream of `, typeName, ` messages.`)
+	t.P(`type `, streamTypeName, ` interface {`)
+	t.P(`  Next(context.Context) (*`, typeName, `, error)`)
+	t.P(`  End(error)`)
+	t.P(`}`)
+	t.P()
+}
+
 // serviceMetadataVarName is the variable name used in generated code to refer
 // to the compressed bytes of this descriptor. It is not exported, so it is only
 // valid inside the generated package.
@@ -1254,6 +1292,15 @@ func serviceStruct(service *descriptor.ServiceDescriptorProto) string {
 
 func methodName(method *descriptor.MethodDescriptorProto) string {
 	return stringutils.CamelCase(method.GetName())
+}
+
+// Remove a leading package selector (like 'twirp.' in 'twirp.Error') if present.
+func withoutPackageName(v string) string {
+	idx := strings.Index(v, ".")
+	if idx == -1 {
+		return v
+	}
+	return v[idx+1:]
 }
 
 func fileDescSliceContains(slice []*descriptor.FileDescriptorProto, f *descriptor.FileDescriptorProto) bool {

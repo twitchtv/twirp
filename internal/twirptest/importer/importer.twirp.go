@@ -39,6 +39,8 @@ import url "net/url"
 
 type Svc2 interface {
 	Send(context.Context, *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
+
+	Stream(context.Context, *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
 }
 
 // ====================
@@ -47,15 +49,16 @@ type Svc2 interface {
 
 type svc2ProtobufClient struct {
 	client HTTPClient
-	urls   [1]string
+	urls   [2]string
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 	prefix := urlBase(addr) + Svc2PathPrefix
-	urls := [1]string{
+	urls := [2]string{
 		prefix + "Send",
+		prefix + "Stream",
 	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &svc2ProtobufClient{
@@ -78,21 +81,31 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 	return out, err
 }
 
+func (c *svc2ProtobufClient) Stream(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Stream")
+	out := new(twirp_internal_twirptest_importable.Msg)
+	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
+	return out, err
+}
+
 // ================
 // Svc2 JSON Client
 // ================
 
 type svc2JSONClient struct {
 	client HTTPClient
-	urls   [1]string
+	urls   [2]string
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
 	prefix := urlBase(addr) + Svc2PathPrefix
-	urls := [1]string{
+	urls := [2]string{
 		prefix + "Send",
+		prefix + "Stream",
 	}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &svc2JSONClient{
@@ -112,6 +125,15 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
+	return out, err
+}
+
+func (c *svc2JSONClient) Stream(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Stream")
+	out := new(twirp_internal_twirptest_importable.Msg)
+	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 
@@ -165,6 +187,9 @@ func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
 	case "/twirp/twirp.internal.twirptest.importer.Svc2/Send":
 		s.serveSend(ctx, resp, req)
+		return
+	case "/twirp/twirp.internal.twirptest.importer.Svc2/Stream":
+		s.serveStream(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -318,12 +343,162 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	callResponseSent(ctx, s.hooks)
 }
 
+func (s *svc2Server) serveStream(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveStreamJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveStreamProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *svc2Server) serveStreamJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Stream")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	reqContent := new(twirp_internal_twirptest_importable.Msg)
+	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
+	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request json")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *twirp_internal_twirptest_importable.Msg
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Stream(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Stream. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	var buf bytes.Buffer
+	marshaler := &jsonpb.Marshaler{OrigName: true}
+	if err = marshaler.Marshal(&buf, respContent); err != nil {
+		err = wrapErr(err, "failed to marshal json response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.WriteHeader(http.StatusOK)
+
+	respBytes := buf.Bytes()
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *svc2Server) serveStreamProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Stream")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		err = wrapErr(err, "failed to read request body")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+	reqContent := new(twirp_internal_twirptest_importable.Msg)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request proto")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respContent *twirp_internal_twirptest_importable.Msg
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respContent, err = s.Stream(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Stream. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		err = wrapErr(err, "failed to marshal proto response")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
 func (s *svc2Server) ServiceDescriptor() ([]byte, int) {
 	return twirpFileDescriptor0, 0
 }
 
 func (s *svc2Server) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
+}
+
+// MsgStream represents a stream of twirp_internal_twirptest_importable.Msg messages.
+type MsgStream interface {
+	Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error)
+	End(error)
 }
 
 // =====
@@ -747,15 +922,16 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 148 bytes of a gzipped FileDescriptorProto
+	// 166 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcb, 0xcc, 0x2d, 0xc8,
 	0x2f, 0x2a, 0x49, 0x2d, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x52, 0x2c, 0x29, 0xcf, 0x2c,
 	0x2a, 0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52, 0x8b,
 	0x4b, 0xf4, 0x60, 0x0a, 0xa5, 0x3c, 0xd2, 0x33, 0x4b, 0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3, 0x73,
 	0xf5, 0x4b, 0xca, 0x33, 0x4b, 0x92, 0x33, 0x4a, 0xca, 0xf4, 0xc1, 0xea, 0xf4, 0x61, 0xda, 0xf4,
-	0xe1, 0xda, 0xf4, 0x21, 0xda, 0x12, 0x93, 0x72, 0x52, 0x91, 0x98, 0x10, 0xcb, 0x8c, 0x92, 0xb8,
-	0x58, 0x82, 0xcb, 0x92, 0x8d, 0x84, 0xa2, 0xb8, 0x58, 0x82, 0x53, 0xf3, 0x52, 0x84, 0x34, 0xf4,
-	0x08, 0xd8, 0x0e, 0xd6, 0xeb, 0x5b, 0x9c, 0x2e, 0x45, 0xb4, 0x4a, 0x27, 0xae, 0x28, 0x0e, 0x98,
-	0xcb, 0x93, 0xd8, 0xc0, 0xd6, 0x1a, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x95, 0x06, 0x56, 0xb0,
-	0xf5, 0x00, 0x00, 0x00,
+	0xe1, 0xda, 0xf4, 0x21, 0xda, 0x12, 0x93, 0x72, 0x52, 0x91, 0x98, 0x10, 0xcb, 0x8c, 0x8e, 0x30,
+	0x72, 0xb1, 0x04, 0x97, 0x25, 0x1b, 0x09, 0x45, 0x71, 0xb1, 0x04, 0xa7, 0xe6, 0xa5, 0x08, 0x69,
+	0xe8, 0x11, 0xb0, 0x1e, 0xac, 0xd9, 0xb7, 0x38, 0x5d, 0x8a, 0x68, 0x95, 0x42, 0x09, 0x5c, 0x6c,
+	0xc1, 0x25, 0x45, 0xa9, 0x89, 0xb9, 0xb4, 0x30, 0x5d, 0x83, 0xd1, 0x80, 0xd1, 0x89, 0x2b, 0x8a,
+	0x03, 0x16, 0x38, 0x49, 0x6c, 0x60, 0x9f, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xd6, 0x7c,
+	0x7e, 0xe0, 0x58, 0x01, 0x00, 0x00,
 }

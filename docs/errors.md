@@ -17,7 +17,7 @@ will be wrapped with `twirp.InternalErrorWith(err)`, so they are also
 Check the [Errors Spec](spec_v5.md) for more information on error
 codes and the wire protocol.
 
-Also don't be afraid to open the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go) 
+Also don't be afraid to open the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go)
 for details, it is pretty straightforward.
 
 ### twirp.Error interface
@@ -65,11 +65,11 @@ For more information on each code, see the [Errors Spec](spec_v5.md).
 ### HTTP Errors from Intermediary Proxies
 
 It is also possible for Twirp Clients to receive HTTP responses with non-200 status
-codes but without an expected error message. For example, proxies or load balancers 
-might return a "503 Service Temporarily Unavailable" body, which cannot be 
+codes but without an expected error message. For example, proxies or load balancers
+might return a "503 Service Temporarily Unavailable" body, which cannot be
 deserialized into a Twirp error.
 
-In these cases, generated Go clients will return twirp.Errors with a code which 
+In these cases, generated Go clients will return twirp.Errors with a code which
 depends upon the HTTP status of the invalid response:
 
 | HTTP status code         |  Twirp Error Code
@@ -90,7 +90,7 @@ Additional metadata is added to make it easy to identify intermediary errors:
 * `"http_error_from_intermediary": "true"`
 * `"status_code": string` (original status code on the HTTP response, e.g. `"500"`).
 * `"body": string` (original non-Twirp error response as string).
-* `"location": url-string` (only on 3xx reponses, matching the `Location` header).
+* `"location": url-string` (only on 3xx responses, matching the `Location` header).
 
 ### Metadata
 

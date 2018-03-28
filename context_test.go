@@ -118,12 +118,14 @@ func TestHTTPRequestHeaders(t *testing.T) {
 	}
 
 	tests := make([]http.Header, len(headers))
+
 	for i, v := range headers {
 		for key, value := range v {
 			tests[i] = make(http.Header)
 			tests[i].Set(key, value)
 		}
 	}
+
 	for i, v := range tests {
 		ctx, err := WithHTTPRequestHeaders(context.Background(), v)
 		if err != nil {
@@ -137,5 +139,22 @@ func TestHTTPRequestHeaders(t *testing.T) {
 		if cmp.Equal(received, expected) != true {
 			t.Errorf("Test case %d failed. Input does not match expected output.\n%s", i, cmp.Diff(received, expected))
 		}
+	}
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, contextkeys.RequestHeaderKey, http.Header{"Example-Authorization": []string{"testing"}})
+	ctx = context.WithValue(ctx, contextkeys.ServiceNameKey, "example.service")
+	ctx = context.WithValue(ctx, contextkeys.PackageNameKey, "example")
+	ctx = context.WithValue(ctx, contextkeys.MethodNameKey, "ex")
+
+	header, ok := HTTPRequestHeaders(ctx)
+	if !ok {
+		t.Error("HTTPRequestHeaders returned false with context with multiple values")
+	}
+	if header == nil {
+		t.Error("When providing a context with multiple values, HTTPRequestHeaders returned nil")
+	}
+	if cmp.Equal(header, map[string][]string{}) {
+		t.Error("When providing a context with multiple values, HTTPRequestHeaders returned an empty map")
 	}
 }

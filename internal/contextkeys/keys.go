@@ -16,10 +16,8 @@
 // without exposing the setters to the outside world.
 package contextkeys
 
-type contextKey int
-
 const (
-	MethodNameKey contextKey = 1 + iota
+	MethodNameKey int = 1 + iota
 	ServiceNameKey
 	PackageNameKey
 	StatusCodeKey

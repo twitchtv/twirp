@@ -134,7 +134,7 @@ func (g *generator) generateProtobufClient(file *descriptor.FileDescriptorProto,
 	g.P(`            server_address: The address of the server to send requests to, in`)
 	g.P(`                the full protocol://host:port form.`)
 	g.P(`        """`)
-	g.P(`        self.__target = server_address`)
+	g.P(`        self.__target = server_address.encode('ascii')`)
 	g.P(`        self.__service_name = `, strconv.Quote(fullServiceName(file, service)))
 	g.P()
 	g.P(`    def __make_request(self, body, full_method):`)

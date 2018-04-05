@@ -60,6 +60,7 @@ For other languages, there are third-party generators available:
 | **Java**       |    ✓    |         | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
 | **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
 | **JavaScript** |    ✓    |         | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
+| **Typescript** |    ✓    |         | [github.com/larrymyers/protoc-gen-twirp_typescript](https://github.com/larrymyers/protoc-gen-twirp_typescript)
 | **Ruby**       |         |    ✓    | [github.com/cyrusaf/ruby-twirp](https://github.com/cyrusaf/ruby-twirp)
 | **Ruby**       |    ✓    |         | [github.com/gaffneyc/protoc-gen-twirp_ruby](https://github.com/gaffneyc/protoc-gen-twirp_ruby)
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)

@@ -45,7 +45,7 @@ class Svc2Client(object):
             server_address: The address of the server to send requests to, in
                 the full protocol://host:port form.
         """
-        self.__target = server_address
+        self.__target = server_address.encode('ascii')
         self.__service_name = "twirp.internal.twirptest.multiple.Svc2"
 
     def __make_request(self, body, full_method):

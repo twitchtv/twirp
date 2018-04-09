@@ -61,8 +61,7 @@ For other languages, there are third-party generators available:
 | **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
 | **JavaScript** |    ✓    |         | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
 | **Typescript** |    ✓    |         | [github.com/larrymyers/protoc-gen-twirp_typescript](https://github.com/larrymyers/protoc-gen-twirp_typescript)
-| **Ruby**       |         |    ✓    | [github.com/cyrusaf/ruby-twirp](https://github.com/cyrusaf/ruby-twirp)
-| **Ruby**       |    ✓    |         | [github.com/gaffneyc/protoc-gen-twirp_ruby](https://github.com/gaffneyc/protoc-gen-twirp_ruby)
+| **Ruby**       |    ✓    |    ✓    | [github.com/cyrusaf/ruby-twirp](https://github.com/cyrusaf/ruby-twirp)
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
 | **Swagger**    |    ✓    |    ✓    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
 

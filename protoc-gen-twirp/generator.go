@@ -879,7 +879,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 
 // pathPrefix returns the base path for all methods handled by a particular
 // service. It includes a trailing slash. (for example
-// "/twirp/twitch.example.Haberdasher/").
+// "/twitch.example.Haberdasher/").
 func pathPrefix(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
 	return fmt.Sprintf("/%s/", fullServiceName(file, service))
 }

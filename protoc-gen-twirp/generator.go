@@ -836,10 +836,7 @@ func (t *twirp) unarySignature(method *descriptor.MethodDescriptorProto) string 
 }
 
 func (t *twirp) uploadSignature(method *descriptor.MethodDescriptorProto) string {
-	methName := methodName(method)
-	inputType := t.goTypeName(method.GetInputType())
-	outputType := t.goTypeName(method.GetOutputType())
-	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
+	return ""
 }
 
 func (t *twirp) downloadSignature(method *descriptor.MethodDescriptorProto) string {

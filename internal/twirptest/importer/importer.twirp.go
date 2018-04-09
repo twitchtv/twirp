@@ -378,6 +378,22 @@ func (r protoMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_i
 
 func (r protoMsgStreamReader) End(error) { _ = r.prs.c.Close() }
 
+type jsonMsgStreamReader struct {
+	jrs *jsonStreamReader
+	c   io.Closer
+}
+
+func (r jsonMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
+	out := new(twirp_internal_twirptest_importable.Msg)
+	err := r.jrs.Read(out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r jsonMsgStreamReader) End(error) { _ = r.c.Close() }
+
 // =====
 // Utils
 // =====
@@ -847,6 +863,51 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		return err
 	}
 	return nil
+}
+
+type jsonStreamReader struct {
+	dec         *json.Decoder
+	unmarshaler *jsonpb.Unmarshaler
+}
+
+func newJSONStreamReader(r io.Reader) (*jsonStreamReader, error) {
+	// stream should start with {"messages":[
+	dec := json.NewDecoder(r)
+	t, err := dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	delim, ok := t.(json.Delim)
+	if !ok || delim != '{' {
+		return nil, fmt.Errorf("missing leading { in JSON stream, found %q", t)
+	}
+
+	t, err = dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	key, ok := t.(string)
+	if !ok || key != "messages" {
+		return nil, fmt.Errorf("missing \"messages\" key in JSON stream, found %q", t)
+	}
+
+	t, err = dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	delim, ok = t.(json.Delim)
+	if !ok || delim != '[' {
+		return nil, fmt.Errorf("missing [ to open messages array in JSON stream, found %q", t)
+	}
+
+	return &jsonStreamReader{
+		dec:         dec,
+		unmarshaler: &jsonpb.Unmarshaler{AllowUnknownFields: true},
+	}, nil
+}
+
+func (r jsonStreamReader) Read(msg proto.Message) error {
+	return r.unmarshaler.UnmarshalNext(r.dec, msg)
 }
 
 var twirpFileDescriptor0 = []byte{

@@ -450,7 +450,32 @@ func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (RespStream,
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
 	ctx = ctxsetters.WithMethodName(ctx, "Download")
-	return nil, nil
+	reqBodyBytes, err := proto.Marshal(in)
+	if err != nil {
+		return nil, clientError("failed to marshal proto request", err)
+	}
+	reqBody := bytes.NewBuffer(reqBodyBytes)
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
+	}
+
+	req, err := newRequest(ctx, c.urls[2], reqBody, "application/json")
+	if err != nil {
+		return nil, clientError("could not build request", err)
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, clientError("failed to do request", err)
+	}
+
+	jrs, err := newJSONStreamReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return &jsonRespStreamReader{
+		jrs: jrs,
+		c:   resp.Body,
+	}, nil
 }
 
 // =======================
@@ -766,6 +791,22 @@ func (r protoReqStreamReader) Next(context.Context) (*Req, error) {
 
 func (r protoReqStreamReader) End(error) { _ = r.prs.c.Close() }
 
+type jsonReqStreamReader struct {
+	jrs *jsonStreamReader
+	c   io.Closer
+}
+
+func (r jsonReqStreamReader) Next(context.Context) (*Req, error) {
+	out := new(Req)
+	err := r.jrs.Read(out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r jsonReqStreamReader) End(error) { _ = r.c.Close() }
+
 // RespStream represents a stream of Resp messages.
 type RespStream interface {
 	Next(context.Context) (*Resp, error)
@@ -786,6 +827,22 @@ func (r protoRespStreamReader) Next(context.Context) (*Resp, error) {
 }
 
 func (r protoRespStreamReader) End(error) { _ = r.prs.c.Close() }
+
+type jsonRespStreamReader struct {
+	jrs *jsonStreamReader
+	c   io.Closer
+}
+
+func (r jsonRespStreamReader) Next(context.Context) (*Resp, error) {
+	out := new(Resp)
+	err := r.jrs.Read(out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r jsonRespStreamReader) End(error) { _ = r.c.Close() }
 
 // =====
 // Utils
@@ -1256,6 +1313,51 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		return err
 	}
 	return nil
+}
+
+type jsonStreamReader struct {
+	dec         *json.Decoder
+	unmarshaler *jsonpb.Unmarshaler
+}
+
+func newJSONStreamReader(r io.Reader) (*jsonStreamReader, error) {
+	// stream should start with {"messages":[
+	dec := json.NewDecoder(r)
+	t, err := dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	delim, ok := t.(json.Delim)
+	if !ok || delim != '{' {
+		return nil, fmt.Errorf("missing leading { in JSON stream, found %q", t)
+	}
+
+	t, err = dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	key, ok := t.(string)
+	if !ok || key != "messages" {
+		return nil, fmt.Errorf("missing \"messages\" key in JSON stream, found %q", t)
+	}
+
+	t, err = dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	delim, ok = t.(json.Delim)
+	if !ok || delim != '[' {
+		return nil, fmt.Errorf("missing [ to open messages array in JSON stream, found %q", t)
+	}
+
+	return &jsonStreamReader{
+		dec:         dec,
+		unmarshaler: &jsonpb.Unmarshaler{AllowUnknownFields: true},
+	}, nil
+}
+
+func (r jsonStreamReader) Read(msg proto.Message) error {
+	return r.unmarshaler.UnmarshalNext(r.dec, msg)
 }
 
 var twirpFileDescriptor0 = []byte{

@@ -27,6 +27,8 @@ import io "io"
 import strconv "strconv"
 import json "encoding/json"
 import url "net/url"
+import bufio "bufio"
+import binary "encoding/binary"
 
 // =====================
 // Haberdasher Interface
@@ -329,6 +331,8 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 
 type Streamer interface {
 	Transact(ctx context.Context, in *Req) (*Resp, error)
+
+	Download(ctx context.Context, in *Req) (RespStream, error)
 }
 
 // ========================
@@ -371,6 +375,37 @@ func (c *streamerProtobufClient) Transact(ctx context.Context, in *Req) (*Resp, 
 	return out, err
 }
 
+func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (RespStream, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	reqBodyBytes, err := proto.Marshal(in)
+	if err != nil {
+		return nil, clientError("failed to marshal proto request", err)
+	}
+	reqBody := bytes.NewBuffer(reqBodyBytes)
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
+	}
+
+	req, err := newRequest(ctx, c.urls[2], reqBody, "application/protobuf")
+	if err != nil {
+		return nil, clientError("could not build request", err)
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, clientError("failed to do request", err)
+	}
+
+	return &protoRespStreamReader{
+		prs: protoStreamReader{
+			r:       bufio.NewReader(resp.Body),
+			c:       resp.Body,
+			maxSize: 1 << 21, // 1GB
+		},
+	}, nil
+}
+
 // ====================
 // Streamer JSON Client
 // ====================
@@ -409,6 +444,13 @@ func (c *streamerJSONClient) Transact(ctx context.Context, in *Req) (*Resp, erro
 	out := new(Resp)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
+}
+
+func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (RespStream, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
+	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	return nil, nil
 }
 
 // =======================
@@ -709,11 +751,41 @@ type ReqStream interface {
 	End(error)
 }
 
+type protoReqStreamReader struct {
+	prs protoStreamReader
+}
+
+func (r protoReqStreamReader) Next(context.Context) (*Req, error) {
+	out := new(Req)
+	err := r.prs.Read(out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r protoReqStreamReader) End(error) { _ = r.prs.c.Close() }
+
 // RespStream represents a stream of Resp messages.
 type RespStream interface {
 	Next(context.Context) (*Resp, error)
 	End(error)
 }
+
+type protoRespStreamReader struct {
+	prs protoStreamReader
+}
+
+func (r protoRespStreamReader) Next(context.Context) (*Resp, error) {
+	out := new(Resp)
+	err := r.prs.Read(out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r protoRespStreamReader) End(error) { _ = r.prs.c.Close() }
 
 // =====
 // Utils
@@ -1133,6 +1205,57 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 		return ctx
 	}
 	return h.Error(ctx, err)
+}
+
+type protoStreamReader struct {
+	r *bufio.Reader
+	c io.Closer
+
+	maxSize int
+}
+
+func (r protoStreamReader) Read(msg proto.Message) error {
+	// Get next field tag.
+	tag, err := binary.ReadUvarint(r.r)
+	if err != nil {
+		return err
+	}
+
+	const (
+		msgTag     = (1 << 3) | 2
+		trailerTag = (2 << 3) | 2
+	)
+
+	if tag == trailerTag {
+		_ = r.c.Close()
+		return io.EOF
+	}
+
+	if tag != msgTag {
+		return fmt.Errorf("invalid field tag: %v", tag)
+	}
+
+	// This is a real message. How long is it?
+	l, err := binary.ReadUvarint(r.r)
+	if err != nil {
+		return err
+	}
+	if int(l) < 0 || int(l) > r.maxSize {
+		return io.ErrShortBuffer
+	}
+	buf := make([]byte, int(l))
+
+	// Go ahead and read a message.
+	_, err = io.ReadFull(r.r, buf)
+	if err != nil {
+		return err
+	}
+
+	err = proto.Unmarshal(buf, msg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 var twirpFileDescriptor0 = []byte{

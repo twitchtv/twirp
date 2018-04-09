@@ -80,6 +80,9 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	t.reg = typemap.New(in.ProtoFile)
 
 	// Register names of packages that we import.
+	t.registerPackageName("bufio")
+	t.registerPackageName("binary")
+
 	t.registerPackageName("bytes")
 	t.registerPackageName("strings")
 	t.registerPackageName("ctxsetters")
@@ -205,6 +208,10 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 	// Util functions only generated once per package
 	if t.filesHandled == 0 {
 		t.generateUtils()
+
+		if t.genFilesIncludeStreams() {
+			t.generateStreamUtils()
+		}
 	}
 
 	t.generateFileDescriptor(file)
@@ -297,6 +304,10 @@ func (t *twirp) generateUtilImports() {
 	t.P(`import `, t.pkgs["strconv"], ` "strconv"`)
 	t.P(`import `, t.pkgs["json"], ` "encoding/json"`)
 	t.P(`import `, t.pkgs["url"], ` "net/url"`)
+	if t.genFilesIncludeStreams() {
+		t.P(`import `, t.pkgs["bufio"], ` "bufio"`)
+		t.P(`import `, t.pkgs["binary"], ` "encoding/binary"`)
+	}
 }
 
 // Generate utility functions used in Twirp code.
@@ -734,6 +745,59 @@ func (t *twirp) generateUtils() {
 	t.P()
 }
 
+func (t *twirp) generateStreamUtils() {
+	t.P(`type protoStreamReader struct {`)
+	t.P(`	r *`, t.pkgs["bufio"], `.Reader`)
+	t.P(`	c `, t.pkgs["io"], `.Closer`)
+	t.P(``)
+	t.P(`	maxSize int`)
+	t.P(`}`)
+	t.P(``)
+	t.P(`func (r protoStreamReader) Read(msg `, t.pkgs["proto"], `.Message) error {`)
+	t.P(`	// Get next field tag.`)
+	t.P(`	tag, err := `, t.pkgs["binary"], `.ReadUvarint(r.r)`)
+	t.P(`	if err != nil {`)
+	t.P(`		return err`)
+	t.P(`	}`)
+	t.P(``)
+	t.P(`	const (`)
+	t.P(`		msgTag     = (1 << 3) | 2`)
+	t.P(`		trailerTag = (2 << 3) | 2`)
+	t.P(`	)`)
+	t.P(``)
+	t.P(`	if tag == trailerTag {`)
+	t.P(`		_ = r.c.Close()`)
+	t.P(`		return `, t.pkgs["io"], `.EOF`)
+	t.P(`	}`)
+	t.P(``)
+	t.P(`	if tag != msgTag {`)
+	t.P(`		return `, t.pkgs["fmt"], `.Errorf("invalid field tag: %v", tag)`)
+	t.P(`	}`)
+	t.P(``)
+	t.P(`	// This is a real message. How long is it?`)
+	t.P(`	l, err := `, t.pkgs["binary"], `.ReadUvarint(r.r)`)
+	t.P(`	if err != nil {`)
+	t.P(`		return err`)
+	t.P(`	}`)
+	t.P(`	if int(l) < 0 || int(l) > r.maxSize {`)
+	t.P(`		return `, t.pkgs["io"], `.ErrShortBuffer`)
+	t.P(`	}`)
+	t.P(`	buf := make([]byte, int(l))`)
+	t.P(``)
+	t.P(`	// Go ahead and read a message.`)
+	t.P(`	_, err = `, t.pkgs["io"], `.ReadFull(r.r, buf)`)
+	t.P(`	if err != nil {`)
+	t.P(`		return err`)
+	t.P(`	}`)
+	t.P(``)
+	t.P(`	err = `, t.pkgs["proto"], `.Unmarshal(buf, msg)`)
+	t.P(`	if err != nil {`)
+	t.P(`		return err`)
+	t.P(`	}`)
+	t.P(`	return nil`)
+	t.P(`}`)
+}
+
 // P forwards to g.gen.P, which prints output.
 func (t *twirp) P(args ...string) {
 	for _, v := range args {
@@ -840,7 +904,10 @@ func (t *twirp) uploadSignature(method *descriptor.MethodDescriptorProto) string
 }
 
 func (t *twirp) downloadSignature(method *descriptor.MethodDescriptorProto) string {
-	return ""
+	methName := methodName(method)
+	inputType := t.methodInputType(method)
+	outputType := t.methodOutputType(method)
+	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (%s, error)`, methName, t.pkgs["context"], inputType, outputType)
 }
 
 func (t *twirp) bidirectionalSignature(method *descriptor.MethodDescriptorProto) string {
@@ -893,11 +960,47 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 			t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
 			t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
 			t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
-			t.P(`  out := new(`, outputType, `)`)
-			t.P(`  err := do`, name, `Request(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
-			t.P(`  return out, err`)
-			t.P(`}`)
-			t.P()
+			switch methodRPCType(method) {
+			case unary:
+				t.P(`  out := new(`, outputType, `)`)
+				t.P(`  err := do`, name, `Request(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
+				t.P(`  return out, err`)
+				t.P(`}`)
+				t.P()
+			case download:
+				if name == "Protobuf" {
+					t.P(`  reqBodyBytes, err := `, t.pkgs["proto"], `.Marshal(in)`)
+					t.P(`  if err != nil {`)
+					t.P(`	   return nil, clientError("failed to marshal proto request", err)`)
+					t.P(`  }`)
+					t.P(`  reqBody := `, t.pkgs["bytes"], `.NewBuffer(reqBodyBytes)`)
+					t.P(`  if err = ctx.Err(); err != nil {`)
+					t.P(`	   return nil, clientError("aborted because context was done", err)`)
+					t.P(`  }`)
+					t.P(``)
+					t.P(`  req, err := newRequest(ctx, c.urls[`, strconv.Itoa(i), `], reqBody, "application/protobuf")`)
+					t.P(`  if err != nil {`)
+					t.P(`	   return nil, clientError("could not build request", err)`)
+					t.P(`  }`)
+					t.P(`  resp, err := c.client.Do(req)`)
+					t.P(`  if err != nil {`)
+					t.P(`	  return nil, clientError("failed to do request", err)`)
+					t.P(`  }`)
+					t.P(``)
+					t.P(`  return &proto`, withoutPackageName(outputType), `StreamReader{`)
+					t.P(`	  prs: protoStreamReader{`)
+					t.P(`		  r:       `, t.pkgs["bufio"], `.NewReader(resp.Body),`)
+					t.P(`		  c:       resp.Body,`)
+					t.P(`		  maxSize: 1 << 21, // 1GB`)
+					t.P(`	  },`)
+					t.P(`  }, nil`)
+					t.P(`}`)
+				} else {
+					t.P(`  return nil, nil}`)
+				}
+			default:
+				t.P(`  return nil, nil}`)
+			}
 		}
 	}
 }
@@ -1174,6 +1277,20 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P()
 }
 
+// Do any of the services we are generating include streaming RPCs?
+func (t *twirp) genFilesIncludeStreams() bool {
+	for _, f := range t.genFiles {
+		for _, s := range f.Service {
+			for _, m := range s.Method {
+				if m.GetClientStreaming() || m.GetServerStreaming() {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (t *twirp) generateStreamTypesForService(service *descriptor.ServiceDescriptorProto) {
 	for _, method := range service.Method {
 		if method.GetClientStreaming() {
@@ -1190,6 +1307,7 @@ func (t *twirp) generateStreamType(typeName string) {
 		// already generated
 		return
 	}
+
 	defer func() {
 		t.streamTypes[typeName] = true
 	}()
@@ -1200,6 +1318,24 @@ func (t *twirp) generateStreamType(typeName string) {
 	t.P(`  Next(context.Context) (*`, typeName, `, error)`)
 	t.P(`  End(error)`)
 	t.P(`}`)
+	t.P()
+
+	protoReaderTypeName := "proto" + streamTypeName + "Reader"
+
+	t.P(`type `, protoReaderTypeName, ` struct {`)
+	t.P(`  prs protoStreamReader`)
+	t.P(`}`)
+	t.P()
+	t.P(`func (r `, protoReaderTypeName, `) Next(context.Context) (*`, typeName, `, error) {`)
+	t.P(`  out := new(`, typeName, `)`)
+	t.P(`  err := r.prs.Read(out)`)
+	t.P(`  if err != nil {`)
+	t.P(`    return nil, err`)
+	t.P(`  }`)
+	t.P(`  return out, nil`)
+	t.P(`}`)
+	t.P()
+	t.P(`func (r `, protoReaderTypeName, `) End(error) { _ = r.prs.c.Close() }`)
 	t.P()
 }
 

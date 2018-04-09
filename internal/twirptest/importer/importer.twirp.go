@@ -32,6 +32,8 @@ import io "io"
 import strconv "strconv"
 import json "encoding/json"
 import url "net/url"
+import bufio "bufio"
+import binary "encoding/binary"
 
 // ==============
 // Svc2 Interface
@@ -360,6 +362,21 @@ type MsgStream interface {
 	Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error)
 	End(error)
 }
+
+type protoMsgStreamReader struct {
+	prs protoStreamReader
+}
+
+func (r protoMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
+	out := new(twirp_internal_twirptest_importable.Msg)
+	err := r.prs.Read(out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r protoMsgStreamReader) End(error) { _ = r.prs.c.Close() }
 
 // =====
 // Utils
@@ -779,6 +796,57 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 		return ctx
 	}
 	return h.Error(ctx, err)
+}
+
+type protoStreamReader struct {
+	r *bufio.Reader
+	c io.Closer
+
+	maxSize int
+}
+
+func (r protoStreamReader) Read(msg proto.Message) error {
+	// Get next field tag.
+	tag, err := binary.ReadUvarint(r.r)
+	if err != nil {
+		return err
+	}
+
+	const (
+		msgTag     = (1 << 3) | 2
+		trailerTag = (2 << 3) | 2
+	)
+
+	if tag == trailerTag {
+		_ = r.c.Close()
+		return io.EOF
+	}
+
+	if tag != msgTag {
+		return fmt.Errorf("invalid field tag: %v", tag)
+	}
+
+	// This is a real message. How long is it?
+	l, err := binary.ReadUvarint(r.r)
+	if err != nil {
+		return err
+	}
+	if int(l) < 0 || int(l) > r.maxSize {
+		return io.ErrShortBuffer
+	}
+	buf := make([]byte, int(l))
+
+	// Go ahead and read a message.
+	_, err = io.ReadFull(r.r, buf)
+	if err != nil {
+		return err
+	}
+
+	err = proto.Unmarshal(buf, msg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 var twirpFileDescriptor0 = []byte{

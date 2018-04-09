@@ -35,7 +35,7 @@ import url "net/url"
 // A Haberdasher makes hats for clients.
 type Haberdasher interface {
 	// MakeHat produces a hat of mysterious, randomly-selected color!
-	MakeHat(context.Context, *Size) (*Hat, error)
+	MakeHat(ctx context.Context, in *Size) (*Hat, error)
 }
 
 // ===========================

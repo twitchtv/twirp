@@ -36,7 +36,7 @@ import url "net/url"
 // =============
 
 type Svc interface {
-	Send(context.Context, *Msg) (*Msg, error)
+	Send(ctx context.Context, in *Msg) (*Msg, error)
 }
 
 // ===================

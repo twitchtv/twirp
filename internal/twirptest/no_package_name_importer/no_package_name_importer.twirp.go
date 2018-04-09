@@ -35,7 +35,7 @@ import url "net/url"
 // ==============
 
 type Svc2 interface {
-	Method(context.Context, *no_package_name.Msg) (*no_package_name.Msg, error)
+	Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error)
 }
 
 // ====================

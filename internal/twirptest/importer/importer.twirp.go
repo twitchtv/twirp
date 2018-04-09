@@ -38,9 +38,7 @@ import url "net/url"
 // ==============
 
 type Svc2 interface {
-	Send(context.Context, *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
-
-	Stream(context.Context, *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
+	Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
 }
 
 // ====================
@@ -81,15 +79,6 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 	return out, err
 }
 
-func (c *svc2ProtobufClient) Stream(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Stream")
-	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
-	return out, err
-}
-
 // ================
 // Svc2 JSON Client
 // ================
@@ -125,15 +114,6 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
-}
-
-func (c *svc2JSONClient) Stream(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Stream")
-	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
 	return out, err
 }
 
@@ -362,129 +342,9 @@ func (s *svc2Server) serveStream(ctx context.Context, resp http.ResponseWriter, 
 }
 
 func (s *svc2Server) serveStreamJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Stream")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	reqContent := new(twirp_internal_twirptest_importable.Msg)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *twirp_internal_twirptest_importable.Msg
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Stream(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Stream. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/json")
-	resp.WriteHeader(http.StatusOK)
-
-	respBytes := buf.Bytes()
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *svc2Server) serveStreamProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Stream")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	buf, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-	reqContent := new(twirp_internal_twirptest_importable.Msg)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *twirp_internal_twirptest_importable.Msg
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Stream(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Stream. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
-	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/protobuf")
-	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *svc2Server) ServiceDescriptor() ([]byte, int) {

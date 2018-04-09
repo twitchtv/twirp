@@ -20,9 +20,9 @@ import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 // ==============
 
 type Svc2 interface {
-	Send(context.Context, *Msg2) (*Msg2, error)
+	Send(ctx context.Context, in *Msg2) (*Msg2, error)
 
-	SamePackageProtoImport(context.Context, *Msg1) (*Msg1, error)
+	SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error)
 }
 
 // ====================

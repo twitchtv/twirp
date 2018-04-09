@@ -781,17 +781,70 @@ func (t *twirp) generateTwirpInterface(file *descriptor.FileDescriptorProto, ser
 		if err == nil {
 			t.printComments(comments)
 		}
-		t.P(t.generateSignature(method))
+		t.P(t.signature(method))
 		t.P()
 	}
 	t.P(`}`)
 }
 
-func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) string {
+type rpcType string
+
+const (
+	unary         rpcType = "unary"
+	download      rpcType = "download"
+	upload        rpcType = "upload"
+	bidirectional rpcType = "bidirectional"
+)
+
+func methodRPCType(method *descriptor.MethodDescriptorProto) rpcType {
+	var (
+		streamInput  = method.GetClientStreaming()
+		streamOutput = method.GetServerStreaming()
+	)
+	switch {
+	case !streamInput && !streamOutput:
+		return unary
+	case streamInput && !streamOutput:
+		return upload
+	case !streamInput && streamOutput:
+		return download
+	case streamInput && streamOutput:
+		return bidirectional
+	}
+	return ""
+}
+
+func (t *twirp) signature(method *descriptor.MethodDescriptorProto) string {
+	switch methodRPCType(method) {
+	case unary:
+		return t.unarySignature(method)
+	case upload:
+		return t.uploadSignature(method)
+	case download:
+		return t.downloadSignature(method)
+	case bidirectional:
+		return t.bidirectionalSignature(method)
+	}
+	return ""
+}
+
+func (t *twirp) unarySignature(method *descriptor.MethodDescriptorProto) string {
 	methName := methodName(method)
 	inputType := t.goTypeName(method.GetInputType())
 	outputType := t.goTypeName(method.GetOutputType())
-	return fmt.Sprintf(`	%s(%s.Context, *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
+	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
+}
+
+func (t *twirp) bidirectionalSignature(method *descriptor.MethodDescriptorProto) string {
+	return ""
+}
+
+func (t *twirp) uploadSignature(method *descriptor.MethodDescriptorProto) string {
+	return ""
+}
+
+func (t *twirp) downloadSignature(method *descriptor.MethodDescriptorProto) string {
+	return ""
 }
 
 // valid names: 'JSON', 'Protobuf'
@@ -832,18 +885,20 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	for i, method := range service.Method {
 		methName := methodName(method)
 		pkgName := pkgName(file)
-		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
 
-		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
-		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
-		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
-		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
-		t.P(`  out := new(`, outputType, `)`)
-		t.P(`  err := do`, name, `Request(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
-		t.P(`  return out, err`)
-		t.P(`}`)
-		t.P()
+		sig := t.signature(method)
+		if sig != "" {
+			t.P(`func (c *`, structName, `) `, sig, " {")
+			t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
+			t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
+			t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
+			t.P(`  out := new(`, outputType, `)`)
+			t.P(`  err := do`, name, `Request(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
+			t.P(`  return out, err`)
+			t.P(`}`)
+			t.P()
+		}
 	}
 }
 
@@ -951,6 +1006,7 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 func (t *twirp) generateServerMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	methName := stringutils.CamelCase(method.GetName())
 	servStruct := serviceStruct(service)
+
 	t.P(`func (s *`, servStruct, `) serve`, methName, `(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
 	t.P(`  header := req.Header.Get("Content-Type")`)
 	t.P(`  i := strings.Index(header, ";")`)
@@ -976,66 +1032,71 @@ func (t *twirp) generateServerMethod(service *descriptor.ServiceDescriptorProto,
 func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	servStruct := serviceStruct(service)
 	methName := stringutils.CamelCase(method.GetName())
+
 	t.P(`func (s *`, servStruct, `) serve`, methName, `JSON(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
-	t.P(`  var err error`)
-	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
-	t.P(`  ctx, err = callRequestRouted(ctx, s.hooks)`)
-	t.P(`  if err != nil {`)
-	t.P(`    s.writeError(ctx, resp, err)`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
-	t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
-	t.P(`  if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {`)
-	t.P(`    err = wrapErr(err, "failed to parse request json")`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  // Call service method`)
-	t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
-	t.P(`  func() {`)
-	t.P(`    defer func() {`)
-	t.P(`      // In case of a panic, serve a 500 error and then panic.`)
-	t.P(`      if r := recover(); r != nil {`)
-	t.P(`        s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("Internal service panic"))`)
-	t.P(`        panic(r)`)
-	t.P(`      }`)
-	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, methName, `(ctx, reqContent)`)
-	t.P(`  }()`)
-	t.P()
-	t.P(`  if err != nil {`)
-	t.P(`    s.writeError(ctx, resp, err)`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P(`  if respContent == nil {`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("received a nil *`, t.goTypeName(method.GetOutputType()), ` and nil error while calling `, methName, `. nil responses are not supported"))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
-	t.P()
-	t.P(`  var buf `, t.pkgs["bytes"], `.Buffer`)
-	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
-	t.P(`  if err = marshaler.Marshal(&buf, respContent); err != nil {`)
-	t.P(`    err = wrapErr(err, "failed to marshal json response")`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)
-	t.P(`  resp.Header().Set("Content-Type", "application/json")`)
-	t.P(`  resp.WriteHeader(`, t.pkgs["http"], `.StatusOK)`)
-	t.P()
-	t.P(`  respBytes := buf.Bytes()`)
-	t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
-	t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
-	t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
-	t.P(`    callError(ctx, s.hooks, twerr)`)
-	t.P(`  }`)
-	t.P(`  callResponseSent(ctx, s.hooks)`)
+
+	if methodRPCType(method) == unary {
+
+		t.P(`  var err error`)
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
+		t.P(`  ctx, err = callRequestRouted(ctx, s.hooks)`)
+		t.P(`  if err != nil {`)
+		t.P(`    s.writeError(ctx, resp, err)`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
+		t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
+		t.P(`  if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {`)
+		t.P(`    err = wrapErr(err, "failed to parse request json")`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  // Call service method`)
+		t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
+		t.P(`  func() {`)
+		t.P(`    defer func() {`)
+		t.P(`      // In case of a panic, serve a 500 error and then panic.`)
+		t.P(`      if r := recover(); r != nil {`)
+		t.P(`        s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("Internal service panic"))`)
+		t.P(`        panic(r)`)
+		t.P(`      }`)
+		t.P(`    }()`)
+		t.P(`    respContent, err = s.`, methName, `(ctx, reqContent)`)
+		t.P(`  }()`)
+		t.P()
+		t.P(`  if err != nil {`)
+		t.P(`    s.writeError(ctx, resp, err)`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P(`  if respContent == nil {`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("received a nil *`, t.goTypeName(method.GetOutputType()), ` and nil error while calling `, methName, `. nil responses are not supported"))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
+		t.P()
+		t.P(`  var buf `, t.pkgs["bytes"], `.Buffer`)
+		t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
+		t.P(`  if err = marshaler.Marshal(&buf, respContent); err != nil {`)
+		t.P(`    err = wrapErr(err, "failed to marshal json response")`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)
+		t.P(`  resp.Header().Set("Content-Type", "application/json")`)
+		t.P(`  resp.WriteHeader(`, t.pkgs["http"], `.StatusOK)`)
+		t.P()
+		t.P(`  respBytes := buf.Bytes()`)
+		t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
+		t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
+		t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
+		t.P(`    callError(ctx, s.hooks, twerr)`)
+		t.P(`  }`)
+		t.P(`  callResponseSent(ctx, s.hooks)`)
+	}
 	t.P(`}`)
 	t.P()
 }
@@ -1045,67 +1106,70 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	methName := stringutils.CamelCase(method.GetName())
 
 	t.P(`func (s *`, servStruct, `) serve`, methName, `Protobuf(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
-	t.P(`  var err error`)
-	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
-	t.P(`  ctx, err = callRequestRouted(ctx, s.hooks)`)
-	t.P(`  if err != nil {`)
-	t.P(`    s.writeError(ctx, resp, err)`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  buf, err := `, t.pkgs["ioutil"], `.ReadAll(req.Body)`)
-	t.P(`  if err != nil {`)
-	t.P(`    err = wrapErr(err, "failed to read request body")`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
-	t.P(`  if err = `, t.pkgs["proto"], `.Unmarshal(buf, reqContent); err != nil {`)
-	t.P(`    err = wrapErr(err, "failed to parse request proto")`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  // Call service method`)
-	t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
-	t.P(`  func() {`)
-	t.P(`    defer func() {`)
-	t.P(`      // In case of a panic, serve a 500 error and then panic.`)
-	t.P(`      if r := recover(); r != nil {`)
-	t.P(`        s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("Internal service panic"))`)
-	t.P(`        panic(r)`)
-	t.P(`      }`)
-	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, methName, `(ctx, reqContent)`)
-	t.P(`  }()`)
-	t.P()
-	t.P(`  if err != nil {`)
-	t.P(`    s.writeError(ctx, resp, err)`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P(`  if respContent == nil {`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("received a nil *`, t.goTypeName(method.GetOutputType()), ` and nil error while calling `, methName, `. nil responses are not supported"))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
-	t.P()
-	t.P(`  respBytes, err := `, t.pkgs["proto"], `.Marshal(respContent)`)
-	t.P(`  if err != nil {`)
-	t.P(`    err = wrapErr(err, "failed to marshal proto response")`)
-	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
-	t.P(`    return`)
-	t.P(`  }`)
-	t.P()
-	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)
-	t.P(`  resp.Header().Set("Content-Type", "application/protobuf")`)
-	t.P(`  resp.WriteHeader(`, t.pkgs["http"], `.StatusOK)`)
-	t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
-	t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
-	t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
-	t.P(`    callError(ctx, s.hooks, twerr)`)
-	t.P(`  }`)
-	t.P(`  callResponseSent(ctx, s.hooks)`)
+
+	if methodRPCType(method) == unary {
+		t.P(`  var err error`)
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
+		t.P(`  ctx, err = callRequestRouted(ctx, s.hooks)`)
+		t.P(`  if err != nil {`)
+		t.P(`    s.writeError(ctx, resp, err)`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  buf, err := `, t.pkgs["ioutil"], `.ReadAll(req.Body)`)
+		t.P(`  if err != nil {`)
+		t.P(`    err = wrapErr(err, "failed to read request body")`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
+		t.P(`  if err = `, t.pkgs["proto"], `.Unmarshal(buf, reqContent); err != nil {`)
+		t.P(`    err = wrapErr(err, "failed to parse request proto")`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  // Call service method`)
+		t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
+		t.P(`  func() {`)
+		t.P(`    defer func() {`)
+		t.P(`      // In case of a panic, serve a 500 error and then panic.`)
+		t.P(`      if r := recover(); r != nil {`)
+		t.P(`        s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("Internal service panic"))`)
+		t.P(`        panic(r)`)
+		t.P(`      }`)
+		t.P(`    }()`)
+		t.P(`    respContent, err = s.`, methName, `(ctx, reqContent)`)
+		t.P(`  }()`)
+		t.P()
+		t.P(`  if err != nil {`)
+		t.P(`    s.writeError(ctx, resp, err)`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P(`  if respContent == nil {`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("received a nil *`, t.goTypeName(method.GetOutputType()), ` and nil error while calling `, methName, `. nil responses are not supported"))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
+		t.P()
+		t.P(`  respBytes, err := `, t.pkgs["proto"], `.Marshal(respContent)`)
+		t.P(`  if err != nil {`)
+		t.P(`    err = wrapErr(err, "failed to marshal proto response")`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
+		t.P(`    return`)
+		t.P(`  }`)
+		t.P()
+		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)
+		t.P(`  resp.Header().Set("Content-Type", "application/protobuf")`)
+		t.P(`  resp.WriteHeader(`, t.pkgs["http"], `.StatusOK)`)
+		t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
+		t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
+		t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
+		t.P(`    callError(ctx, s.hooks, twerr)`)
+		t.P(`  }`)
+		t.P(`  callResponseSent(ctx, s.hooks)`)
+	}
 	t.P(`}`)
 	t.P()
 }

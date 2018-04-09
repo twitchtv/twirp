@@ -35,7 +35,7 @@ import url "net/url"
 // A Haberdasher makes hats for clients.
 type Haberdasher interface {
 	// MakeHat produces a hat of mysterious, randomly-selected color!
-	MakeHat(context.Context, *Size) (*Hat, error)
+	MakeHat(ctx context.Context, in *Size) (*Hat, error)
 }
 
 // ===========================
@@ -328,13 +328,7 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 // ==================
 
 type Streamer interface {
-	Transact(context.Context, *Req) (*Resp, error)
-
-	Upload(context.Context, *Req) (*Resp, error)
-
-	Download(context.Context, *Req) (*Resp, error)
-
-	Communicate(context.Context, *Req) (*Resp, error)
+	Transact(ctx context.Context, in *Req) (*Resp, error)
 }
 
 // ========================
@@ -377,33 +371,6 @@ func (c *streamerProtobufClient) Transact(ctx context.Context, in *Req) (*Resp, 
 	return out, err
 }
 
-func (c *streamerProtobufClient) Upload(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
-	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
-	ctx = ctxsetters.WithMethodName(ctx, "Upload")
-	out := new(Resp)
-	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
-	return out, err
-}
-
-func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
-	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
-	ctx = ctxsetters.WithMethodName(ctx, "Download")
-	out := new(Resp)
-	err := doProtobufRequest(ctx, c.client, c.urls[2], in, out)
-	return out, err
-}
-
-func (c *streamerProtobufClient) Communicate(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
-	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
-	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
-	out := new(Resp)
-	err := doProtobufRequest(ctx, c.client, c.urls[3], in, out)
-	return out, err
-}
-
 // ====================
 // Streamer JSON Client
 // ====================
@@ -441,33 +408,6 @@ func (c *streamerJSONClient) Transact(ctx context.Context, in *Req) (*Resp, erro
 	ctx = ctxsetters.WithMethodName(ctx, "Transact")
 	out := new(Resp)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
-}
-
-func (c *streamerJSONClient) Upload(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
-	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
-	ctx = ctxsetters.WithMethodName(ctx, "Upload")
-	out := new(Resp)
-	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
-	return out, err
-}
-
-func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
-	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
-	ctx = ctxsetters.WithMethodName(ctx, "Download")
-	out := new(Resp)
-	err := doJSONRequest(ctx, c.client, c.urls[2], in, out)
-	return out, err
-}
-
-func (c *streamerJSONClient) Communicate(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
-	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
-	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
-	out := new(Resp)
-	err := doJSONRequest(ctx, c.client, c.urls[3], in, out)
 	return out, err
 }
 
@@ -702,129 +642,9 @@ func (s *streamerServer) serveUpload(ctx context.Context, resp http.ResponseWrit
 }
 
 func (s *streamerServer) serveUploadJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Upload")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	reqContent := new(Req)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *Resp
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Upload(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Upload. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/json")
-	resp.WriteHeader(http.StatusOK)
-
-	respBytes := buf.Bytes()
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) serveUploadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Upload")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	buf, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-	reqContent := new(Req)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *Resp
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Upload(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Upload. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
-	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/protobuf")
-	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) serveDownload(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
@@ -846,129 +666,9 @@ func (s *streamerServer) serveDownload(ctx context.Context, resp http.ResponseWr
 }
 
 func (s *streamerServer) serveDownloadJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Download")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	reqContent := new(Req)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *Resp
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Download(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Download. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/json")
-	resp.WriteHeader(http.StatusOK)
-
-	respBytes := buf.Bytes()
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Download")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	buf, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-	reqContent := new(Req)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *Resp
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Download(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Download. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
-	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/protobuf")
-	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) serveCommunicate(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
@@ -990,129 +690,9 @@ func (s *streamerServer) serveCommunicate(ctx context.Context, resp http.Respons
 }
 
 func (s *streamerServer) serveCommunicateJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	reqContent := new(Req)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *Resp
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Communicate(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Communicate. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/json")
-	resp.WriteHeader(http.StatusOK)
-
-	respBytes := buf.Bytes()
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) serveCommunicateProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	buf, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-	reqContent := new(Req)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	// Call service method
-	var respContent *Resp
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
-		respContent, err = s.Communicate(ctx, reqContent)
-	}()
-
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Communicate. nil responses are not supported"))
-		return
-	}
-
-	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
-	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
-		return
-	}
-
-	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/protobuf")
-	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
-	}
-	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) ServiceDescriptor() ([]byte, int) {

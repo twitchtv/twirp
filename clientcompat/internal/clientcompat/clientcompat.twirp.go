@@ -33,9 +33,9 @@ import url "net/url"
 // =======================
 
 type CompatService interface {
-	Method(context.Context, *Req) (*Resp, error)
+	Method(ctx context.Context, in *Req) (*Resp, error)
 
-	NoopMethod(context.Context, *Empty) (*Empty, error)
+	NoopMethod(ctx context.Context, in *Empty) (*Empty, error)
 }
 
 // =============================

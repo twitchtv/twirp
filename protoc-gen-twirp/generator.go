@@ -835,15 +835,18 @@ func (t *twirp) unarySignature(method *descriptor.MethodDescriptorProto) string 
 	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
 }
 
-func (t *twirp) bidirectionalSignature(method *descriptor.MethodDescriptorProto) string {
-	return ""
-}
-
 func (t *twirp) uploadSignature(method *descriptor.MethodDescriptorProto) string {
-	return ""
+	methName := methodName(method)
+	inputType := t.goTypeName(method.GetInputType())
+	outputType := t.goTypeName(method.GetOutputType())
+	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
 }
 
 func (t *twirp) downloadSignature(method *descriptor.MethodDescriptorProto) string {
+	return ""
+}
+
+func (t *twirp) bidirectionalSignature(method *descriptor.MethodDescriptorProto) string {
 	return ""
 }
 

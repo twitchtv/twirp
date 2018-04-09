@@ -830,8 +830,8 @@ func (t *twirp) signature(method *descriptor.MethodDescriptorProto) string {
 
 func (t *twirp) unarySignature(method *descriptor.MethodDescriptorProto) string {
 	methName := methodName(method)
-	inputType := t.goTypeName(method.GetInputType())
-	outputType := t.goTypeName(method.GetOutputType())
+	inputType := t.methodInputType(method)
+	outputType := t.methodOutputType(method)
 	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
 }
 
@@ -1045,7 +1045,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 		t.P(`    return`)
 		t.P(`  }`)
 		t.P()
-		t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
+		t.P(`  reqContent := new(`, t.methodInputType(method), `)`)
 		t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
 		t.P(`  if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {`)
 		t.P(`    err = wrapErr(err, "failed to parse request json")`)
@@ -1054,7 +1054,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 		t.P(`  }`)
 		t.P()
 		t.P(`  // Call service method`)
-		t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
+		t.P(`  var respContent *`, t.methodOutputType(method))
 		t.P(`  func() {`)
 		t.P(`    defer func() {`)
 		t.P(`      // In case of a panic, serve a 500 error and then panic.`)
@@ -1071,7 +1071,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 		t.P(`    return`)
 		t.P(`  }`)
 		t.P(`  if respContent == nil {`)
-		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("received a nil *`, t.goTypeName(method.GetOutputType()), ` and nil error while calling `, methName, `. nil responses are not supported"))`)
+		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("received a nil *`, t.methodOutputType(method), ` and nil error while calling `, methName, `. nil responses are not supported"))`)
 		t.P(`    return`)
 		t.P(`  }`)
 		t.P()
@@ -1122,7 +1122,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
 		t.P(`    return`)
 		t.P(`  }`)
-		t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
+		t.P(`  reqContent := new(`, t.methodInputType(method), `)`)
 		t.P(`  if err = `, t.pkgs["proto"], `.Unmarshal(buf, reqContent); err != nil {`)
 		t.P(`    err = wrapErr(err, "failed to parse request proto")`)
 		t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
@@ -1130,7 +1130,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 		t.P(`  }`)
 		t.P()
 		t.P(`  // Call service method`)
-		t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
+		t.P(`  var respContent *`, t.methodOutputType(method))
 		t.P(`  func() {`)
 		t.P(`    defer func() {`)
 		t.P(`      // In case of a panic, serve a 500 error and then panic.`)
@@ -1300,6 +1300,22 @@ func (t *twirp) goTypeName(protoName string) string {
 	}
 	name += def.Descriptor.GetName()
 	return prefix + name
+}
+
+func (t *twirp) methodInputType(method *descriptor.MethodDescriptorProto) string {
+	name := t.goTypeName(method.GetInputType())
+	if method.GetClientStreaming() {
+		name = withoutPackageName(name) + "Stream"
+	}
+	return name
+}
+
+func (t *twirp) methodOutputType(method *descriptor.MethodDescriptorProto) string {
+	name := t.goTypeName(method.GetOutputType())
+	if method.GetServerStreaming() {
+		name = withoutPackageName(name) + "Stream"
+	}
+	return name
 }
 
 func (t *twirp) goPackageName(file *descriptor.FileDescriptorProto) string {

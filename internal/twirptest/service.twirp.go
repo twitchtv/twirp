@@ -262,6 +262,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 		return
 	}
 
+	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -307,7 +308,6 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
@@ -635,6 +635,7 @@ func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.Re
 		return
 	}
 
+	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -680,7 +681,6 @@ func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.Re
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
@@ -712,6 +712,15 @@ func (s *streamerServer) serveUploadJSON(ctx context.Context, resp http.Response
 }
 
 func (s *streamerServer) serveUploadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Upload")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	resp.Header().Set("Content-Type", "application/protobuf")
 }
 
 func (s *streamerServer) serveDownload(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
@@ -736,6 +745,94 @@ func (s *streamerServer) serveDownloadJSON(ctx context.Context, resp http.Respon
 }
 
 func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Download")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	resp.Header().Set("Content-Type", "application/protobuf")
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		err = wrapErr(err, "failed to read request body")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+	reqContent := new(Req)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		err = wrapErr(err, "failed to parse request proto")
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		return
+	}
+
+	// Call service method
+	var respStream RespStream
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if r := recover(); r != nil {
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				panic(r)
+			}
+		}()
+		respStream, err = s.Download(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	if respStream == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Req and nil error while calling Download. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	messages := proto.NewBuffer(nil)
+
+	trailer := proto.NewBuffer(nil)
+	_ = trailer.EncodeVarint((2 << 3) | 2) // field tag
+	for {
+		msg, err := respStream.Next(ctx)
+		if err != nil {
+			// TODO: figure out trailers' proto encoding beyond just a string
+			if err == io.EOF {
+				_ = trailer.EncodeStringBytes("OK")
+			} else {
+				_ = trailer.EncodeStringBytes(err.Error())
+			}
+			break
+		}
+
+		messages.Reset()
+		_ = messages.EncodeVarint((1 << 3) | 2) // field tag
+		err = messages.Marshal(msg)
+		if err != nil {
+			err = wrapErr(err, "failed to marshal proto message")
+			respStream.End(err)
+			break
+		}
+
+		_, err = resp.Write(messages.Bytes())
+		if err != nil {
+			err = wrapErr(err, "failed to send proto message")
+			respStream.End(err)
+			break
+		}
+
+		// TODO: Call a hook that we sent a message in a stream?
+	}
+
+	_, err = resp.Write(trailer.Bytes())
+	if err != nil {
+		// TODO: call error hook?
+		err = wrapErr(err, "failed to write trailer")
+		respStream.End(err)
+	}
 }
 
 func (s *streamerServer) serveCommunicate(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
@@ -760,6 +857,15 @@ func (s *streamerServer) serveCommunicateJSON(ctx context.Context, resp http.Res
 }
 
 func (s *streamerServer) serveCommunicateProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	resp.Header().Set("Content-Type", "application/protobuf")
 }
 
 func (s *streamerServer) ServiceDescriptor() ([]byte, int) {

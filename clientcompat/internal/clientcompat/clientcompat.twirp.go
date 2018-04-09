@@ -628,6 +628,20 @@ type twerrJSON struct {
 	Meta map[string]string `json:"meta,omitempty"`
 }
 
+func (tj twerrJSON) toTwirpError() twirp.Error {
+	errorCode := twirp.ErrorCode(tj.Code)
+	if !twirp.IsValidErrorCode(errorCode) {
+		msg := "invalid type returned from server error response: " + tj.Code
+		return twirp.InternalError(msg)
+	}
+
+	twerr := twirp.NewError(errorCode, tj.Msg)
+	for k, v := range tj.Meta {
+		twerr = twerr.WithMeta(k, v)
+	}
+	return twerr
+}
+
 // marshalErrorToJSON returns JSON from a twirp.Error, that can be used as HTTP error response body.
 // If serialization fails, it will use a descriptive Internal error instead.
 func marshalErrorToJSON(twerr twirp.Error) []byte {
@@ -679,17 +693,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 		return twirpErrorFromIntermediary(statusCode, msg, string(respBodyBytes))
 	}
 
-	errorCode := twirp.ErrorCode(tj.Code)
-	if !twirp.IsValidErrorCode(errorCode) {
-		msg := "invalid type returned from server error response: " + tj.Code
-		return twirp.InternalError(msg)
-	}
-
-	twerr := twirp.NewError(errorCode, tj.Msg)
-	for k, v := range tj.Meta {
-		twerr = twerr.WithMeta(k, v)
-	}
-	return twerr
+	return tj.toTwirpError()
 }
 
 // twirpErrorFromIntermediary maps HTTP errors from non-twirp sources to twirp errors.

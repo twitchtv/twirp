@@ -982,6 +982,20 @@ type twerrJSON struct {
 	Meta map[string]string `json:"meta,omitempty"`
 }
 
+func (tj twerrJSON) toTwirpError() twirp.Error {
+	errorCode := twirp.ErrorCode(tj.Code)
+	if !twirp.IsValidErrorCode(errorCode) {
+		msg := "invalid type returned from server error response: " + tj.Code
+		return twirp.InternalError(msg)
+	}
+
+	twerr := twirp.NewError(errorCode, tj.Msg)
+	for k, v := range tj.Meta {
+		twerr = twerr.WithMeta(k, v)
+	}
+	return twerr
+}
+
 // marshalErrorToJSON returns JSON from a twirp.Error, that can be used as HTTP error response body.
 // If serialization fails, it will use a descriptive Internal error instead.
 func marshalErrorToJSON(twerr twirp.Error) []byte {
@@ -1033,17 +1047,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 		return twirpErrorFromIntermediary(statusCode, msg, string(respBodyBytes))
 	}
 
-	errorCode := twirp.ErrorCode(tj.Code)
-	if !twirp.IsValidErrorCode(errorCode) {
-		msg := "invalid type returned from server error response: " + tj.Code
-		return twirp.InternalError(msg)
-	}
-
-	twerr := twirp.NewError(errorCode, tj.Msg)
-	for k, v := range tj.Meta {
-		twerr = twerr.WithMeta(k, v)
-	}
-	return twerr
+	return tj.toTwirpError()
 }
 
 // twirpErrorFromIntermediary maps HTTP errors from non-twirp sources to twirp errors.
@@ -1316,8 +1320,9 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 }
 
 type jsonStreamReader struct {
-	dec         *json.Decoder
-	unmarshaler *jsonpb.Unmarshaler
+	dec               *json.Decoder
+	unmarshaler       *jsonpb.Unmarshaler
+	messageStreamDone bool
 }
 
 func newJSONStreamReader(r io.Reader) (*jsonStreamReader, error) {
@@ -1356,8 +1361,42 @@ func newJSONStreamReader(r io.Reader) (*jsonStreamReader, error) {
 	}, nil
 }
 
-func (r jsonStreamReader) Read(msg proto.Message) error {
-	return r.unmarshaler.UnmarshalNext(r.dec, msg)
+func (r *jsonStreamReader) Read(msg proto.Message) error {
+	if !r.messageStreamDone && r.dec.More() {
+		return r.unmarshaler.UnmarshalNext(r.dec, msg)
+	}
+
+	// else, we hit the end of the message stream. finish up the array, and then read the trailer.
+	r.messageStreamDone = true
+	t, err := r.dec.Token()
+	if err != nil {
+		return err
+	}
+	delim, ok := t.(json.Delim)
+	if !ok || delim != ']' {
+		return fmt.Errorf("missing end of message array in JSON stream, found %q", t)
+	}
+
+	t, err = r.dec.Token()
+	if err != nil {
+		return err
+	}
+	key, ok := t.(string)
+	if !ok || key != "trailer" {
+		return fmt.Errorf("missing trailer after messages in JSON stream, found %q", t)
+	}
+
+	var tj twerrJSON
+	err = r.dec.Decode(&tj)
+	if err != nil {
+		return err
+	}
+
+	if tj.Code == "stream_complete" {
+		return io.EOF
+	}
+
+	return tj.toTwirpError()
 }
 
 var twirpFileDescriptor0 = []byte{

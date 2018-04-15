@@ -64,6 +64,7 @@ For other languages, there are third-party generators available:
 | **Ruby**       |    ✓    |    ✓    | [github.com/cyrusaf/ruby-twirp](https://github.com/cyrusaf/ruby-twirp)
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
 | **Swagger**    |    ✓    |    ✓    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
+| **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
 
 This list isn't an endorsement, it's just a convenience to help you find stuff
 for your language.

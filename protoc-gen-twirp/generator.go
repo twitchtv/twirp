@@ -44,6 +44,9 @@ type twirp struct {
 	pkgs          map[string]string
 	pkgNamesInUse map[string]bool
 
+	importPrefix string            // String to prefix to imported package file names.
+	importMap    map[string]string // Mapping from .proto file name to import path
+
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
 	fileToGoPackageName map[*descriptor.FileDescriptorProto]string
@@ -61,6 +64,7 @@ func newGenerator() *twirp {
 	t := &twirp{
 		pkgs:                make(map[string]string),
 		pkgNamesInUse:       make(map[string]bool),
+		importMap:           make(map[string]string),
 		fileToGoPackageName: make(map[*descriptor.FileDescriptorProto]string),
 		output:              bytes.NewBuffer(nil),
 	}
@@ -68,7 +72,35 @@ func newGenerator() *twirp {
 	return t
 }
 
+// commandLineParameters breaks the comma-separated list of key=value pairs
+// in the parameter (a member of the request protobuf) into a key/value map.
+// It then sets file name mappings defined by those entries.
+func (t *twirp) commandLineParameters(parameter string) {
+	param := make(map[string]string)
+	for _, p := range strings.Split(parameter, ",") {
+		if i := strings.Index(p, "="); i < 0 {
+			param[p] = ""
+		} else {
+			param[p[0:i]] = p[i+1:]
+		}
+	}
+
+	t.importMap = make(map[string]string)
+	for k, v := range param {
+		switch k {
+		case "import_prefix":
+			t.importPrefix = v
+		default:
+			if len(k) > 0 && k[0] == 'M' {
+				t.importMap[k[1:]] = v
+			}
+		}
+	}
+}
+
 func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
+	t.commandLineParameters(in.GetParameter())
+
 	t.genFiles = gen.FilesToGenerate(in)
 
 	// Collect information on types.
@@ -266,11 +298,17 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				t.reg.MethodOutputDefinition(m),
 			}
 			for _, def := range defs {
+				// By default, import path is the dirname of the Go filename.
 				importPath := path.Dir(goFileName(def.File))
-				if importPath != ourImportPath {
-					pkg := t.goPackageName(def.File)
-					deps[pkg] = strconv.Quote(importPath)
+				if importPath == ourImportPath {
+					continue
 				}
+				if substitution, ok := t.importMap[def.File.GetName()]; ok {
+					importPath = substitution
+				}
+				importPath = t.importPrefix + importPath
+				pkg := t.goPackageName(def.File)
+				deps[pkg] = strconv.Quote(importPath)
 			}
 		}
 	}

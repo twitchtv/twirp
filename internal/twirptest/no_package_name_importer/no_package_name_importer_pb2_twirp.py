@@ -50,7 +50,7 @@ class Svc2Client(object):
 
     def __make_request(self, body, full_method):
         req = Request(
-            url=self.__target + "/twirp" + full_method,
+            url=self.__target + full_method,
             data=body,
             headers={"Content-Type": "application/protobuf"},
         )

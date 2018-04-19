@@ -139,7 +139,7 @@ func (g *generator) generateProtobufClient(file *descriptor.FileDescriptorProto,
 	g.P()
 	g.P(`    def __make_request(self, body, full_method):`)
 	g.P(`        req = Request(`)
-	g.P(`            url=self.__target + "/twirp" + full_method,`)
+	g.P(`            url=self.__target + full_method,`)
 	g.P(`            data=body,`)
 	g.P(`            headers={"Content-Type": "application/protobuf"},`)
 	g.P(`        )`)

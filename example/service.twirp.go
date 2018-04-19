@@ -137,7 +137,7 @@ func (s *haberdasherServer) writeError(ctx context.Context, resp http.ResponseWr
 // HaberdasherPathPrefix is used for all URL paths on a twirp Haberdasher server.
 // Requests are always: POST HaberdasherPathPrefix/method
 // It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
-const HaberdasherPathPrefix = "/twirp/twitch.twirp.example.Haberdasher/"
+const HaberdasherPathPrefix = "/twitch.twirp.example.Haberdasher/"
 
 func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -160,7 +160,7 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 	}
 
 	switch req.URL.Path {
-	case "/twirp/twitch.twirp.example.Haberdasher/MakeHat":
+	case "/twitch.twirp.example.Haberdasher/MakeHat":
 		s.serveMakeHat(ctx, resp, req)
 		return
 	default:

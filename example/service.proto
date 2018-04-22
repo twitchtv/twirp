@@ -22,8 +22,14 @@ message Size {
   int32 inches = 1;
 }
 
+message MakeHatsReq {
+  int32 inches = 1;
+  int32 quantity = 2;
+}
+
 // A Haberdasher makes hats for clients.
 service Haberdasher {
   // MakeHat produces a hat of mysterious, randomly-selected color!
   rpc MakeHat(Size) returns (Hat);
+  rpc MakeHats(MakeHatsReq) returns (stream Hat);
 }

@@ -16,6 +16,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -24,12 +25,14 @@ import (
 )
 
 func main() {
-	client := example.NewHaberdasherJSONClient("http://localhost:8080", &http.Client{})
+	client := example.NewHaberdasherProtobufClient("http://localhost:8080", &http.Client{})
 
 	var (
-		hat *example.Hat
-		err error
+		hat       *example.Hat
+		hatStream example.HatStream
+		err       error
 	)
+
 	for i := 0; i < 5; i++ {
 		hat, err = client.MakeHat(context.Background(), &example.Size{Inches: 12})
 		if err != nil {
@@ -43,6 +46,38 @@ func main() {
 			// This was some fatal error!
 			log.Fatal(err)
 		}
+		break
 	}
-	fmt.Printf("%+v", hat)
+	fmt.Printf("Response from MakeHat:\n\t%+v\n", hat)
+
+	// Ask for a stream of hats
+	for i := 0; i < 5; i++ {
+		hatStream, err = client.MakeHats(
+			context.Background(),
+			&example.MakeHatsReq{Inches: 12, Quantity: 7},
+		)
+		if err != nil {
+			if twerr, ok := err.(twirp.Error); ok {
+				if twerr.Meta("retryable") != "" {
+					// Log the error and go again.
+					log.Printf("got error %q, retrying", twerr)
+					continue
+				}
+			}
+			// This was some fatal error!
+			log.Fatal(err)
+		}
+		break
+	}
+	fmt.Printf("Response from MakeHats:\n")
+	for {
+		hat, err = hatStream.Next(context.Background())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+		fmt.Printf("\t%+v\n", hat)
+	}
 }

@@ -790,6 +790,8 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 		return
 	}
 
+	respFlusher, canFlush := resp.(http.Flusher)
+
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	messages := proto.NewBuffer(nil)
@@ -810,7 +812,7 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 
 		messages.Reset()
 		_ = messages.EncodeVarint((1 << 3) | 2) // field tag
-		err = messages.Marshal(msg)
+		err = messages.EncodeMessage(msg)
 		if err != nil {
 			err = wrapErr(err, "failed to marshal proto message")
 			respStream.End(err)
@@ -822,6 +824,10 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 			err = wrapErr(err, "failed to send proto message")
 			respStream.End(err)
 			break
+		}
+
+		if canFlush {
+			respFlusher.Flush()
 		}
 
 		// TODO: Call a hook that we sent a message in a stream?

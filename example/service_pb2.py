@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twitch.twirp.example',
   syntax='proto3',
-  serialized_pb=_b('\n\rservice.proto\x12\x14twitch.twirp.example\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32O\n\x0bHaberdasher\x12@\n\x07MakeHat\x12\x1a.twitch.twirp.example.Size\x1a\x19.twitch.twirp.example.HatB\tZ\x07\x65xampleb\x06proto3')
+  serialized_pb=_b('\n\rservice.proto\x12\x14twitch.twirp.example\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\"/\n\x0bMakeHatsReq\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x12\x10\n\x08quantity\x18\x02 \x01(\x05\x32\x9b\x01\n\x0bHaberdasher\x12@\n\x07MakeHat\x12\x1a.twitch.twirp.example.Size\x1a\x19.twitch.twirp.example.Hat\x12J\n\x08MakeHats\x12!.twitch.twirp.example.MakeHatsReq\x1a\x19.twitch.twirp.example.Hat0\x01\x42\tZ\x07\x65xampleb\x06proto3')
 )
 
 
@@ -100,8 +100,47 @@ _SIZE = _descriptor.Descriptor(
   serialized_end=111,
 )
 
+
+_MAKEHATSREQ = _descriptor.Descriptor(
+  name='MakeHatsReq',
+  full_name='twitch.twirp.example.MakeHatsReq',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='inches', full_name='twitch.twirp.example.MakeHatsReq.inches', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='quantity', full_name='twitch.twirp.example.MakeHatsReq.quantity', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=113,
+  serialized_end=160,
+)
+
 DESCRIPTOR.message_types_by_name['Hat'] = _HAT
 DESCRIPTOR.message_types_by_name['Size'] = _SIZE
+DESCRIPTOR.message_types_by_name['MakeHatsReq'] = _MAKEHATSREQ
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Hat = _reflection.GeneratedProtocolMessageType('Hat', (_message.Message,), dict(
@@ -118,6 +157,13 @@ Size = _reflection.GeneratedProtocolMessageType('Size', (_message.Message,), dic
   ))
 _sym_db.RegisterMessage(Size)
 
+MakeHatsReq = _reflection.GeneratedProtocolMessageType('MakeHatsReq', (_message.Message,), dict(
+  DESCRIPTOR = _MAKEHATSREQ,
+  __module__ = 'service_pb2'
+  # @@protoc_insertion_point(class_scope:twitch.twirp.example.MakeHatsReq)
+  ))
+_sym_db.RegisterMessage(MakeHatsReq)
+
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\007example'))
@@ -128,8 +174,8 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=113,
-  serialized_end=192,
+  serialized_start=163,
+  serialized_end=318,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeHat',
@@ -137,6 +183,15 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
     index=0,
     containing_service=None,
     input_type=_SIZE,
+    output_type=_HAT,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='MakeHats',
+    full_name='twitch.twirp.example.Haberdasher.MakeHats',
+    index=1,
+    containing_service=None,
+    input_type=_MAKEHATSREQ,
     output_type=_HAT,
     options=None,
   ),

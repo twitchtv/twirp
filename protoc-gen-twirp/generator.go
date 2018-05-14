@@ -45,7 +45,7 @@ type twirp struct {
 	pkgNamesInUse map[string]bool
 
 	importPrefix string            // String to prefix to imported package file names.
-	importMap    map[string]string // Mapping from .proto file name to import path
+	importMap    map[string]string // Mapping from .proto file name to import path.
 
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
@@ -72,34 +72,13 @@ func newGenerator() *twirp {
 	return t
 }
 
-// commandLineParameters breaks the comma-separated list of key=value pairs
-// in the parameter (a member of the request protobuf) into a key/value map.
-// It then sets file name mappings defined by those entries.
-func (t *twirp) commandLineParameters(parameter string) {
-	param := make(map[string]string)
-	for _, p := range strings.Split(parameter, ",") {
-		if i := strings.Index(p, "="); i < 0 {
-			param[p] = ""
-		} else {
-			param[p[0:i]] = p[i+1:]
-		}
-	}
-
-	t.importMap = make(map[string]string)
-	for k, v := range param {
-		switch k {
-		case "import_prefix":
-			t.importPrefix = v
-		default:
-			if len(k) > 0 && k[0] == 'M' {
-				t.importMap[k[1:]] = v
-			}
-		}
-	}
-}
-
 func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
-	t.commandLineParameters(in.GetParameter())
+	params, err := parseCommandLineParams(in.GetParameter())
+	if err != nil {
+		gen.Fail("could not parse parameters passed to --twirp_out", err.Error())
+	}
+	t.importPrefix = params.importPrefix
+	t.importMap = params.importMap
 
 	t.genFiles = gen.FilesToGenerate(in)
 

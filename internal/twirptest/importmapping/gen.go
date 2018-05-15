@@ -11,6 +11,7 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package gen
+package importmapping
 
-const Version = "v5.4.0"
+//go:generate ../../protoc_gen.sh y/y.proto
+//go:generate ./protoc_gen-x.sh

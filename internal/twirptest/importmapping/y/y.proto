@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+package twirp.internal.twirptest.importmapping.y;
+
+message MsgY {}

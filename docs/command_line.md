@@ -4,9 +4,9 @@ title: "Command line parameters"
 sidebar_label: "Command line parameters"
 ---
 
-In general, twirp shouldn't need command line parameters. There are some complex
-cases, though, where they are the only way to get things, particularly around
-setting the import path to be used in generated code.
+In general, Twirp's Go generator shouldn't need command line parameters. There
+are some complex cases, though, where they are the only way to get things done,
+particularly when setting the import path to be used in generated code.
 
 # How to pass command line parameters
 
@@ -24,6 +24,17 @@ When working with multiple proto files that use import statements,
 determine the import paths for imported message types. Usually, this is
 sufficient, but in some complex setups, you need to be able to directly override
 import lines.
+
+You should usually set import paths by using `option go_package` in your .proto
+files. A line like this:
+
+```protobuf
+option go_package = "github.com/twitchtv/thisisanexample";
+```
+
+will set things up properly. But if a file needs to be imported at different
+paths for different users, you might need to resort to command-line parameters.
+
 
 This behavior can be customized by using two different command line parameters:
 

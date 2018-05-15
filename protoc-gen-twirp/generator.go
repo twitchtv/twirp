@@ -44,6 +44,9 @@ type twirp struct {
 	pkgs          map[string]string
 	pkgNamesInUse map[string]bool
 
+	importPrefix string            // String to prefix to imported package file names.
+	importMap    map[string]string // Mapping from .proto file name to import path.
+
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
 	fileToGoPackageName map[*descriptor.FileDescriptorProto]string
@@ -61,6 +64,7 @@ func newGenerator() *twirp {
 	t := &twirp{
 		pkgs:                make(map[string]string),
 		pkgNamesInUse:       make(map[string]bool),
+		importMap:           make(map[string]string),
 		fileToGoPackageName: make(map[*descriptor.FileDescriptorProto]string),
 		output:              bytes.NewBuffer(nil),
 	}
@@ -69,6 +73,13 @@ func newGenerator() *twirp {
 }
 
 func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
+	params, err := parseCommandLineParams(in.GetParameter())
+	if err != nil {
+		gen.Fail("could not parse parameters passed to --twirp_out", err.Error())
+	}
+	t.importPrefix = params.importPrefix
+	t.importMap = params.importMap
+
 	t.genFiles = gen.FilesToGenerate(in)
 
 	// Collect information on types.
@@ -266,11 +277,17 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				t.reg.MethodOutputDefinition(m),
 			}
 			for _, def := range defs {
+				// By default, import path is the dirname of the Go filename.
 				importPath := path.Dir(goFileName(def.File))
-				if importPath != ourImportPath {
-					pkg := t.goPackageName(def.File)
-					deps[pkg] = strconv.Quote(importPath)
+				if importPath == ourImportPath {
+					continue
 				}
+				if substitution, ok := t.importMap[def.File.GetName()]; ok {
+					importPath = substitution
+				}
+				importPath = t.importPrefix + importPath
+				pkg := t.goPackageName(def.File)
+				deps[pkg] = strconv.Quote(importPath)
 			}
 		}
 	}

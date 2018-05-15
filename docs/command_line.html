@@ -1,0 +1,75 @@
+<html lang="en"><head><meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Command line parameters · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta property="og:title" content="Command line parameters · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="In general, twirp shouldn&#x27;t need command line parameters. There are some complex"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/></head><body class="sideNavVisible doc"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup navGroupActive"><h3>Getting started</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup navGroupActive"><h3>Beyond the basics</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem navListItemActive"><a class="navItem navItemActive" href="/twirp/docs/command_line.html">Command line parameters</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li></ul></div><div class="navGroup navGroupActive"><h3>Formal specification</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Proposed Draft)</a></li></ul></div></div></section></div><script>
+          var toggler = document.getElementById('navToggler');
+          var nav = document.getElementById('docsNav');
+          toggler.onclick = function() {
+            nav.classList.toggle('docsSliderActive');
+          };
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Command line parameters</h1></header><article><div><span><p>In general, twirp shouldn't need command line parameters. There are some complex
+cases, though, where they are the only way to get things, particularly around
+setting the import path to be used in generated code.</p>
+<h1><a class="anchor" aria-hidden="true" id="how-to-pass-command-line-parameters"></a><a href="#how-to-pass-command-line-parameters" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to pass command line parameters</h1>
+<p>Command line parameters are passed to the Twirp generator, <code>protoc-gen-twirp</code>,
+by specifying them in the <code>--twirp_out</code> argument. The parameters are key-values,
+separated by <code>,</code> characters, and you the parameter list is terminated with a <code>:</code> character.</p>
+<p>So, for example, <code>--twirp_out=k1=v1,k2=v2,k3=v3:.</code> would pass <code>k1=v1</code>, <code>k2=v2</code>,
+and <code>k3=v3</code> to twirp.</p>
+<h1><a class="anchor" aria-hidden="true" id="modifying-imports"></a><a href="#modifying-imports" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Modifying imports</h1>
+<p>When working with multiple proto files that use import statements,
+<code>protoc-gen-twirp</code> uses the <code>option go_package</code> field in the <code>.proto</code> files to
+determine the import paths for imported message types. Usually, this is
+sufficient, but in some complex setups, you need to be able to directly override
+import lines.</p>
+<p>This behavior can be customized by using two different command line parameters:</p>
+<ul>
+<li><code>import_prefix</code>, which prefixes all generated import paths with something.</li>
+<li><code>go_import_mapping</code>, which lets you set an explicit mapping of import paths to
+use for particular .proto files.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="import-prefix-parameter"></a><a href="#import-prefix-parameter" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Import prefix parameter</h2>
+<p>The <code>import_prefix</code> parameter can be passed to <code>--twirp_out</code> in order to prefix
+the generated import path with something.</p>
+<pre><code class="hljs css sh">$ PROTO_SRC_PATH=./
+$ IMPORT_PREFIX=<span class="hljs-string">"github.com/example/rpc/haberdasher"</span>
+$ protoc \
+  --proto_path=<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  --twirp_out=import_prefix=<span class="hljs-variable">$IMPORT_PREFIX</span>:<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  --go_out=import_prefix=<span class="hljs-variable">$IMPORT_PREFIX</span>:<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  <span class="hljs-variable">$PROTO_SRC_PATH</span>/rpc/haberdasher/service.proto
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="import-mapping-parameter"></a><a href="#import-mapping-parameter" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Import mapping parameter</h2>
+<p>The import mapping parameter can be passed multiple times to <code>--twirp_out</code> in
+order to substitute the import path for a given proto file with something else.
+By passing the parameter multiple times you can build up a map of proto file to
+import path inside the generator.</p>
+<p>This parameter should be used when one of your proto files <code>import</code>s a proto
+file from another package and you're not generating your code at the
+<code>$GOPATH/src</code> root.</p>
+<p>There are two ways to provide this parameter to <code>--twirp_out</code>:</p>
+<h3><a class="anchor" aria-hidden="true" id="as-provided-to-protoc-gen-go"></a><a href="#as-provided-to-protoc-gen-go" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>As provided to <code>protoc-gen-go</code></h3>
+<p>Just like <code>proto-gen-go</code>, you can use a shorthand, formatted as: <code>M&lt;proto filename&gt;=&lt;go import path&gt;</code>. For example, you could tell <code>protoc-gen-twirp</code> that
+<code>rpcutil/empty.proto</code> can be found at <code>github.com/example/rpcutil</code> by using
+<code>Mrpcutil/empty.proto=github.com/example/rpcutil</code>. Here's a full example:</p>
+<pre><code class="hljs css sh">$ PROTO_SRC_PATH=./
+$ IMPORT_MAPPING=<span class="hljs-string">"rpcutil/empty.proto=github.com/example/rpcutil"</span>
+$ protoc \
+  --proto_path=<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  --twirp_out=M<span class="hljs-variable">$IMPORT_MAPPING</span>:<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  --go_out=M<span class="hljs-variable">$IMPORT_MAPPING</span>:<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  <span class="hljs-variable">$PROTO_SRC_PATH</span>/rpc/haberdasher/service.proto
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="using-the-go-import-mapping-prefix"></a><a href="#using-the-go-import-mapping-prefix" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using the <code>go_import_mapping@</code> prefix</h3>
+<p>This is exactly the same as the previous method; it's just a little more verbose
+and a little clearer. The format is <code>go_import_mapping@&lt;proto filename&gt;=&lt;go import path&gt;</code>. For example, you could tell <code>protoc-gen-twirp</code> that
+<code>rpcutil/empty.proto</code> can be found at <code>github.com/example/rpcutil</code> by using
+<code>go_import_mapping@rpcutil/empty.proto=github.com/example/rpcutil</code>. Here's a
+full example:</p>
+<pre><code class="hljs css sh">$ IMPORT_MAPPING=<span class="hljs-string">"rpcutil/empty.proto=github.com/example/rpcutil"</span>
+$ protoc \
+  --proto_path=<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  --twirp_out=go_import_mapping@<span class="hljs-variable">$IMPORT_MAPPING</span>:<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  --go_out=M<span class="hljs-variable">$IMPORT_MAPPING</span>:<span class="hljs-variable">$PROTO_SRC_PATH</span> \
+  <span class="hljs-variable">$PROTO_SRC_PATH</span>/rpc/haberdasher/service.proto
+</code></pre>
+<p>Note: this is a <code>protoc-gen-twirp</code> flavor of the parameter. <code>protoc-gen-go</code> does
+not support this prefix.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="hooks.html">← Server Hooks</a><a class="docs-next button" href="proto_and_json.html">Twirp&#x27;s Serialization Schemes →</a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2018 Twitch Interactive, Inc.</section></footer></div></body></html>

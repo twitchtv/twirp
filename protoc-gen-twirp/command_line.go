@@ -36,7 +36,12 @@ func parseCommandLineParams(parameter string) (*commandLineParams, error) {
 		if i < 0 {
 			return nil, fmt.Errorf("invalid parameter %q: expected format of parameter to be k=v", p)
 		}
-		ps[p[0:i]] = p[i+1:]
+		k := p[0:i]
+		v := p[i+1:]
+		if v == "" {
+			return nil, fmt.Errorf("invalid parameter %q: expected format of parameter to be k=v", k)
+		}
+		ps[k] = v
 	}
 
 	clp := &commandLineParams{

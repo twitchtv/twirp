@@ -41,14 +41,14 @@ func TestParseCommandLineParams(t *testing.T) {
 			errors.New(`unknown parameter "k"`),
 		},
 		{
-			"empty parameter value (1)",
+			"empty parameter value - no equals sign",
 			"import_prefix",
 			nil,
 			errors.New(`invalid parameter "import_prefix": expected format of parameter to be k=v`),
 		},
 		{
-			"empty parameter value (2)",
-			"import_prefix",
+			"empty parameter value - no value",
+			"import_prefix=",
 			nil,
 			errors.New(`invalid parameter "import_prefix": expected format of parameter to be k=v`),
 		},

@@ -12,6 +12,7 @@
             "routing",
             "errors",
             "hooks",
+            "command_line",
             "proto_and_json"
         ],
         "Formal specification": [

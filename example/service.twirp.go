@@ -72,7 +72,10 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // =======================
@@ -109,7 +112,10 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ==========================

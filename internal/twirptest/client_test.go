@@ -44,7 +44,7 @@ func (i *reqInspector) RoundTrip(r *http.Request) (*http.Response, error) {
 func TestClientSuccessAndErrorResponses(t *testing.T) {
 	// Service that succeeds only if requested size is 1, otherwise errors
 	h := PickyHatmaker(1)
-	s := httptest.NewServer(NewHaberdasherServer(h, nil, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
 	defer s.Close()
 
 	// Clients

@@ -72,7 +72,10 @@ func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ================
@@ -109,7 +112,10 @@ func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ===================

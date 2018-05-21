@@ -276,10 +276,14 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 
 func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+	writeProtoError := func(err error) {
+		s.writeError(ctx, resp, err)
+	}
+
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		s.writeError(ctx, resp, err)
+		writeProtoError(err)
 		return
 	}
 
@@ -287,13 +291,13 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Req)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 
@@ -420,10 +424,14 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 
 func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+	writeProtoError := func(err error) {
+		s.writeError(ctx, resp, err)
+	}
+
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		s.writeError(ctx, resp, err)
+		writeProtoError(err)
 		return
 	}
 
@@ -431,13 +439,13 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Empty)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 

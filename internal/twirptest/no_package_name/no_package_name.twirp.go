@@ -251,10 +251,14 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 
 func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+	writeProtoError := func(err error) {
+		s.writeError(ctx, resp, err)
+	}
+
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		s.writeError(ctx, resp, err)
+		writeProtoError(err)
 		return
 	}
 
@@ -262,13 +266,13 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Msg)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 

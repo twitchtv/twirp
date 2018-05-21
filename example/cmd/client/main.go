@@ -15,10 +15,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/example"
@@ -33,6 +33,7 @@ func main() {
 		err       error
 	)
 
+	// Call the MakeHat rpc
 	for i := 0; i < 5; i++ {
 		hat, err = client.MakeHat(context.Background(), &example.Size{Inches: 12})
 		if err != nil {
@@ -48,36 +49,46 @@ func main() {
 		}
 		break
 	}
-	fmt.Printf("Response from MakeHat:\n\t%+v\n", hat)
+	log.Println(`Response from MakeHat:`)
+	log.Printf("\t%+v\n", hat)
 
-	// Ask for a stream of hats
-	for i := 0; i < 5; i++ {
-		hatStream, err = client.MakeHats(
-			context.Background(),
-			&example.MakeHatsReq{Inches: 12, Quantity: 7},
-		)
-		if err != nil {
-			if twerr, ok := err.(twirp.Error); ok {
-				if twerr.Meta("retryable") != "" {
-					// Log the error and go again.
-					log.Printf("got error %q, retrying", twerr)
-					continue
-				}
-			}
-			// This was some fatal error!
-			log.Fatal(err)
-		}
-		break
+	// Call the MakeHats streaming rpc
+	reqSentAt := time.Now()
+	quantity := int32(300000)
+	hatStream, err = client.MakeHats(
+		context.Background(),
+		&example.MakeHatsReq{Inches: 12, Quantity: quantity},
+	)
+	if err != nil {
+		log.Fatal(err)
 	}
-	fmt.Printf("Response from MakeHats:\n")
-	for {
+	log.Printf("Response from MakeHats:\n")
+	ii := 1
+	printResults := func() {
+		took := time.Now().Sub(reqSentAt)
+		log.Printf(
+			"Received %.1f kHats per second (%d hats in %f seconds)\n",
+			float64(ii-1)/took.Seconds()/1000,
+			ii-1, took.Seconds(),
+		)
+	}
+	defer printResults()
+	for ; true; ii++ { // Receive all the hats
 		hat, err = hatStream.Next(context.Background())
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
+			printResults()
 			log.Fatal(err)
 		}
-		fmt.Printf("\t%+v\n", hat)
+		if ii%50000 == 0 {
+			log.Printf(
+				"\t[%4.1f khps] %6d %+v\n",
+				float64(ii)/time.Now().Sub(reqSentAt).Seconds()/1000,
+				ii, hat,
+			)
+		}
 	}
+
 }

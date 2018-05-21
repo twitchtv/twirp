@@ -15,12 +15,10 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/example"
@@ -30,43 +28,33 @@ import (
 func newRandomHat(inches int32) *example.Hat {
 	return &example.Hat{
 		Size:  inches,
-		Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(4)],
-		Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(3)],
+		Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(5)],
+		Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(4)],
 	}
 }
 
-type randomHatStream struct{ i, q int32 }
+type randomHaberdasher struct{ quiet bool }
 
-func (hs *randomHatStream) Next(ctx context.Context) (*example.Hat, error) {
-	if hs.q == 0 {
-		return nil, io.EOF
-	}
-	hs.q--
-	time.Sleep(300 * time.Millisecond)
-	return newRandomHat(hs.i), nil
-}
-
-func (hs *randomHatStream) End(err error) {
-	// TODO: something?
-}
-
-type randomHaberdasher struct{}
+var (
+	errTooSmall         = twirp.InvalidArgumentError("Inches", "I can't make hats that small!")
+	errNegativeQuantity = twirp.InvalidArgumentError("Quantity", "I can't make a negative quantity of hats!")
+)
 
 func (h *randomHaberdasher) MakeHat(ctx context.Context, size *example.Size) (*example.Hat, error) {
 	if size.Inches <= 0 {
-		return nil, twirp.InvalidArgumentError("Inches", "I can't make a hat that small!")
+		return nil, errTooSmall
 	}
 	return newRandomHat(size.Inches), nil
 }
 
 func (h *randomHaberdasher) MakeHats(ctx context.Context, req *example.MakeHatsReq) (example.HatStream, error) {
 	if req.Inches <= 0 {
-		return nil, twirp.InvalidArgumentError("Inches", "I can't make hats that small!")
+		return nil, errTooSmall
 	}
 	if req.Quantity < 0 {
-		return nil, twirp.InvalidArgumentError("Quantity", "I can't make a negative quantity of hats!")
+		return nil, errNegativeQuantity
 	}
-	return &randomHatStream{i: req.Inches, q: req.Quantity}, nil
+	return newRandomHatStream(req.Inches, req.Quantity, h.quiet), nil
 }
 
 func main() {

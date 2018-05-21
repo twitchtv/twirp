@@ -263,10 +263,14 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
+	writeProtoError := func(err error) {
+		s.writeError(ctx, resp, err)
+	}
+
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		s.writeError(ctx, resp, err)
+		writeProtoError(err)
 		return
 	}
 
@@ -274,13 +278,13 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(twirp_internal_twirptest_importable.Msg)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		writeProtoError(twirp.InternalErrorWith(err))
 		return
 	}
 
@@ -347,11 +351,11 @@ func (s *svc2Server) serveStreamJSON(ctx context.Context, resp http.ResponseWrit
 }
 
 func (s *svc2Server) serveStreamProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
+
 	ctx = ctxsetters.WithMethodName(ctx, "Stream")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		s.writeError(ctx, resp, err)
+		writeProtoError(err)
 		return
 	}
 
@@ -846,12 +850,7 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag == trailerTag {
-		_ = r.c.Close()
-		return io.EOF
-	}
-
-	if tag != msgTag {
+	if tag != msgTag && tag != trailerTag {
 		return fmt.Errorf("invalid field tag: %v", tag)
 	}
 
@@ -863,19 +862,45 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	if int(l) < 0 || int(l) > r.maxSize {
 		return io.ErrShortBuffer
 	}
-	buf := make([]byte, int(l))
+	if tag == msgTag {
+		buf := make([]byte, int(l))
 
-	// Go ahead and read a message.
+		// Go ahead and read a message.
+		_, err = io.ReadFull(r.r, buf)
+		if err != nil {
+			return err
+		}
+
+		err = proto.Unmarshal(buf, msg)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// This is a trailer, read it and then close the client
+	defer r.c.Close()
+	buf := make([]byte, int(l))
 	_, err = io.ReadFull(r.r, buf)
 	if err != nil {
 		return err
 	}
 
-	err = proto.Unmarshal(buf, msg)
+	// Put the length back in front of the trailer so it can be decoded
+	buf = append(proto.EncodeVarint(l), buf...)
+	var trailer string
+	trailer, err = proto.NewBuffer(buf).DecodeStringBytes()
 	if err != nil {
-		return err
+		return clientError("failed to read stream trailer", err)
 	}
-	return nil
+	if trailer == "EOF" {
+		return io.EOF
+	}
+	var tj twerrJSON
+	if err = json.Unmarshal([]byte(trailer), &tj); err != nil {
+		return clientError("unable to decode stream trailer", err)
+	}
+	return tj.toTwirpError()
 }
 
 type jsonStreamReader struct {

@@ -11,6 +11,6 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package use_empty
+package google_protobuf_imports
 
-//go:generate ../../protoc_gen.sh use_empty.proto
+//go:generate ../../protoc_gen.sh service.proto

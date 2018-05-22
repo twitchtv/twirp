@@ -121,8 +121,8 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 				name = stringutils.BaseName(f.GetName())
 			}
 			name = stringutils.CleanIdentifier(name)
-			t.fileToGoPackageName[f] = name
-			t.registerPackageName(name)
+			alias := t.registerPackageName(name)
+			t.fileToGoPackageName[f] = alias
 		}
 	}
 

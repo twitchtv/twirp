@@ -6,7 +6,7 @@ option go_package = "twirptest";
 message Hat {
   int32 size = 1;
   string color = 2;
-  string name = 3;
+  string name = 3 [json_name="potato"];
 }
 
 message Size {

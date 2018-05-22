@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twirp.internal.twirptest',
   syntax='proto3',
-  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.HatB\x0bZ\ttwirptestb\x06proto3')
+  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"8\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x14\n\x04name\x18\x03 \x01(\tR\x06potato\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.HatB\x0bZ\ttwirptestb\x06proto3')
 )
 
 
@@ -52,7 +52,7 @@ _HAT = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=None, json_name='potato', file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -66,7 +66,7 @@ _HAT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=43,
-  serialized_end=91,
+  serialized_end=99,
 )
 
 
@@ -96,8 +96,8 @@ _SIZE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=93,
-  serialized_end=115,
+  serialized_start=101,
+  serialized_end=123,
 )
 
 DESCRIPTOR.message_types_by_name['Hat'] = _HAT
@@ -128,8 +128,8 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=117,
-  serialized_end=204,
+  serialized_start=125,
+  serialized_end=212,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeHat',

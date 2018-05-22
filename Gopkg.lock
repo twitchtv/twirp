@@ -16,7 +16,15 @@
 [[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
-  packages = ["jsonpb","proto","protoc-gen-go/descriptor","protoc-gen-go/plugin","ptypes/struct"]
+  packages = [
+    "jsonpb",
+    "proto",
+    "protoc-gen-go/descriptor",
+    "protoc-gen-go/plugin",
+    "ptypes/empty",
+    "ptypes/struct",
+    "ptypes/wrappers"
+  ]
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
@@ -33,13 +41,16 @@
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert","require"]
+  packages = [
+    "assert",
+    "require"
+  ]
   revision = "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c"
   version = "v1.2.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2eddb47ddcbaff97efa00fd95bf9007eb6a99bccc946e76797fc44fd204a60e3"
+  inputs-digest = "4871cc1866de9f66cab7a24d6f7011b047ce72df4f37684dc46882771608be0c"
   solver-name = "gps-cdcl"
   solver-version = 1

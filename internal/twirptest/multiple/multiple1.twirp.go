@@ -74,7 +74,10 @@ func (c *svc1ProtobufClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) 
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg1)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ================
@@ -111,7 +114,10 @@ func (c *svc1JSONClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg1)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ===================

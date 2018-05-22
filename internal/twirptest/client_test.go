@@ -41,6 +41,56 @@ func (i *reqInspector) RoundTrip(r *http.Request) (*http.Response, error) {
 	return http.DefaultTransport.RoundTrip(r)
 }
 
+func TestClientSuccessAndErrorResponses(t *testing.T) {
+	// Service that succeeds only if requested size is 1, otherwise errors
+	h := PickyHatmaker(1)
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+
+	// Clients
+	protoCli := NewHaberdasherProtobufClient(s.URL, &http.Client{})
+	jsonCli := NewHaberdasherJSONClient(s.URL, &http.Client{})
+	ctx := context.Background()
+	var resp *Hat
+	var err error
+
+	// Test proto success
+	resp, err = protoCli.MakeHat(ctx, &Size{1})
+	if err != nil {
+		t.Fatalf("Proto client method returned unexpected error: %s", err)
+	}
+	if resp == nil {
+		t.Fatalf("Proto client method expected to return non-nil response, but it is nil")
+	}
+
+	// Test proto failure
+	resp, err = protoCli.MakeHat(ctx, &Size{666})
+	if err == nil {
+		t.Fatalf("Proto client method expected to fail, but error is nil")
+	}
+	if resp != nil {
+		t.Fatalf("Proto client method expected to return nil response on error, but returned non-nil")
+	}
+
+	// Test json success
+	resp, err = jsonCli.MakeHat(ctx, &Size{1})
+	if err != nil {
+		t.Fatalf("JSON client method returned unexpected error: %s", err)
+	}
+	if resp == nil {
+		t.Fatalf("JSON client method expected to return non-nil response, but it is nil")
+	}
+
+	// Test json failure
+	resp, err = jsonCli.MakeHat(ctx, &Size{666})
+	if err == nil {
+		t.Fatalf("JSON client method expected to fail, but error is nil")
+	}
+	if resp != nil {
+		t.Fatalf("JSON client method expected to return nil response on error, but returned non-nil")
+	}
+}
+
 func TestClientSetsRequestContext(t *testing.T) {
 	// Start up a server just so we can make a working client later.
 	h := PickyHatmaker(1)

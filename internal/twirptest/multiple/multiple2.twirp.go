@@ -60,7 +60,10 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) 
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
@@ -69,7 +72,10 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
 	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ================
@@ -107,7 +113,10 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
@@ -116,7 +125,10 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
 	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // ===================

@@ -263,38 +263,37 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	writeProtoError := func(err error) {
-		s.writeError(ctx, resp, err)
-	}
-
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Msg2)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
 	var respContent *Msg2
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -306,12 +305,11 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Msg2 and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Msg2 and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -320,12 +318,15 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -411,38 +412,37 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 
 func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	writeProtoError := func(err error) {
-		s.writeError(ctx, resp, err)
-	}
-
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Msg1)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
 	var respContent *Msg1
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -454,12 +454,11 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Msg1 and nil error while calling SamePackageProtoImport. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Msg1 and nil error while calling SamePackageProtoImport. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -468,12 +467,15 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 

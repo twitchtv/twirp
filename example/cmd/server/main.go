@@ -25,36 +25,50 @@ import (
 	"github.com/twitchtv/twirp/hooks/statsd"
 )
 
-func newRandomHat(inches int32) *example.Hat {
-	return &example.Hat{
-		Size:  inches,
-		Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(5)],
-		Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(4)],
-	}
-}
-
-type randomHaberdasher struct{ quiet bool }
+type randomHaberdasher struct{}
 
 var (
 	errTooSmall         = twirp.InvalidArgumentError("Inches", "I can't make hats that small!")
 	errNegativeQuantity = twirp.InvalidArgumentError("Quantity", "I can't make a negative quantity of hats!")
 )
 
-func (h *randomHaberdasher) MakeHat(ctx context.Context, size *example.Size) (*example.Hat, error) {
-	if size.Inches <= 0 {
+func newRandomHat(inches int32) (*example.Hat, error) {
+	if inches <= 0 {
 		return nil, errTooSmall
 	}
-	return newRandomHat(size.Inches), nil
+	return &example.Hat{
+		Size:  inches,
+		Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(5)],
+		Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(4)],
+	}, nil
+}
+
+func (h *randomHaberdasher) MakeHat(ctx context.Context, size *example.Size) (*example.Hat, error) {
+	return newRandomHat(size.Inches)
 }
 
 func (h *randomHaberdasher) MakeHats(ctx context.Context, req *example.MakeHatsReq) (example.HatStream, error) {
-	if req.Inches <= 0 {
-		return nil, errTooSmall
-	}
 	if req.Quantity < 0 {
 		return nil, errNegativeQuantity
 	}
-	return newRandomHatStream(req.Inches, req.Quantity, h.quiet), nil
+	// Normally we'd validate Inches here as well, but we let it fall through to error on newRandomHat to demonstrate mid-stream errors
+	// if req.Inches <= 0 {
+	// 	return nil, errTooSmall
+	// }
+
+	ch := make(chan HatOrError, 100) // NB: the size of this buffer can make a big difference!
+	go func() {
+		for ii := int32(0); ii < req.Quantity; ii++ {
+			hat, err := newRandomHat(req.Inches)
+			select {
+			case <-ctx.Done():
+				return
+			case ch <- HatOrError{hat, err}:
+			}
+		}
+		close(ch)
+	}()
+	return NewHatStream(ch), nil
 }
 
 func main() {

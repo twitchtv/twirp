@@ -263,38 +263,37 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	writeProtoError := func(err error) {
-		s.writeError(ctx, resp, err)
-	}
-
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(twirp_internal_twirptest_importable.Msg)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
 	var respContent *twirp_internal_twirptest_importable.Msg
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -306,12 +305,11 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil twirp_internal_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -320,12 +318,15 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -351,15 +352,7 @@ func (s *svc2Server) serveStreamJSON(ctx context.Context, resp http.ResponseWrit
 }
 
 func (s *svc2Server) serveStreamProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-
-	ctx = ctxsetters.WithMethodName(ctx, "Stream")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		writeProtoError(err)
-		return
-	}
-
-	resp.Header().Set("Content-Type", "application/protobuf")
+	s.writeError(ctx, resp, twirp.InternalError("rpc type \"bidirectional\" is not implemented"))
 }
 
 func (s *svc2Server) ServiceDescriptor() ([]byte, int) {
@@ -850,7 +843,31 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag != msgTag && tag != trailerTag {
+	if tag == trailerTag {
+		// This is a trailer (twirp error), read it and then close the client
+		defer r.c.Close()
+		// Read the length delimiter
+		l, err := binary.ReadUvarint(r.r)
+		if err != nil {
+			return clientError("unable to read trailer's length delimiter", err)
+		}
+		sb := new(strings.Builder)
+		sb.Grow(int(l))
+		_, err = io.Copy(sb, r.r)
+		if err != nil {
+			return clientError("unable to read trailer", err)
+		}
+		if sb.String() == "EOF" {
+			return io.EOF
+		}
+		var tj twerrJSON
+		if err = json.Unmarshal([]byte(sb.String()), &tj); err != nil {
+			return clientError("unable to decode trailer", err)
+		}
+		return tj.toTwirpError()
+	}
+
+	if tag != msgTag {
 		return fmt.Errorf("invalid field tag: %v", tag)
 	}
 
@@ -862,45 +879,17 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	if int(l) < 0 || int(l) > r.maxSize {
 		return io.ErrShortBuffer
 	}
-	if tag == msgTag {
-		buf := make([]byte, int(l))
-
-		// Go ahead and read a message.
-		_, err = io.ReadFull(r.r, buf)
-		if err != nil {
-			return err
-		}
-
-		err = proto.Unmarshal(buf, msg)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	// This is a trailer, read it and then close the client
-	defer r.c.Close()
 	buf := make([]byte, int(l))
-	_, err = io.ReadFull(r.r, buf)
-	if err != nil {
+
+	// Go ahead and read a message.
+	if _, err = io.ReadFull(r.r, buf); err != nil {
 		return err
 	}
 
-	// Put the length back in front of the trailer so it can be decoded
-	buf = append(proto.EncodeVarint(l), buf...)
-	var trailer string
-	trailer, err = proto.NewBuffer(buf).DecodeStringBytes()
-	if err != nil {
-		return clientError("failed to read stream trailer", err)
+	if err = proto.Unmarshal(buf, msg); err != nil {
+		return err
 	}
-	if trailer == "EOF" {
-		return io.EOF
-	}
-	var tj twerrJSON
-	if err = json.Unmarshal([]byte(trailer), &tj); err != nil {
-		return clientError("unable to decode stream trailer", err)
-	}
-	return tj.toTwirpError()
+	return nil
 }
 
 type jsonStreamReader struct {

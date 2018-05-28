@@ -1,3 +1,16 @@
+// Copyright 2018 Twitch Interactive, Inc.  All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"). You may not
+// use this file except in compliance with the License. A copy of the License is
+// located at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// or in the "license" file accompanying this file. This file is distributed on
+// an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+// express or implied. See the License for the specific language governing
+// permissions and limitations under the License.
+
 package main
 
 import (
@@ -19,7 +32,7 @@ func TestMain(m *testing.M) {
 }
 
 func runServer() {
-	server := example.NewHaberdasherServer(&randomHaberdasher{quiet: true}, nil)
+	server := example.NewHaberdasherServer(&randomHaberdasher{}, nil)
 	log.Fatal(http.ListenAndServe(":8080", server))
 }
 
@@ -33,17 +46,23 @@ func newJSONClient() example.Haberdasher {
 
 type client struct {
 	name string
-	c    example.Haberdasher
+	svc  example.Haberdasher
 }
 
 func clients() []client {
 	return []client{
 		{`Proto`, newProtoClient()},
-		{`JSON`, newJSONClient()},
+		// {`JSON`, newJSONClient()},
 	}
 }
 
 func compareErrors(got, expected error) error {
+	if got == nil && expected == nil {
+		return nil
+	}
+	if got == nil || expected == nil {
+		return fmt.Errorf(`Expected err to be %#v, got %#v`, expected, got)
+	}
 	if got.Error() == expected.Error() {
 		return nil
 	}
@@ -58,68 +77,73 @@ func TestInvalidMakeHatsRequests(t *testing.T) {
 	}
 	testReqs := []testReq{
 		{
-			name:     `TooSmall`,
-			req:      &example.MakeHatsReq{Inches: -5},
-			expected: errTooSmall,
-		},
-		{
 			name:     `NegativeQuantity`,
 			req:      &example.MakeHatsReq{Inches: 8, Quantity: -5},
 			expected: errNegativeQuantity,
 		},
+		// // TooSmall is currently not being checked before the stream is returned so this would fail
+		// {
+		// 	name:     `TooSmall`,
+		// 	req:      &example.MakeHatsReq{Inches: -5},
+		// 	expected: errTooSmall,
+		// },
 	}
 
 	for _, cc := range clients() {
 		for _, re := range testReqs {
-			t.Run(re.name+cc.name, func(t *testing.T) {
-				hatStream, err := cc.c.MakeHats(context.Background(), re.req)
-				if err != nil {
-					t.Fatalf(`MakeHats request failed: %#v`, err)
-				}
-				_, err = hatStream.Next(context.Background())
+			t.Run(re.name+`/`+cc.name, func(t *testing.T) {
+				hatStream, err := cc.svc.MakeHats(context.Background(), re.req)
 				err = compareErrors(err, re.expected)
 				if err != nil {
 					t.Fatal(err)
+				}
+				if hatStream != nil {
+					t.Fatalf(`expected hatStream to be nil, got %+v`, hatStream)
 				}
 			})
 		}
 	}
 }
 
-func TestMakeHatsPerf(t *testing.T) {
+func TestMakeHatsTooSmall(t *testing.T) {
+	for _, cc := range clients() {
+		t.Run(cc.name, func(t *testing.T) {
+			hatStream, err := cc.svc.MakeHats(
+				context.Background(),
+				&example.MakeHatsReq{Inches: -5, Quantity: 10},
+			)
+			err = compareErrors(err, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = hatStream.Next(context.Background())
+			err = compareErrors(err, errTooSmall)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestMakeHatsLargeQuantities(t *testing.T) {
 	type testReq struct {
 		name string
 		req  *example.MakeHatsReq
 	}
 	testReqs := []testReq{
-		{
-			name: `OneHundred`,
-			req:  &example.MakeHatsReq{Inches: 5, Quantity: 100},
-		},
-		{
-			name: `OneThousand`,
-			req:  &example.MakeHatsReq{Inches: 5, Quantity: 1000},
-		},
-		{
-			name: `TenThousand`,
-			req:  &example.MakeHatsReq{Inches: 5, Quantity: 10000},
-		},
-		{
-			name: `OneHundredThousand`,
-			req:  &example.MakeHatsReq{Inches: 5, Quantity: 100000},
-		},
-		// // OneMillion takes 6+ seconds if server is Flush()ing after every message, <1sec if no flushing
-		// {
-		// 	name: `OneMillion`,
-		// 	req:  &example.MakeHatsReq{Inches: 5, Quantity: 1000000},
-		// },
+		{name: `OneHundred`, req: &example.MakeHatsReq{Inches: 5, Quantity: 100}},
+		{name: `OneThousand`, req: &example.MakeHatsReq{Inches: 5, Quantity: 1000}},
+		{name: `TenThousand`, req: &example.MakeHatsReq{Inches: 5, Quantity: 10000}},
+		{name: `OneHundredThousand`, req: &example.MakeHatsReq{Inches: 5, Quantity: 100000}},
+		// {name: `OneMillion`, req:  &example.MakeHatsReq{Inches: 5, Quantity: 1000000}},
+		// // OneMillion takes 6+ seconds if server is flushing after every message, <1sec if no flushing
 	}
 
 	for _, cc := range clients() {
 		for _, re := range testReqs {
-			t.Run(re.name+cc.name, func(t *testing.T) {
+			t.Run(re.name+`/`+cc.name, func(t *testing.T) {
 				reqSentAt := time.Now()
-				hatStream, err := cc.c.MakeHats(context.Background(), re.req)
+				hatStream, err := cc.svc.MakeHats(context.Background(), re.req)
 				if err != nil {
 					t.Fatalf(`MakeHats request failed: %#v (hatStream=%#v)`, err, hatStream)
 				}
@@ -151,9 +175,9 @@ func BenchmarkMakeHatsProto(b *testing.B) {
 	benchmarkMakeHats(b, newProtoClient())
 }
 
-func BenchmarkMakeHatsJSON(b *testing.B) {
-	benchmarkMakeHats(b, newJSONClient())
-}
+// func BenchmarkMakeHatsJSON(b *testing.B) {
+// 	benchmarkMakeHats(b, newJSONClient())
+// }
 
 func benchmarkMakeHats(b *testing.B, cc example.Haberdasher) {
 	reqSentAt := time.Now()

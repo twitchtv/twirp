@@ -11,11 +11,11 @@ generate:
 	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-...
 	$(RETOOL) do go generate ./...
 
-test_all: setup test_core test_clients
+test_all: setup test_core test_clients test_example
 
 test_core: generate
 # $(RETOOL) do errcheck -blank ./internal/twirptest
-	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /_tools/)
+	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /_tools/ | grep -v /example/)
 
 test_clients: test_go_client test_python_client
 
@@ -24,6 +24,9 @@ test_go_client: generate build/clientcompat build/gocompat
 
 test_python_client: generate build/clientcompat build/pycompat
 	./build/clientcompat -client ./build/pycompat
+
+test_example: generate
+	go test -race -bench=. $(shell go list ./example/...)
 
 setup:
 	./install_proto.bash

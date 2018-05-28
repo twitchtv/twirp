@@ -101,6 +101,12 @@ func (c *haberdasherProtobufClient) MakeHats(ctx context.Context, in *MakeHatsRe
 	if err != nil {
 		return nil, clientError("failed to do request", err)
 	}
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, errorFromResponse(resp)
+	}
 
 	return &protoHatStreamReader{
 		prs: protoStreamReader{
@@ -169,6 +175,12 @@ func (c *haberdasherJSONClient) MakeHats(ctx context.Context, in *MakeHatsReq) (
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, clientError("failed to do request", err)
+	}
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, errorFromResponse(resp)
 	}
 
 	jrs, err := newJSONStreamReader(resp.Body)
@@ -325,38 +337,37 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 
 func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	writeProtoError := func(err error) {
-		s.writeError(ctx, resp, err)
-	}
-
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Size)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
 	var respContent *Hat
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -368,12 +379,11 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Hat and nil error while calling MakeHat. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Size and nil error while calling MakeHat. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -382,12 +392,15 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -413,89 +426,90 @@ func (s *haberdasherServer) serveMakeHatsJSON(ctx context.Context, resp http.Res
 }
 
 func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var (
-		err        error
-		respStream HatStream
-	)
-
-	// Prepare trailer
-	trailer := proto.NewBuffer(nil)
-	_ = trailer.EncodeVarint((2 << 3) | 2) // field tag
-	writeProtoError := func(err error) {
-		// JSON encode err as twirp err
-		// TODO: figure out what to do about updating context and headers
-		if err == io.EOF {
-			trailer.EncodeStringBytes("EOF")
-			return
-		}
-		twerr, ok := err.(twirp.Error)
-		if !ok {
-			twerr = twirp.InternalErrorWith(err)
-		}
-		_ = trailer.EncodeStringBytes(
-			string(marshalErrorToJSON(twerr)),
-		)
-	}
-	defer func() { // Send trailer
-		_, err = resp.Write(trailer.Bytes())
-		if err != nil {
-			// TODO: call error hook?
-			err = wrapErr(err, "failed to write trailer")
-			respStream.End(err)
-		}
-	}()
-
+	var err error
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHats")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(MakeHatsReq)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
+	var respContent HatStream
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
-				writeProtoError(twirp.InternalError("Internal service panic"))
+				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
-		respStream, err = s.MakeHats(ctx, reqContent)
+		respContent, err = s.MakeHats(ctx, reqContent)
 	}()
 
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
-
-	if respStream == nil {
-		writeProtoError(twirp.InternalError("received a nil MakeHatsReq and nil error while calling MakeHats. nil responses are not supported"))
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil MakeHatsReq and nil error while calling MakeHats. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
 
-	respFlusher, canFlush := resp.(http.Flusher)
+	// Prepare trailer
+	trailer := proto.NewBuffer(nil)
+	_ = trailer.EncodeVarint((2 << 3) | 2) // field tag
+	writeTrailer := func(err error) {
+		if err == io.EOF {
+			trailer.EncodeStringBytes("EOF")
+			return
+		}
+		// Write trailer as json-encoded twirp err
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		statusCode := twirp.ServerHTTPStatusFromErrorCode(twerr.Code())
+		ctx = ctxsetters.WithStatusCode(ctx, statusCode)
+		ctx = callError(ctx, s.hooks, twerr)
+		if encodeErr := trailer.EncodeStringBytes(string(marshalErrorToJSON(twerr))); encodeErr != nil {
+			_ = trailer.EncodeStringBytes("{\"code\":\"" + string(twirp.Internal) + "\",\"msg\":\"There was an error but it could not be serialized into JSON\"}") // fallback
+		}
+		_, writeErr := resp.Write(trailer.Bytes())
+		if writeErr != nil {
+			// Ignored, for the same reason as in the writeError func
+			_ = writeErr
+		}
+		respContent.End(twerr)
+	}
+
 	messages := proto.NewBuffer(nil)
 	for {
-		msg, err := respStream.Next(ctx)
+		msg, err := respContent.Next(ctx)
 		if err != nil {
-			writeProtoError(err)
+			writeTrailer(err)
 			break
 		}
 
@@ -504,31 +518,29 @@ func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http
 		err = messages.EncodeMessage(msg)
 		if err != nil {
 			err = wrapErr(err, "failed to marshal proto message")
-			respStream.End(err)
+			writeTrailer(err)
 			break
 		}
 
 		_, err = resp.Write(messages.Bytes())
 		if err != nil {
 			err = wrapErr(err, "failed to send proto message")
-			respStream.End(err)
+			writeTrailer(err) // likely to fail on write, but try anyway to ensure ctx gets error code set for responseSent hook
 			break
 		}
 
 		if canFlush {
-			// TODO: come up with a batching scheme to improve performance under high load
+			// TODO: Come up with a batching scheme to improve performance under high load
+			//       and/or provide a hook for the respStream to control flushing the response.
+			//       Flushing after each message dramatically reduces high-load throughput --
+			//       difference can be more than 10x based on initial experiments
 			respFlusher.Flush()
 		}
 
-		// TODO: Call a hook that we sent a message in a stream?
+		// TODO: Call a hook that we sent a message in a stream? (combine with flush hook?)
 	}
 
-	_, err = resp.Write(trailer.Bytes())
-	if err != nil {
-		// TODO: call error hook?
-		err = wrapErr(err, "failed to write trailer")
-		respStream.End(err)
-	}
+	callResponseSent(ctx, s.hooks)
 }
 
 func (s *haberdasherServer) ServiceDescriptor() ([]byte, int) {
@@ -1019,7 +1031,31 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag != msgTag && tag != trailerTag {
+	if tag == trailerTag {
+		// This is a trailer (twirp error), read it and then close the client
+		defer r.c.Close()
+		// Read the length delimiter
+		l, err := binary.ReadUvarint(r.r)
+		if err != nil {
+			return clientError("unable to read trailer's length delimiter", err)
+		}
+		sb := new(strings.Builder)
+		sb.Grow(int(l))
+		_, err = io.Copy(sb, r.r)
+		if err != nil {
+			return clientError("unable to read trailer", err)
+		}
+		if sb.String() == "EOF" {
+			return io.EOF
+		}
+		var tj twerrJSON
+		if err = json.Unmarshal([]byte(sb.String()), &tj); err != nil {
+			return clientError("unable to decode trailer", err)
+		}
+		return tj.toTwirpError()
+	}
+
+	if tag != msgTag {
 		return fmt.Errorf("invalid field tag: %v", tag)
 	}
 
@@ -1031,45 +1067,17 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	if int(l) < 0 || int(l) > r.maxSize {
 		return io.ErrShortBuffer
 	}
-	if tag == msgTag {
-		buf := make([]byte, int(l))
-
-		// Go ahead and read a message.
-		_, err = io.ReadFull(r.r, buf)
-		if err != nil {
-			return err
-		}
-
-		err = proto.Unmarshal(buf, msg)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	// This is a trailer, read it and then close the client
-	defer r.c.Close()
 	buf := make([]byte, int(l))
-	_, err = io.ReadFull(r.r, buf)
-	if err != nil {
+
+	// Go ahead and read a message.
+	if _, err = io.ReadFull(r.r, buf); err != nil {
 		return err
 	}
 
-	// Put the length back in front of the trailer so it can be decoded
-	buf = append(proto.EncodeVarint(l), buf...)
-	var trailer string
-	trailer, err = proto.NewBuffer(buf).DecodeStringBytes()
-	if err != nil {
-		return clientError("failed to read stream trailer", err)
+	if err = proto.Unmarshal(buf, msg); err != nil {
+		return err
 	}
-	if trailer == "EOF" {
-		return io.EOF
-	}
-	var tj twerrJSON
-	if err = json.Unmarshal([]byte(trailer), &tj); err != nil {
-		return clientError("unable to decode stream trailer", err)
-	}
-	return tj.toTwirpError()
+	return nil
 }
 
 type jsonStreamReader struct {

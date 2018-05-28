@@ -276,38 +276,37 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 
 func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	writeProtoError := func(err error) {
-		s.writeError(ctx, resp, err)
-	}
-
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Req)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
 	var respContent *Resp
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -319,12 +318,11 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Method. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Req and nil error while calling Method. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -333,12 +331,15 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -424,38 +425,37 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 
 func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	writeProtoError := func(err error) {
-		s.writeError(ctx, resp, err)
-	}
-
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
-		writeProtoError(err)
+		s.writeError(ctx, resp, err)
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 	reqContent := new(Empty)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
-		writeProtoError(twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
 
 	// Call service method
 	var respContent *Empty
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -467,12 +467,11 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Empty and nil error while calling NoopMethod. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Empty and nil error while calling NoopMethod. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -481,12 +480,15 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 

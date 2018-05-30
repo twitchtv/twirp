@@ -35,10 +35,9 @@ versions (that doesn't work with JSON clients).
 
 You will probably never need to use a Twirp **JSONClient** in Go, but having
 your servers automatically handle JSON requests is still very convenient. It
-makes it easier to debug (see
-[cURL requests](https://github.com/twitchtv/twirp/wiki/HTTP-Routing-and-Serialization#making-requests-on-the-command-line-with-curl)),
-allows to easily write clients in other languages like Python, or make REST
-mappings to Twirp services.
+makes it easier to debug (see [cURL requests](curl.md)), allows to easily write
+clients in other languages like Python, or make REST mappings to Twirp
+services.
 
 The JSON client is generated to provide a reference for implementations in other
 languages, and because in some rare circumstances, binary encoding of request

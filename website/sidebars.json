@@ -13,7 +13,8 @@
             "errors",
             "hooks",
             "command_line",
-            "proto_and_json"
+            "proto_and_json",
+            "curl"
         ],
         "Formal specification": [
             "spec_v5",

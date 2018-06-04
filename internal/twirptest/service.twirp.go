@@ -1434,7 +1434,7 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		if err != nil {
 			return clientError("unable to read trailer's length delimiter", err)
 		}
-		sb := new(strings.Builder)
+		sb := new(bytes.Buffer)
 		sb.Grow(int(l))
 		_, err = io.Copy(sb, r.r)
 		if err != nil {

@@ -777,7 +777,7 @@ func (t *twirp) generateStreamUtils() {
 	t.P(`		if err != nil {`)
 	t.P(`			return clientError("unable to read trailer's length delimiter", err)`)
 	t.P(`		}`)
-	t.P(`		sb := new(`, t.pkgs["strings"], `.Builder)`)
+	t.P(`		sb := new(`, t.pkgs["bytes"], `.Buffer)`)
 	t.P(`		sb.Grow(int(l))`)
 	t.P(`		_, err = `, t.pkgs["io"], `.Copy(sb, r.r)`)
 	t.P(`		if err != nil {`)

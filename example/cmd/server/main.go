@@ -56,19 +56,19 @@ func (h *randomHaberdasher) MakeHats(ctx context.Context, req *example.MakeHatsR
 	// 	return nil, errTooSmall
 	// }
 
-	ch := make(chan HatOrError, 100) // NB: the size of this buffer can make a big difference!
+	ch := make(chan example.HatOrError, 100) // NB: the size of this buffer can make a big difference!
 	go func() {
 		for ii := int32(0); ii < req.Quantity; ii++ {
 			hat, err := newRandomHat(req.Inches)
 			select {
 			case <-ctx.Done():
 				return
-			case ch <- HatOrError{hat, err}:
+			case ch <- example.HatOrError{Hat: hat, Err: err}:
 			}
 		}
 		close(ch)
 	}()
-	return NewHatStream(ch), nil
+	return example.NewHatStream(ch), nil
 }
 
 func main() {

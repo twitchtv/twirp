@@ -588,6 +588,36 @@ func (r jsonHatStreamReader) Next(context.Context) (*Hat, error) {
 
 func (r jsonHatStreamReader) End(error) { _ = r.c.Close() }
 
+type HatOrError struct {
+	Hat *Hat
+	Err error
+}
+
+func NewHatStream(ch chan HatOrError) *hatStreamSender {
+	return &hatStreamSender{ch: ch}
+}
+
+type hatStreamSender struct {
+	ch <-chan HatOrError
+}
+
+func (ss *hatStreamSender) Next(ctx context.Context) (*Hat, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case v, open := <-ss.ch:
+		if !open {
+			return nil, io.EOF
+		}
+		if v.Err != nil {
+			return nil, v.Err
+		}
+		return v.Hat, nil
+	}
+}
+
+func (ss *hatStreamSender) End(err error) {}
+
 // =====
 // Utils
 // =====

@@ -400,6 +400,36 @@ func (r jsonMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_im
 
 func (r jsonMsgStreamReader) End(error) { _ = r.c.Close() }
 
+type MsgOrError struct {
+	Msg *twirp_internal_twirptest_importable.Msg
+	Err error
+}
+
+func NewMsgStream(ch chan MsgOrError) *msgStreamSender {
+	return &msgStreamSender{ch: ch}
+}
+
+type msgStreamSender struct {
+	ch <-chan MsgOrError
+}
+
+func (ss *msgStreamSender) Next(ctx context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case v, open := <-ss.ch:
+		if !open {
+			return nil, io.EOF
+		}
+		if v.Err != nil {
+			return nil, v.Err
+		}
+		return v.Msg, nil
+	}
+}
+
+func (ss *msgStreamSender) End(err error) {}
+
 // =====
 // Utils
 // =====

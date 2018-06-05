@@ -1526,6 +1526,7 @@ func (t *twirp) generateStreamType(typeName string) {
 		t.streamTypes[typeName] = true
 	}()
 
+	typeNameWithoutPackage := withoutPackageName(typeName)
 	streamTypeName := withoutPackageName(typeName) + "Stream"
 	t.P(`// `, streamTypeName, ` represents a stream of `, typeName, ` messages.`)
 	t.P(`type `, streamTypeName, ` interface {`)
@@ -1568,6 +1569,39 @@ func (t *twirp) generateStreamType(typeName string) {
 	t.P(`}`)
 	t.P()
 	t.P(`func (r `, jsonReaderTypeName, `) End(error) { _ = r.c.Close() }`)
+	t.P()
+
+	typeOrErrorTypeName := typeNameWithoutPackage + "OrError"
+	t.P(`type `, typeOrErrorTypeName, ` struct {`)
+	t.P(`	`, typeNameWithoutPackage, ` *`, typeName)
+	t.P(`	Err error`)
+	t.P(`}`)
+	t.P()
+	streamSenderName := unexported(streamTypeName + "Sender")
+	t.P(`func New`, streamTypeName, `(ch chan `, typeOrErrorTypeName, `) *`, streamSenderName, ` {`)
+	t.P(`	return &`, streamSenderName, `{ch: ch}`)
+	t.P(`}`)
+	t.P()
+	t.P(`type `, streamSenderName, ` struct {`)
+	t.P(`	ch <-chan `, typeOrErrorTypeName)
+	t.P(`}`)
+	t.P()
+	t.P(`func (ss *`, streamSenderName, `) Next(ctx context.Context) (*`, typeName, `, error) {`)
+	t.P(`	select {`)
+	t.P(`	case <-ctx.Done():`)
+	t.P(`		return nil, ctx.Err()`)
+	t.P(`	case v, open := <-ss.ch:`)
+	t.P(`		if !open {`)
+	t.P(`			return nil, io.EOF`)
+	t.P(`		}`)
+	t.P(`		if v.Err != nil {`)
+	t.P(`			return nil, v.Err`)
+	t.P(`		}`)
+	t.P(`		return v.`, typeNameWithoutPackage, `, nil`)
+	t.P(`	}`)
+	t.P(`}`)
+	t.P()
+	t.P(`func (ss *`, streamSenderName, `) End(err error) {}`)
 	t.P()
 }
 

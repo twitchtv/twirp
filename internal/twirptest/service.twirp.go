@@ -946,6 +946,36 @@ func (r jsonReqStreamReader) Next(context.Context) (*Req, error) {
 
 func (r jsonReqStreamReader) End(error) { _ = r.c.Close() }
 
+type ReqOrError struct {
+	Req *Req
+	Err error
+}
+
+func NewReqStream(ch chan ReqOrError) *reqStreamSender {
+	return &reqStreamSender{ch: ch}
+}
+
+type reqStreamSender struct {
+	ch <-chan ReqOrError
+}
+
+func (ss *reqStreamSender) Next(ctx context.Context) (*Req, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case v, open := <-ss.ch:
+		if !open {
+			return nil, io.EOF
+		}
+		if v.Err != nil {
+			return nil, v.Err
+		}
+		return v.Req, nil
+	}
+}
+
+func (ss *reqStreamSender) End(err error) {}
+
 // RespStream represents a stream of Resp messages.
 type RespStream interface {
 	Next(context.Context) (*Resp, error)
@@ -982,6 +1012,36 @@ func (r jsonRespStreamReader) Next(context.Context) (*Resp, error) {
 }
 
 func (r jsonRespStreamReader) End(error) { _ = r.c.Close() }
+
+type RespOrError struct {
+	Resp *Resp
+	Err  error
+}
+
+func NewRespStream(ch chan RespOrError) *respStreamSender {
+	return &respStreamSender{ch: ch}
+}
+
+type respStreamSender struct {
+	ch <-chan RespOrError
+}
+
+func (ss *respStreamSender) Next(ctx context.Context) (*Resp, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case v, open := <-ss.ch:
+		if !open {
+			return nil, io.EOF
+		}
+		if v.Err != nil {
+			return nil, v.Err
+		}
+		return v.Resp, nil
+	}
+}
+
+func (ss *respStreamSender) End(err error) {}
 
 // =====
 // Utils

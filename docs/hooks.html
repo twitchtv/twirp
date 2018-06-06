@@ -6,7 +6,7 @@
           };
         </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Server Hooks</h1></header><article><div><span><p>The service constructor can use <code>hooks *twirp.ServerHooks</code> to plug in additional
 functionality:</p>
-<pre><code class="hljs css go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewHaberdasherServer</span><span class="hljs-params">(svc Haberdasher, hooks *twirp.ServerHooks, ctxSrc ContextSource)</span> <span class="hljs-title">http</span>.<span class="hljs-title">Handler</span>
+<pre><code class="hljs css go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewHaberdasherServer</span><span class="hljs-params">(svc Haberdasher, hooks *twirp.ServerHooks)</span> <span class="hljs-title">http</span>.<span class="hljs-title">Handler</span>
 </span></code></pre>
 <p>These <em>hooks</em> provide a framework for side-effects at important points while a
 request gets handled. You can do things like log requests, record response times

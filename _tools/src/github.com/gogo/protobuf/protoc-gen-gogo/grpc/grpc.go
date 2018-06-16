@@ -138,7 +138,7 @@ func (g *grpc) GenerateImports(file *generator.FileDescriptor) {
 
 // reservedClientName records whether a client name is reserved on the client side.
 var reservedClientName = map[string]bool{
-// TODO: do we need any in gRPC?
+	// TODO: do we need any in gRPC?
 }
 
 func unexport(s string) string { return strings.ToLower(s[:1]) + s[1:] }

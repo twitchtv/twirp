@@ -39,7 +39,7 @@ type Haberdasher interface {
 	// MakeHat produces a hat of mysterious, randomly-selected color!
 	MakeHat(ctx context.Context, in *Size) (*Hat, error)
 
-	MakeHats(ctx context.Context, in *MakeHatsReq) (HatStream, error)
+	MakeHats(ctx context.Context, in *MakeHatsReq) (<-chan HatOrError, error)
 }
 
 // ===========================
@@ -80,7 +80,7 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 	return out, err
 }
 
-func (c *haberdasherProtobufClient) MakeHats(ctx context.Context, in *MakeHatsReq) (HatStream, error) {
+func (c *haberdasherProtobufClient) MakeHats(ctx context.Context, in *MakeHatsReq) (<-chan HatOrError, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twitch.twirp.example")
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHats")
@@ -108,13 +108,29 @@ func (c *haberdasherProtobufClient) MakeHats(ctx context.Context, in *MakeHatsRe
 		return nil, errorFromResponse(resp)
 	}
 
-	return &protoHatStreamReader{
-		prs: protoStreamReader{
+	respStream := make(chan HatOrError)
+	go func() {
+		defer func() {
+			resp.Body.Close()
+			close(respStream)
+		}()
+		reader := protoStreamReader{
 			r:       bufio.NewReader(resp.Body),
-			c:       resp.Body,
 			maxSize: 1 << 21, // 1GB
-		},
-	}, nil
+		}
+		out := new(Hat)
+		for {
+			if err = reader.Read(out); err != nil {
+				if err == io.EOF {
+					return
+				}
+				respStream <- HatOrError{Err: err}
+				return
+			}
+			respStream <- HatOrError{Msg: out}
+		}
+	}()
+	return respStream, nil
 }
 
 // =======================
@@ -155,7 +171,7 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	return out, err
 }
 
-func (c *haberdasherJSONClient) MakeHats(ctx context.Context, in *MakeHatsReq) (HatStream, error) {
+func (c *haberdasherJSONClient) MakeHats(ctx context.Context, in *MakeHatsReq) (<-chan HatOrError, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twitch.twirp.example")
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHats")
@@ -183,14 +199,30 @@ func (c *haberdasherJSONClient) MakeHats(ctx context.Context, in *MakeHatsReq) (
 		return nil, errorFromResponse(resp)
 	}
 
-	jrs, err := newJSONStreamReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return &jsonHatStreamReader{
-		jrs: jrs,
-		c:   resp.Body,
-	}, nil
+	respStream := make(chan HatOrError)
+	go func() {
+		defer func() {
+			resp.Body.Close()
+			close(respStream)
+		}()
+		reader, err := newJSONStreamReader(resp.Body)
+		if err != nil {
+			respStream <- HatOrError{Err: err}
+			return
+		}
+		out := new(Hat)
+		for {
+			if err = reader.Read(out); err != nil {
+				if err == io.EOF {
+					return
+				}
+				respStream <- HatOrError{Err: err}
+				return
+			}
+			respStream <- HatOrError{Msg: out}
+		}
+	}()
+	return respStream, nil
 }
 
 // ==========================
@@ -448,7 +480,7 @@ func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http
 	}
 
 	// Call service method
-	var respContent HatStream
+	var respContent <-chan HatOrError
 	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
@@ -502,15 +534,24 @@ func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http
 			// Ignored, for the same reason as in the writeError func
 			_ = writeErr
 		}
-		respContent.End(twerr)
 	}
 
 	messages := proto.NewBuffer(nil)
 	for {
-		msg, err := respContent.Next(ctx)
-		if err != nil {
-			writeTrailer(err)
-			break
+		var msg *Hat
+		select {
+		case <-ctx.Done():
+			return
+		case msgOrErr, open := <-respContent:
+			if !open {
+				writeTrailer(io.EOF)
+				return
+			}
+			if msgOrErr.Err != nil {
+				writeTrailer(msgOrErr.Err)
+				return
+			}
+			msg = msgOrErr.Msg
 		}
 
 		messages.Reset()
@@ -519,14 +560,14 @@ func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http
 		if err != nil {
 			err = wrapErr(err, "failed to marshal proto message")
 			writeTrailer(err)
-			break
+			return
 		}
 
 		_, err = resp.Write(messages.Bytes())
 		if err != nil {
 			err = wrapErr(err, "failed to send proto message")
 			writeTrailer(err) // likely to fail on write, but try anyway to ensure ctx gets error code set for responseSent hook
-			break
+			return
 		}
 
 		if canFlush {
@@ -551,72 +592,10 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
 }
 
-// HatStream represents a stream of Hat messages.
-type HatStream interface {
-	Next(context.Context) (*Hat, error)
-	End(error)
-}
-
-type protoHatStreamReader struct {
-	prs protoStreamReader
-}
-
-func (r protoHatStreamReader) Next(context.Context) (*Hat, error) {
-	out := new(Hat)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoHatStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonHatStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonHatStreamReader) Next(context.Context) (*Hat, error) {
-	out := new(Hat)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonHatStreamReader) End(error) { _ = r.c.Close() }
-
 type HatOrError struct {
-	Hat *Hat
+	Msg *Hat
 	Err error
 }
-
-func NewHatStream(ch chan HatOrError) *hatStreamSender {
-	return &hatStreamSender{ch: ch}
-}
-
-type hatStreamSender struct {
-	ch <-chan HatOrError
-}
-
-func (ss *hatStreamSender) Next(ctx context.Context) (*Hat, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case v, open := <-ss.ch:
-		if !open {
-			return nil, io.EOF
-		}
-		if v.Err != nil {
-			return nil, v.Err
-		}
-		return v.Hat, nil
-	}
-}
-
-func (ss *hatStreamSender) End(err error) {}
 
 // =====
 // Utils
@@ -1043,9 +1022,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 type protoStreamReader struct {
-	r *bufio.Reader
-	c io.Closer
-
+	r       *bufio.Reader
 	maxSize int
 }
 
@@ -1061,9 +1038,7 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag == trailerTag {
-		// This is a trailer (twirp error), read it and then close the client
-		defer r.c.Close()
+	if tag == trailerTag { // Received a json twirp error or "EOF"
 		// Read the length delimiter
 		l, err := binary.ReadUvarint(r.r)
 		if err != nil {
@@ -1180,11 +1155,11 @@ func (r *jsonStreamReader) Read(msg proto.Message) error {
 	var tj twerrJSON
 	err = r.dec.Decode(&tj)
 	if err != nil {
+		var eof string
+		if _ = r.dec.Decode(&eof); eof == "EOF" {
+			return io.EOF
+		}
 		return err
-	}
-
-	if tj.Code == "stream_complete" {
-		return io.EOF
 	}
 
 	return tj.toTwirpError()

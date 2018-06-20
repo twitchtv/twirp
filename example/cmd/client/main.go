@@ -15,7 +15,6 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"net/http"
 	"time"
@@ -75,19 +74,16 @@ func main() {
 		khps := float64(ii-1) / took.Seconds() / 1000
 		log.Printf("Received %.1f kHats per second (%d hats in %f seconds)\n", khps, ii-1, took.Seconds())
 	}
-	for ; true; ii++ { // Receive all the hats
-		hat, err = hatStream.Next(context.Background())
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
+	for hatOrErr := range hatStream {
+		if hatOrErr.Err != nil {
 			printResults()
-			log.Fatal(err)
+			log.Fatal(hatOrErr.Err)
 		}
 		if ii%printEvery == 0 {
 			khps := float64(ii) / time.Now().Sub(reqSentAt).Seconds() / 1000
-			log.Printf("\t[%4.1f khps] %6d %+v\n", khps, ii, hat)
+			log.Printf("\t[%4.1f khps] %6d %+v\n", khps, ii, hatOrErr.Msg)
 		}
+		ii++
 	}
 	printResults()
 }

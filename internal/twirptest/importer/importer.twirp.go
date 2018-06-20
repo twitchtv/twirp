@@ -363,72 +363,10 @@ func (s *svc2Server) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
 }
 
-// MsgStream represents a stream of twirp_internal_twirptest_importable.Msg messages.
-type MsgStream interface {
-	Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error)
-	End(error)
-}
-
-type protoMsgStreamReader struct {
-	prs protoStreamReader
-}
-
-func (r protoMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
-	out := new(twirp_internal_twirptest_importable.Msg)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoMsgStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonMsgStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
-	out := new(twirp_internal_twirptest_importable.Msg)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonMsgStreamReader) End(error) { _ = r.c.Close() }
-
 type MsgOrError struct {
 	Msg *twirp_internal_twirptest_importable.Msg
 	Err error
 }
-
-func NewMsgStream(ch chan MsgOrError) *msgStreamSender {
-	return &msgStreamSender{ch: ch}
-}
-
-type msgStreamSender struct {
-	ch <-chan MsgOrError
-}
-
-func (ss *msgStreamSender) Next(ctx context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case v, open := <-ss.ch:
-		if !open {
-			return nil, io.EOF
-		}
-		if v.Err != nil {
-			return nil, v.Err
-		}
-		return v.Msg, nil
-	}
-}
-
-func (ss *msgStreamSender) End(err error) {}
 
 // =====
 // Utils
@@ -855,9 +793,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 type protoStreamReader struct {
-	r *bufio.Reader
-	c io.Closer
-
+	r       *bufio.Reader
 	maxSize int
 }
 
@@ -873,9 +809,7 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag == trailerTag {
-		// This is a trailer (twirp error), read it and then close the client
-		defer r.c.Close()
+	if tag == trailerTag { // Received a json twirp error or "EOF"
 		// Read the length delimiter
 		l, err := binary.ReadUvarint(r.r)
 		if err != nil {
@@ -992,11 +926,11 @@ func (r *jsonStreamReader) Read(msg proto.Message) error {
 	var tj twerrJSON
 	err = r.dec.Decode(&tj)
 	if err != nil {
+		var eof string
+		if _ = r.dec.Decode(&eof); eof == "EOF" {
+			return io.EOF
+		}
 		return err
-	}
-
-	if tj.Code == "stream_complete" {
-		return io.EOF
 	}
 
 	return tj.toTwirpError()

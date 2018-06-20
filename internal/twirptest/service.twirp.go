@@ -337,7 +337,7 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 type Streamer interface {
 	Transact(ctx context.Context, in *Req) (*Resp, error)
 
-	Download(ctx context.Context, in *Req) (RespStream, error)
+	Download(ctx context.Context, in *Req) (<-chan RespOrError, error)
 }
 
 // ========================
@@ -380,7 +380,7 @@ func (c *streamerProtobufClient) Transact(ctx context.Context, in *Req) (*Resp, 
 	return out, err
 }
 
-func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (RespStream, error) {
+func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (<-chan RespOrError, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
 	ctx = ctxsetters.WithMethodName(ctx, "Download")
@@ -408,13 +408,29 @@ func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (RespStr
 		return nil, errorFromResponse(resp)
 	}
 
-	return &protoRespStreamReader{
-		prs: protoStreamReader{
+	respStream := make(chan RespOrError)
+	go func() {
+		defer func() {
+			resp.Body.Close()
+			close(respStream)
+		}()
+		reader := protoStreamReader{
 			r:       bufio.NewReader(resp.Body),
-			c:       resp.Body,
 			maxSize: 1 << 21, // 1GB
-		},
-	}, nil
+		}
+		out := new(Resp)
+		for {
+			if err = reader.Read(out); err != nil {
+				if err == io.EOF {
+					return
+				}
+				respStream <- RespOrError{Err: err}
+				return
+			}
+			respStream <- RespOrError{Msg: out}
+		}
+	}()
+	return respStream, nil
 }
 
 // ====================
@@ -457,7 +473,7 @@ func (c *streamerJSONClient) Transact(ctx context.Context, in *Req) (*Resp, erro
 	return out, err
 }
 
-func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (RespStream, error) {
+func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (<-chan RespOrError, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
 	ctx = ctxsetters.WithMethodName(ctx, "Download")
@@ -485,14 +501,30 @@ func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (RespStream,
 		return nil, errorFromResponse(resp)
 	}
 
-	jrs, err := newJSONStreamReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return &jsonRespStreamReader{
-		jrs: jrs,
-		c:   resp.Body,
-	}, nil
+	respStream := make(chan RespOrError)
+	go func() {
+		defer func() {
+			resp.Body.Close()
+			close(respStream)
+		}()
+		reader, err := newJSONStreamReader(resp.Body)
+		if err != nil {
+			respStream <- RespOrError{Err: err}
+			return
+		}
+		out := new(Resp)
+		for {
+			if err = reader.Read(out); err != nil {
+				if err == io.EOF {
+					return
+				}
+				respStream <- RespOrError{Err: err}
+				return
+			}
+			respStream <- RespOrError{Msg: out}
+		}
+	}()
+	return respStream, nil
 }
 
 // =======================
@@ -781,7 +813,7 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 	}
 
 	// Call service method
-	var respContent RespStream
+	var respContent <-chan RespOrError
 	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
@@ -835,15 +867,24 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 			// Ignored, for the same reason as in the writeError func
 			_ = writeErr
 		}
-		respContent.End(twerr)
 	}
 
 	messages := proto.NewBuffer(nil)
 	for {
-		msg, err := respContent.Next(ctx)
-		if err != nil {
-			writeTrailer(err)
-			break
+		var msg *Resp
+		select {
+		case <-ctx.Done():
+			return
+		case msgOrErr, open := <-respContent:
+			if !open {
+				writeTrailer(io.EOF)
+				return
+			}
+			if msgOrErr.Err != nil {
+				writeTrailer(msgOrErr.Err)
+				return
+			}
+			msg = msgOrErr.Msg
 		}
 
 		messages.Reset()
@@ -852,14 +893,14 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 		if err != nil {
 			err = wrapErr(err, "failed to marshal proto message")
 			writeTrailer(err)
-			break
+			return
 		}
 
 		_, err = resp.Write(messages.Bytes())
 		if err != nil {
 			err = wrapErr(err, "failed to send proto message")
 			writeTrailer(err) // likely to fail on write, but try anyway to ensure ctx gets error code set for responseSent hook
-			break
+			return
 		}
 
 		if canFlush {
@@ -909,139 +950,15 @@ func (s *streamerServer) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
 }
 
-// ReqStream represents a stream of Req messages.
-type ReqStream interface {
-	Next(context.Context) (*Req, error)
-	End(error)
-}
-
-type protoReqStreamReader struct {
-	prs protoStreamReader
-}
-
-func (r protoReqStreamReader) Next(context.Context) (*Req, error) {
-	out := new(Req)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoReqStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonReqStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonReqStreamReader) Next(context.Context) (*Req, error) {
-	out := new(Req)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonReqStreamReader) End(error) { _ = r.c.Close() }
-
 type ReqOrError struct {
-	Req *Req
+	Msg *Req
 	Err error
 }
 
-func NewReqStream(ch chan ReqOrError) *reqStreamSender {
-	return &reqStreamSender{ch: ch}
-}
-
-type reqStreamSender struct {
-	ch <-chan ReqOrError
-}
-
-func (ss *reqStreamSender) Next(ctx context.Context) (*Req, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case v, open := <-ss.ch:
-		if !open {
-			return nil, io.EOF
-		}
-		if v.Err != nil {
-			return nil, v.Err
-		}
-		return v.Req, nil
-	}
-}
-
-func (ss *reqStreamSender) End(err error) {}
-
-// RespStream represents a stream of Resp messages.
-type RespStream interface {
-	Next(context.Context) (*Resp, error)
-	End(error)
-}
-
-type protoRespStreamReader struct {
-	prs protoStreamReader
-}
-
-func (r protoRespStreamReader) Next(context.Context) (*Resp, error) {
-	out := new(Resp)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoRespStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonRespStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonRespStreamReader) Next(context.Context) (*Resp, error) {
-	out := new(Resp)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonRespStreamReader) End(error) { _ = r.c.Close() }
-
 type RespOrError struct {
-	Resp *Resp
-	Err  error
+	Msg *Resp
+	Err error
 }
-
-func NewRespStream(ch chan RespOrError) *respStreamSender {
-	return &respStreamSender{ch: ch}
-}
-
-type respStreamSender struct {
-	ch <-chan RespOrError
-}
-
-func (ss *respStreamSender) Next(ctx context.Context) (*Resp, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case v, open := <-ss.ch:
-		if !open {
-			return nil, io.EOF
-		}
-		if v.Err != nil {
-			return nil, v.Err
-		}
-		return v.Resp, nil
-	}
-}
-
-func (ss *respStreamSender) End(err error) {}
 
 // =====
 // Utils
@@ -1468,9 +1385,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 type protoStreamReader struct {
-	r *bufio.Reader
-	c io.Closer
-
+	r       *bufio.Reader
 	maxSize int
 }
 
@@ -1486,9 +1401,7 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag == trailerTag {
-		// This is a trailer (twirp error), read it and then close the client
-		defer r.c.Close()
+	if tag == trailerTag { // Received a json twirp error or "EOF"
 		// Read the length delimiter
 		l, err := binary.ReadUvarint(r.r)
 		if err != nil {
@@ -1605,11 +1518,11 @@ func (r *jsonStreamReader) Read(msg proto.Message) error {
 	var tj twerrJSON
 	err = r.dec.Decode(&tj)
 	if err != nil {
+		var eof string
+		if _ = r.dec.Decode(&eof); eof == "EOF" {
+			return io.EOF
+		}
 		return err
-	}
-
-	if tj.Code == "stream_complete" {
-		return io.EOF
 	}
 
 	return tj.toTwirpError()

@@ -16,7 +16,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -116,8 +115,8 @@ func TestMakeHatsTooSmall(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = hatStream.Next(context.Background())
-			err = compareErrors(err, errTooSmall)
+			hatOrErr := <-hatStream
+			err = compareErrors(hatOrErr.Err, errTooSmall)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -148,14 +147,11 @@ func TestMakeHatsLargeQuantities(t *testing.T) {
 					t.Fatalf(`MakeHats request failed: %#v (hatStream=%#v)`, err, hatStream)
 				}
 				ii := int32(0)
-				for ; true; ii++ {
-					_, err = hatStream.Next(context.Background())
-					if err == io.EOF {
-						break
+				for hatOrErr := range hatStream {
+					if hatOrErr.Err != nil {
+						t.Fatal(hatOrErr.Err)
 					}
-					if err != nil {
-						t.Fatal(err)
-					}
+					ii++
 				}
 				if ii != re.req.Quantity {
 					t.Fatalf(`Expected to receive %d hats, got %d`, re.req.Quantity, ii)
@@ -189,14 +185,11 @@ func benchmarkMakeHats(b *testing.B, cc example.Haberdasher) {
 		b.Fatal(err)
 	}
 	ii := 0
-	for ; true; ii++ {
-		_, err = hatStream.Next(context.Background())
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			b.Fatal(err)
+	for hatOrErr := range hatStream {
+		if hatOrErr.Err != nil {
+			b.Fatal(hatOrErr.Err)
 		}
+		ii++
 	}
 	if ii != b.N {
 		b.Fatalf(`Expected to receive %d hats, got %d`, b.N, ii)

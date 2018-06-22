@@ -270,7 +270,6 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -286,11 +285,15 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 
 	// Call service method
 	var respContent *twirp_internal_twirptest_importable.Msg
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -302,12 +305,11 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil twirp_internal_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -316,12 +318,15 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -347,15 +352,7 @@ func (s *svc2Server) serveStreamJSON(ctx context.Context, resp http.ResponseWrit
 }
 
 func (s *svc2Server) serveStreamProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Stream")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	resp.Header().Set("Content-Type", "application/protobuf")
+	s.writeError(ctx, resp, twirp.InternalError("rpc type \"bidirectional\" is not implemented"))
 }
 
 func (s *svc2Server) ServiceDescriptor() ([]byte, int) {
@@ -366,42 +363,10 @@ func (s *svc2Server) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
 }
 
-// MsgStream represents a stream of twirp_internal_twirptest_importable.Msg messages.
-type MsgStream interface {
-	Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error)
-	End(error)
+type MsgOrError struct {
+	Msg *twirp_internal_twirptest_importable.Msg
+	Err error
 }
-
-type protoMsgStreamReader struct {
-	prs protoStreamReader
-}
-
-func (r protoMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
-	out := new(twirp_internal_twirptest_importable.Msg)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoMsgStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonMsgStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonMsgStreamReader) Next(context.Context) (*twirp_internal_twirptest_importable.Msg, error) {
-	out := new(twirp_internal_twirptest_importable.Msg)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonMsgStreamReader) End(error) { _ = r.c.Close() }
 
 // =====
 // Utils
@@ -828,9 +793,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 type protoStreamReader struct {
-	r *bufio.Reader
-	c io.Closer
-
+	r       *bufio.Reader
 	maxSize int
 }
 
@@ -846,9 +809,26 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag == trailerTag {
-		_ = r.c.Close()
-		return io.EOF
+	if tag == trailerTag { // Received a json twirp error or "EOF"
+		// Read the length delimiter
+		l, err := binary.ReadUvarint(r.r)
+		if err != nil {
+			return clientError("unable to read trailer's length delimiter", err)
+		}
+		sb := new(bytes.Buffer)
+		sb.Grow(int(l))
+		_, err = io.Copy(sb, r.r)
+		if err != nil {
+			return clientError("unable to read trailer", err)
+		}
+		if sb.String() == "EOF" {
+			return io.EOF
+		}
+		var tj twerrJSON
+		if err = json.Unmarshal([]byte(sb.String()), &tj); err != nil {
+			return clientError("unable to decode trailer", err)
+		}
+		return tj.toTwirpError()
 	}
 
 	if tag != msgTag {
@@ -866,13 +846,11 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	buf := make([]byte, int(l))
 
 	// Go ahead and read a message.
-	_, err = io.ReadFull(r.r, buf)
-	if err != nil {
+	if _, err = io.ReadFull(r.r, buf); err != nil {
 		return err
 	}
 
-	err = proto.Unmarshal(buf, msg)
-	if err != nil {
+	if err = proto.Unmarshal(buf, msg); err != nil {
 		return err
 	}
 	return nil
@@ -948,11 +926,11 @@ func (r *jsonStreamReader) Read(msg proto.Message) error {
 	var tj twerrJSON
 	err = r.dec.Decode(&tj)
 	if err != nil {
+		var eof string
+		if _ = r.dec.Decode(&eof); eof == "EOF" {
+			return io.EOF
+		}
 		return err
-	}
-
-	if tj.Code == "stream_complete" {
-		return io.EOF
 	}
 
 	return tj.toTwirpError()

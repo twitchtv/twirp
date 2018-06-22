@@ -78,3 +78,12 @@ class HaberdasherClient(object):
         resp_str = self.__make_request(body=body, full_method=full_method)
         return deserialize(resp_str)
 
+    def make_hats(self, make_hats_req):
+        serialize = _sym_db.GetSymbol("twitch.twirp.example.MakeHatsReq").SerializeToString
+        deserialize = _sym_db.GetSymbol("twitch.twirp.example.Hat").FromString
+
+        full_method = "/{}/{}".format(self.__service_name, "MakeHats")
+        body = serialize(make_hats_req)
+        resp_str = self.__make_request(body=body, full_method=full_method)
+        return deserialize(resp_str)
+

@@ -260,7 +260,6 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -276,11 +275,15 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 
 	// Call service method
 	var respContent *no_package_name.Msg
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -292,12 +295,11 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *no_package_name.Msg and nil error while calling Method. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil no_package_name.Msg and nil error while calling Method. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -306,12 +308,15 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 

@@ -262,7 +262,6 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -278,11 +277,15 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 
 	// Call service method
 	var respContent *Hat
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -294,12 +297,11 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Hat and nil error while calling MakeHat. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Size and nil error while calling MakeHat. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -308,12 +310,15 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -332,7 +337,7 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 type Streamer interface {
 	Transact(ctx context.Context, in *Req) (*Resp, error)
 
-	Download(ctx context.Context, in *Req) (RespStream, error)
+	Download(ctx context.Context, in *Req) (<-chan RespOrError, error)
 }
 
 // ========================
@@ -375,7 +380,7 @@ func (c *streamerProtobufClient) Transact(ctx context.Context, in *Req) (*Resp, 
 	return out, err
 }
 
-func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (RespStream, error) {
+func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (<-chan RespOrError, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
 	ctx = ctxsetters.WithMethodName(ctx, "Download")
@@ -396,14 +401,36 @@ func (c *streamerProtobufClient) Download(ctx context.Context, in *Req) (RespStr
 	if err != nil {
 		return nil, clientError("failed to do request", err)
 	}
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, errorFromResponse(resp)
+	}
 
-	return &protoRespStreamReader{
-		prs: protoStreamReader{
+	respStream := make(chan RespOrError)
+	go func() {
+		defer func() {
+			resp.Body.Close()
+			close(respStream)
+		}()
+		reader := protoStreamReader{
 			r:       bufio.NewReader(resp.Body),
-			c:       resp.Body,
 			maxSize: 1 << 21, // 1GB
-		},
-	}, nil
+		}
+		out := new(Resp)
+		for {
+			if err = reader.Read(out); err != nil {
+				if err == io.EOF {
+					return
+				}
+				respStream <- RespOrError{Err: err}
+				return
+			}
+			respStream <- RespOrError{Msg: out}
+		}
+	}()
+	return respStream, nil
 }
 
 // ====================
@@ -446,7 +473,7 @@ func (c *streamerJSONClient) Transact(ctx context.Context, in *Req) (*Resp, erro
 	return out, err
 }
 
-func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (RespStream, error) {
+func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (<-chan RespOrError, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Streamer")
 	ctx = ctxsetters.WithMethodName(ctx, "Download")
@@ -467,15 +494,37 @@ func (c *streamerJSONClient) Download(ctx context.Context, in *Req) (RespStream,
 	if err != nil {
 		return nil, clientError("failed to do request", err)
 	}
-
-	jrs, err := newJSONStreamReader(resp.Body)
-	if err != nil {
-		return nil, err
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
 	}
-	return &jsonRespStreamReader{
-		jrs: jrs,
-		c:   resp.Body,
-	}, nil
+	if resp.StatusCode != 200 {
+		return nil, errorFromResponse(resp)
+	}
+
+	respStream := make(chan RespOrError)
+	go func() {
+		defer func() {
+			resp.Body.Close()
+			close(respStream)
+		}()
+		reader, err := newJSONStreamReader(resp.Body)
+		if err != nil {
+			respStream <- RespOrError{Err: err}
+			return
+		}
+		out := new(Resp)
+		for {
+			if err = reader.Read(out); err != nil {
+				if err == io.EOF {
+					return
+				}
+				respStream <- RespOrError{Err: err}
+				return
+			}
+			respStream <- RespOrError{Msg: out}
+		}
+	}()
+	return respStream, nil
 }
 
 // =======================
@@ -635,7 +684,6 @@ func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.Re
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -651,11 +699,15 @@ func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.Re
 
 	// Call service method
 	var respContent *Resp
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
@@ -667,12 +719,11 @@ func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.Re
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *Resp and nil error while calling Transact. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil Req and nil error while calling Transact. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
@@ -681,12 +732,15 @@ func (s *streamerServer) serveTransactProtobuf(ctx context.Context, resp http.Re
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
+
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -712,15 +766,7 @@ func (s *streamerServer) serveUploadJSON(ctx context.Context, resp http.Response
 }
 
 func (s *streamerServer) serveUploadProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Upload")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	resp.Header().Set("Content-Type", "application/protobuf")
+	s.writeError(ctx, resp, twirp.InternalError("rpc type \"upload\" is not implemented"))
 }
 
 func (s *streamerServer) serveDownload(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
@@ -753,7 +799,6 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/protobuf")
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
@@ -768,71 +813,108 @@ func (s *streamerServer) serveDownloadProtobuf(ctx context.Context, resp http.Re
 	}
 
 	// Call service method
-	var respStream RespStream
+	var respContent <-chan RespOrError
+	respFlusher, canFlush := resp.(http.Flusher)
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if r := recover(); r != nil {
 				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
+				if canFlush {
+					respFlusher.Flush()
+				}
 				panic(r)
 			}
 		}()
-		respStream, err = s.Download(ctx, reqContent)
+		respContent, err = s.Download(ctx, reqContent)
 	}()
 
 	if err != nil {
 		s.writeError(ctx, resp, err)
 		return
 	}
-
-	if respStream == nil {
+	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil Req and nil error while calling Download. nil responses are not supported"))
 		return
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.WriteHeader(http.StatusOK)
 
-	messages := proto.NewBuffer(nil)
-
+	// Prepare trailer
 	trailer := proto.NewBuffer(nil)
 	_ = trailer.EncodeVarint((2 << 3) | 2) // field tag
+	writeTrailer := func(err error) {
+		if err == io.EOF {
+			trailer.EncodeStringBytes("EOF")
+			return
+		}
+		// Write trailer as json-encoded twirp err
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		statusCode := twirp.ServerHTTPStatusFromErrorCode(twerr.Code())
+		ctx = ctxsetters.WithStatusCode(ctx, statusCode)
+		ctx = callError(ctx, s.hooks, twerr)
+		if encodeErr := trailer.EncodeStringBytes(string(marshalErrorToJSON(twerr))); encodeErr != nil {
+			_ = trailer.EncodeStringBytes("{\"code\":\"" + string(twirp.Internal) + "\",\"msg\":\"There was an error but it could not be serialized into JSON\"}") // fallback
+		}
+		_, writeErr := resp.Write(trailer.Bytes())
+		if writeErr != nil {
+			// Ignored, for the same reason as in the writeError func
+			_ = writeErr
+		}
+	}
+
+	messages := proto.NewBuffer(nil)
 	for {
-		msg, err := respStream.Next(ctx)
-		if err != nil {
-			// TODO: figure out trailers' proto encoding beyond just a string
-			if err == io.EOF {
-				_ = trailer.EncodeStringBytes("OK")
-			} else {
-				_ = trailer.EncodeStringBytes(err.Error())
+		var msg *Resp
+		select {
+		case <-ctx.Done():
+			return
+		case msgOrErr, open := <-respContent:
+			if !open {
+				writeTrailer(io.EOF)
+				return
 			}
-			break
+			if msgOrErr.Err != nil {
+				writeTrailer(msgOrErr.Err)
+				return
+			}
+			msg = msgOrErr.Msg
 		}
 
 		messages.Reset()
 		_ = messages.EncodeVarint((1 << 3) | 2) // field tag
-		err = messages.Marshal(msg)
+		err = messages.EncodeMessage(msg)
 		if err != nil {
 			err = wrapErr(err, "failed to marshal proto message")
-			respStream.End(err)
-			break
+			writeTrailer(err)
+			return
 		}
 
 		_, err = resp.Write(messages.Bytes())
 		if err != nil {
 			err = wrapErr(err, "failed to send proto message")
-			respStream.End(err)
-			break
+			writeTrailer(err) // likely to fail on write, but try anyway to ensure ctx gets error code set for responseSent hook
+			return
 		}
 
-		// TODO: Call a hook that we sent a message in a stream?
+		if canFlush {
+			// TODO: Come up with a batching scheme to improve performance under high load
+			//       and/or provide a hook for the respStream to control flushing the response.
+			//       Flushing after each message dramatically reduces high-load throughput --
+			//       difference can be more than 10x based on initial experiments
+			respFlusher.Flush()
+		}
+
+		// TODO: Call a hook that we sent a message in a stream? (combine with flush hook?)
 	}
 
-	_, err = resp.Write(trailer.Bytes())
-	if err != nil {
-		// TODO: call error hook?
-		err = wrapErr(err, "failed to write trailer")
-		respStream.End(err)
-	}
+	callResponseSent(ctx, s.hooks)
 }
 
 func (s *streamerServer) serveCommunicate(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
@@ -857,15 +939,7 @@ func (s *streamerServer) serveCommunicateJSON(ctx context.Context, resp http.Res
 }
 
 func (s *streamerServer) serveCommunicateProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "Communicate")
-	ctx, err = callRequestRouted(ctx, s.hooks)
-	if err != nil {
-		s.writeError(ctx, resp, err)
-		return
-	}
-
-	resp.Header().Set("Content-Type", "application/protobuf")
+	s.writeError(ctx, resp, twirp.InternalError("rpc type \"bidirectional\" is not implemented"))
 }
 
 func (s *streamerServer) ServiceDescriptor() ([]byte, int) {
@@ -876,79 +950,15 @@ func (s *streamerServer) ProtocGenTwirpVersion() string {
 	return "v5.3.0"
 }
 
-// ReqStream represents a stream of Req messages.
-type ReqStream interface {
-	Next(context.Context) (*Req, error)
-	End(error)
+type ReqOrError struct {
+	Msg *Req
+	Err error
 }
 
-type protoReqStreamReader struct {
-	prs protoStreamReader
+type RespOrError struct {
+	Msg *Resp
+	Err error
 }
-
-func (r protoReqStreamReader) Next(context.Context) (*Req, error) {
-	out := new(Req)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoReqStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonReqStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonReqStreamReader) Next(context.Context) (*Req, error) {
-	out := new(Req)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonReqStreamReader) End(error) { _ = r.c.Close() }
-
-// RespStream represents a stream of Resp messages.
-type RespStream interface {
-	Next(context.Context) (*Resp, error)
-	End(error)
-}
-
-type protoRespStreamReader struct {
-	prs protoStreamReader
-}
-
-func (r protoRespStreamReader) Next(context.Context) (*Resp, error) {
-	out := new(Resp)
-	err := r.prs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r protoRespStreamReader) End(error) { _ = r.prs.c.Close() }
-
-type jsonRespStreamReader struct {
-	jrs *jsonStreamReader
-	c   io.Closer
-}
-
-func (r jsonRespStreamReader) Next(context.Context) (*Resp, error) {
-	out := new(Resp)
-	err := r.jrs.Read(out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (r jsonRespStreamReader) End(error) { _ = r.c.Close() }
 
 // =====
 // Utils
@@ -1375,9 +1385,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 type protoStreamReader struct {
-	r *bufio.Reader
-	c io.Closer
-
+	r       *bufio.Reader
 	maxSize int
 }
 
@@ -1393,9 +1401,26 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 		trailerTag = (2 << 3) | 2
 	)
 
-	if tag == trailerTag {
-		_ = r.c.Close()
-		return io.EOF
+	if tag == trailerTag { // Received a json twirp error or "EOF"
+		// Read the length delimiter
+		l, err := binary.ReadUvarint(r.r)
+		if err != nil {
+			return clientError("unable to read trailer's length delimiter", err)
+		}
+		sb := new(bytes.Buffer)
+		sb.Grow(int(l))
+		_, err = io.Copy(sb, r.r)
+		if err != nil {
+			return clientError("unable to read trailer", err)
+		}
+		if sb.String() == "EOF" {
+			return io.EOF
+		}
+		var tj twerrJSON
+		if err = json.Unmarshal([]byte(sb.String()), &tj); err != nil {
+			return clientError("unable to decode trailer", err)
+		}
+		return tj.toTwirpError()
 	}
 
 	if tag != msgTag {
@@ -1413,13 +1438,11 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	buf := make([]byte, int(l))
 
 	// Go ahead and read a message.
-	_, err = io.ReadFull(r.r, buf)
-	if err != nil {
+	if _, err = io.ReadFull(r.r, buf); err != nil {
 		return err
 	}
 
-	err = proto.Unmarshal(buf, msg)
-	if err != nil {
+	if err = proto.Unmarshal(buf, msg); err != nil {
 		return err
 	}
 	return nil
@@ -1495,11 +1518,11 @@ func (r *jsonStreamReader) Read(msg proto.Message) error {
 	var tj twerrJSON
 	err = r.dec.Decode(&tj)
 	if err != nil {
+		var eof string
+		if _ = r.dec.Decode(&eof); eof == "EOF" {
+			return io.EOF
+		}
 		return err
-	}
-
-	if tj.Code == "stream_complete" {
-		return io.EOF
 	}
 
 	return tj.toTwirpError()

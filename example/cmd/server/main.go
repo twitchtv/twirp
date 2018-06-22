@@ -27,15 +27,48 @@ import (
 
 type randomHaberdasher struct{}
 
-func (h *randomHaberdasher) MakeHat(ctx context.Context, size *example.Size) (*example.Hat, error) {
-	if size.Inches <= 0 {
-		return nil, twirp.InvalidArgumentError("Inches", "I can't make a hat that small!")
+var (
+	errTooSmall         = twirp.InvalidArgumentError("Inches", "I can't make hats that small!")
+	errNegativeQuantity = twirp.InvalidArgumentError("Quantity", "I can't make a negative quantity of hats!")
+)
+
+func newRandomHat(inches int32) (*example.Hat, error) {
+	if inches <= 0 {
+		return nil, errTooSmall
 	}
 	return &example.Hat{
-		Size:  size.Inches,
-		Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(4)],
-		Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(3)],
+		Size:  inches,
+		Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(5)],
+		Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(4)],
 	}, nil
+}
+
+func (h *randomHaberdasher) MakeHat(ctx context.Context, size *example.Size) (*example.Hat, error) {
+	return newRandomHat(size.Inches)
+}
+
+func (h *randomHaberdasher) MakeHats(ctx context.Context, req *example.MakeHatsReq) (<-chan example.HatOrError, error) {
+	if req.Quantity < 0 {
+		return nil, errNegativeQuantity
+	}
+	// Normally we'd validate Inches here as well, but we let it fall through to error on newRandomHat to demonstrate mid-stream errors
+	// if req.Inches <= 0 {
+	// 	return nil, errTooSmall
+	// }
+
+	ch := make(chan example.HatOrError, 100) // NB: the size of this buffer can make a big difference!
+	go func() {
+		defer close(ch)
+		for ii := int32(0); ii < req.Quantity; ii++ {
+			hat, err := newRandomHat(req.Inches)
+			select {
+			case <-ctx.Done():
+				return
+			case ch <- example.HatOrError{Msg: hat, Err: err}:
+			}
+		}
+	}()
+	return ch, nil
 }
 
 func main() {

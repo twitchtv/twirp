@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twirp.internal.twirptest',
   syntax='proto3',
-  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\"\x05\n\x03Req\"\x06\n\x04Resp2W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.Hat2\xbf\x02\n\x08Streamer\x12I\n\x08Transact\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp\x12I\n\x06Upload\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp(\x01\x12K\n\x08\x44ownload\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp0\x01\x12P\n\x0b\x43ommunicate\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp(\x01\x30\x01\x42\x0bZ\ttwirptestb\x06proto3')
+  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\"\x11\n\x03Req\x12\n\n\x02id\x18\x01 \x01(\t\"\x12\n\x04Resp\x12\n\n\x02id\x18\x01 \x01(\t2W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.Hat2\xbf\x02\n\x08Streamer\x12I\n\x08Transact\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp\x12I\n\x06Upload\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp(\x01\x12K\n\x08\x44ownload\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp0\x01\x12P\n\x0b\x43ommunicate\x12\x1d.twirp.internal.twirptest.Req\x1a\x1e.twirp.internal.twirptest.Resp(\x01\x30\x01\x42\x0bZ\ttwirptestb\x06proto3')
 )
 
 
@@ -108,6 +108,13 @@ _REQ = _descriptor.Descriptor(
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='twirp.internal.twirptest.Req.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -121,7 +128,7 @@ _REQ = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=117,
-  serialized_end=122,
+  serialized_end=134,
 )
 
 
@@ -132,6 +139,13 @@ _RESP = _descriptor.Descriptor(
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='twirp.internal.twirptest.Resp.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -144,8 +158,8 @@ _RESP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=124,
-  serialized_end=130,
+  serialized_start=136,
+  serialized_end=154,
 )
 
 DESCRIPTOR.message_types_by_name['Hat'] = _HAT
@@ -192,8 +206,8 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=132,
-  serialized_end=219,
+  serialized_start=156,
+  serialized_end=243,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeHat',
@@ -216,8 +230,8 @@ _STREAMER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   options=None,
-  serialized_start=222,
-  serialized_end=541,
+  serialized_start=246,
+  serialized_end=565,
   methods=[
   _descriptor.MethodDescriptor(
     name='Transact',

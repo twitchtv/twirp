@@ -752,6 +752,7 @@ func (t *twirp) generateUtils() {
 func (t *twirp) generateStreamUtils() {
 	t.P(`type protoStreamReader struct {`)
 	t.P(`	r *`, t.pkgs["bufio"], `.Reader`)
+	t.P(`	pb *`, t.pkgs["proto"], `.Buffer`)
 	t.P(`	maxSize int`)
 	t.P(`}`)
 	t.P(``)
@@ -801,14 +802,14 @@ func (t *twirp) generateStreamUtils() {
 	t.P(`	if int(l) < 0 || int(l) > r.maxSize {`)
 	t.P(`		return `, t.pkgs["io"], `.ErrShortBuffer`)
 	t.P(`	}`)
-	t.P(`	buf := make([]byte, int(l))`)
 	t.P()
 	t.P(`	// Go ahead and read a message.`)
+	t.P(`	buf := make([]byte, int(l))`)
 	t.P(`	if _, err = `, t.pkgs["io"], `.ReadFull(r.r, buf); err != nil {`)
 	t.P(`		return err`)
 	t.P(`	}`)
-	t.P()
-	t.P(`	if err = `, t.pkgs["proto"], `.Unmarshal(buf, msg); err != nil {`)
+	t.P(`	r.pb.SetBuf(buf)`)
+	t.P(`	if err = r.pb.Unmarshal(msg); err != nil {`)
 	t.P(`		return err`)
 	t.P(`	}`)
 	t.P(`	return nil`)
@@ -980,39 +981,22 @@ func methodRPCType(method *descriptor.MethodDescriptorProto) rpcType {
 }
 
 func (t *twirp) signature(method *descriptor.MethodDescriptorProto) string {
+	methName := methodName(method)
+	inputType := t.methodInputType(method)
+	outputType := t.methodOutputType(method)
+
 	switch methodRPCType(method) {
 	case unary:
-		return t.unarySignature(method)
+		inputType = "*" + inputType
+		outputType = "*" + outputType
 	case upload:
-		return t.uploadSignature(method)
+		outputType = "*" + outputType
 	case download:
-		return t.downloadSignature(method)
+		inputType = "*" + inputType
 	case bidirectional:
-		return t.bidirectionalSignature(method)
 	}
-	return ""
-}
 
-func (t *twirp) unarySignature(method *descriptor.MethodDescriptorProto) string {
-	methName := methodName(method)
-	inputType := t.methodInputType(method)
-	outputType := t.methodOutputType(method)
-	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
-}
-
-func (t *twirp) uploadSignature(method *descriptor.MethodDescriptorProto) string {
-	return ""
-}
-
-func (t *twirp) downloadSignature(method *descriptor.MethodDescriptorProto) string {
-	methName := methodName(method)
-	inputType := t.methodInputType(method)
-	outputType := t.methodOutputType(method)
-	return fmt.Sprintf(`%s(ctx %s.Context, in *%s) (%s, error)`, methName, t.pkgs["context"], inputType, outputType)
-}
-
-func (t *twirp) bidirectionalSignature(method *descriptor.MethodDescriptorProto) string {
-	return ""
+	return fmt.Sprintf(`%s(ctx %s.Context, in %s) (%s, error)`, methName, t.pkgs["context"], inputType, outputType)
 }
 
 // valid names: 'JSON', 'Protobuf'
@@ -1105,6 +1089,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 				if name == "Protobuf" {
 					t.P(`		reader := protoStreamReader{`)
 					t.P(`			r:       `, t.pkgs["bufio"], `.NewReader(resp.Body),`)
+					t.P(`			pb:      `, t.pkgs["proto"], `.NewBuffer(nil),`)
 					t.P(`			maxSize: 1 << 21, // 1GB`)
 					t.P(`		}`)
 				} else {
@@ -1354,6 +1339,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	}
 
 	t.P(`func (s *`, servStruct, `) serve`, methName, `Protobuf(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
+
 	if rpcType != unary && rpcType != download {
 		t.P(`	s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalError("rpc type \"`, string(rpcType), `\" is not implemented"))`)
 		t.P(`}`)
@@ -1464,6 +1450,10 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 		t.P(`		}`)
 		t.P(`	}`)
 		t.P(``)
+		t.P(`	// We're ready to write messages. Flush headers so the client is unblocked.`)
+		t.P(`	if flusher, ok := resp.(http.Flusher); ok {`)
+		t.P(`		flusher.Flush()`)
+		t.P(`	}`)
 		t.P(`	messages := `, t.pkgs["proto"], `.NewBuffer(nil)`)
 		t.P(`	for {`)
 		t.P(`		var msg *` + t.goTypeName(method.GetOutputType()))
@@ -1661,7 +1651,7 @@ func (t *twirp) goTypeName(protoName string) string {
 func (t *twirp) methodInputType(method *descriptor.MethodDescriptorProto) string {
 	name := t.goTypeName(method.GetInputType())
 	if method.GetClientStreaming() {
-		name = withoutPackageName(name) + "Stream"
+		name = streamTypeFromType(name)
 	}
 	return name
 }

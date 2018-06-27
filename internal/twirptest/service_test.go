@@ -114,7 +114,7 @@ func TestServeProtobuf(t *testing.T) {
 
 type contentTypeOverriderClient struct {
 	contentType string
-	base HTTPClient
+	base        HTTPClient
 }
 
 func (c *contentTypeOverriderClient) Do(req *http.Request) (*http.Response, error) {
@@ -130,7 +130,7 @@ func TestContentTypes(t *testing.T) {
 	makeClientWithMimeType := func(mime string) Haberdasher {
 		return NewHaberdasherJSONClient(s.URL, &contentTypeOverriderClient{
 			contentType: mime,
-			base: http.DefaultClient,
+			base:        http.DefaultClient,
 		})
 	}
 	expectNoError := func(t *testing.T, mime string) {
@@ -972,7 +972,6 @@ func TestNilResponse(t *testing.T) {
 	}
 }
 
-
 var expectBadRouteError = func(t *testing.T, client Haberdasher) {
 	_, err := client.MakeHat(context.Background(), &Size{1})
 	if err == nil {
@@ -1129,4 +1128,207 @@ func TestContextValues(t *testing.T) {
 	if err != nil {
 		t.Errorf("Client err=%q", err)
 	}
+}
+
+func TestStreamingDownload(t *testing.T) {
+	streamer := &streamer{}
+	s := httptest.NewServer(NewStreamerServer(streamer, nil))
+	defer s.Close()
+
+	ctx := context.Background()
+
+	testClient := func(client Streamer) func(*testing.T) {
+		return func(t *testing.T) {
+			t.Run("immediate error", func(t *testing.T) {
+				// Immediately return an error on the RPC call. The client should get a
+				// nil channel and the error.
+				streamer.err = twirp.NewError(twirp.DataLoss, "it didnt work :(")
+				defer func() {
+					streamer.err = nil
+				}()
+				clientCh, err := client.Download(ctx, &Req{})
+				if err == nil {
+					t.Fatal("unexpected nil err")
+				}
+				if clientCh != nil {
+					t.Fatal("unexpected non-nil client channel")
+				}
+				if twerr, ok := err.(twirp.Error); !ok || twerr.Code() != twirp.DataLoss || twerr.Msg() != "it didnt work :(" {
+					t.Errorf("unexpected err contents, have=%+v want=%+v", err, streamer.err)
+				}
+			})
+			t.Run("held open", func(t *testing.T) {
+
+			})
+			t.Run("one message then close", func(t *testing.T) {
+				// Write a single message into the server's channel, then close it. The
+				// client should get the message, and then its channel should be closed.
+				serverCh := make(chan RespOrError, 1)
+				streamer.download = serverCh
+				clientCh, err := client.Download(ctx, &Req{})
+				if err != nil {
+					t.Fatalf("unexpected non-nil err %v", err)
+				}
+
+				// Write a message into the server side.
+				serverMsg := RespOrError{Msg: &Resp{Id: "1"}}
+				go func() {
+					serverCh <- serverMsg
+					close(serverCh)
+				}()
+
+				// Pull the message out of the client side.
+				var clientMsg RespOrError
+				select {
+				case clientMsg = <-clientCh:
+				case <-time.After(5 * time.Second):
+					t.Fatal("client timed out after message from server")
+				}
+
+				// Check results.
+				if clientMsg.Err != nil {
+					t.Errorf("unexpected client err: %v", clientMsg.Err)
+				}
+				if clientMsg.Msg == nil || clientMsg.Msg.Id != serverMsg.Msg.Id {
+					t.Errorf("client message does not match server message, have=%+v, want=%+v", clientMsg, serverMsg)
+				}
+				_, open := <-clientCh
+				if open {
+					t.Error("client channel should be closed after server channel is closed, but it is still open")
+				}
+			})
+			t.Run("one message then error then close", func(t *testing.T) {
+				// Write a single message into the server's channel, then close it. The
+				// client should get the message, and then its channel should be closed.
+				serverCh := make(chan RespOrError, 1)
+				streamer.download = serverCh
+				clientCh, err := client.Download(ctx, &Req{})
+				if err != nil {
+					t.Fatalf("unexpected non-nil err %v", err)
+				}
+
+				// Write a message into the server side.
+				serverMsg := RespOrError{Msg: &Resp{Id: "1"}}
+				serverErrMsg := RespOrError{Err: twirp.NewError(twirp.DataLoss, "i give up")}
+				go func() {
+					serverCh <- serverMsg
+					serverCh <- serverErrMsg
+					close(serverCh)
+				}()
+
+				// Pull the messages out of the client side.
+				var clientMsg1, clientMsg2 RespOrError
+				select {
+				case clientMsg1 = <-clientCh:
+				case <-time.After(5 * time.Second):
+					t.Fatal("client timed out waiting for message 1 from server")
+				}
+				select {
+				case clientMsg2 = <-clientCh:
+				case <-time.After(5 * time.Second):
+					t.Fatal("client timed out waiting for message 2 from server")
+				}
+
+				// Check results.
+				if clientMsg1.Err != nil {
+					t.Errorf("unexpected client err: %v", clientMsg1.Err)
+				}
+				if clientMsg1.Msg == nil || clientMsg1.Msg.Id != serverMsg.Msg.Id {
+					t.Errorf("client message does not match server message, have=%+v, want=%+v", clientMsg1, serverMsg)
+				}
+
+				if clientMsg2.Err == nil {
+					t.Fatal("unexpected nil for client err on msg 2")
+				}
+				if clientMsg2.Err.(twirp.Error).Code() != twirp.DataLoss {
+					t.Errorf("unexpected code for client err on msg 2, have=%+v", clientMsg2.Err)
+				}
+
+				_, open := <-clientCh
+				if open {
+					t.Error("client channel should be closed after server channel is closed, but it is still open")
+				}
+			})
+			t.Run("error then close", func(t *testing.T) {
+				// Write a single error into the server's channel, then close it. The
+				// client should get the error, and then its channel should be closed.
+				serverCh := make(chan RespOrError, 1)
+				streamer.download = serverCh
+				clientCh, err := client.Download(ctx, &Req{})
+				if err != nil {
+					t.Fatalf("unexpected non-nil err %v", err)
+				}
+
+				// Write a error into the server side.
+				go func() {
+					serverCh <- RespOrError{Err: twirp.NewError(twirp.DataLoss, "i give up")}
+					close(serverCh)
+				}()
+
+				// Pull the message out of the client side.
+				var clientMsg RespOrError
+				select {
+				case clientMsg = <-clientCh:
+				case <-time.After(5 * time.Second):
+					t.Fatal("client timed out after message from server")
+				}
+
+				// Check results.
+				if clientMsg.Err == nil {
+					t.Fatal("unexpected nil for client err in msg")
+				}
+				if clientMsg.Err.(twirp.Error).Code() != twirp.DataLoss {
+					t.Errorf("unexpected code for client err in msg, have=%+v", clientMsg.Err)
+				}
+				_, open := <-clientCh
+				if open {
+					t.Error("client channel should be closed after server channel is closed, but it is still open")
+				}
+			})
+			t.Run("close client context", func(t *testing.T) {
+				// Write a single error into the server's channel, then close it. The
+				// client should get the error, and then its channel should be closed.
+				ctx, cancel := context.WithCancel(ctx)
+
+				serverCh := make(chan RespOrError)
+				streamer.download = serverCh
+				clientCh, err := client.Download(ctx, &Req{})
+				if err != nil {
+					t.Fatalf("unexpected non-nil err %v", err)
+				}
+				cancel()
+
+				// Write a error into the server side.
+
+				go func() {
+					serverCh <- RespOrError{Err: twirp.NewError(twirp.DataLoss, "i give up")}
+					close(serverCh)
+				}()
+
+				// Pull the message out of the client side.
+				var clientMsg RespOrError
+				select {
+				case clientMsg = <-clientCh:
+				case <-time.After(5 * time.Second):
+					t.Fatal("client timed out after message from server")
+				}
+
+				// Check results.
+				if clientMsg.Err == nil {
+					t.Fatal("unexpected nil for client err in msg")
+				}
+				if twerr, ok := clientMsg.Err.(twirp.Error); !ok || twerr.Code() != twirp.DataLoss {
+					t.Errorf("unexpected code for client err in msg, have=%+v", clientMsg.Err)
+				}
+				_, open := <-clientCh
+				if open {
+					t.Error("client channel should be closed after server channel is closed, but it is still open")
+				}
+
+			})
+		}
+	}
+
+	t.Run("proto", testClient(NewStreamerProtobufClient(s.URL, http.DefaultClient)))
+	//	t.Run("json", testClient(NewStreamerJSONClient(s.URL, http.DefaultClient)))
 }

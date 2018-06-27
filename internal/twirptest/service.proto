@@ -19,8 +19,12 @@ service Haberdasher {
   rpc MakeHat(Size) returns (Hat);
 }
 
-message Req {}
-message Resp {}
+message Req {
+  string id = 1;
+}
+message Resp {
+  string id = 1;
+}
 service Streamer {
   rpc Transact(Req) returns (Resp);
   rpc Upload(stream Req) returns (Resp);

@@ -41,6 +41,8 @@ import binary "encoding/binary"
 
 type Svc2 interface {
 	Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
+
+	Stream(ctx context.Context, in <-chan MsgOrError) (<-chan MsgOrError, error)
 }
 
 // ====================
@@ -81,6 +83,13 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 	return out, err
 }
 
+func (c *svc2ProtobufClient) Stream(ctx context.Context, in <-chan MsgOrError) (<-chan MsgOrError, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Stream")
+	return nil, nil
+}
+
 // ================
 // Svc2 JSON Client
 // ================
@@ -117,6 +126,13 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	out := new(twirp_internal_twirptest_importable.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	return out, err
+}
+
+func (c *svc2JSONClient) Stream(ctx context.Context, in <-chan MsgOrError) (<-chan MsgOrError, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Stream")
+	return nil, nil
 }
 
 // ===================
@@ -794,6 +810,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 
 type protoStreamReader struct {
 	r       *bufio.Reader
+	pb      *proto.Buffer
 	maxSize int
 }
 
@@ -843,14 +860,14 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	if int(l) < 0 || int(l) > r.maxSize {
 		return io.ErrShortBuffer
 	}
-	buf := make([]byte, int(l))
 
 	// Go ahead and read a message.
+	buf := make([]byte, int(l))
 	if _, err = io.ReadFull(r.r, buf); err != nil {
 		return err
 	}
-
-	if err = proto.Unmarshal(buf, msg); err != nil {
+	r.pb.SetBuf(buf)
+	if err = r.pb.Unmarshal(msg); err != nil {
 		return err
 	}
 	return nil

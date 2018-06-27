@@ -116,6 +116,7 @@ func (c *haberdasherProtobufClient) MakeHats(ctx context.Context, in *MakeHatsRe
 		}()
 		reader := protoStreamReader{
 			r:       bufio.NewReader(resp.Body),
+			pb:      proto.NewBuffer(nil),
 			maxSize: 1 << 21, // 1GB
 		}
 		out := new(Hat)
@@ -514,6 +515,13 @@ func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http
 	trailer := proto.NewBuffer(nil)
 	_ = trailer.EncodeVarint((2 << 3) | 2) // field tag
 	writeTrailer := func(err error) {
+		defer func() {
+			_, writeErr := resp.Write(trailer.Bytes())
+			if writeErr != nil {
+				// Ignored, for the same reason as in the writeError func
+				_ = writeErr
+			}
+		}()
 		if err == io.EOF {
 			trailer.EncodeStringBytes("EOF")
 			return
@@ -528,11 +536,6 @@ func (s *haberdasherServer) serveMakeHatsProtobuf(ctx context.Context, resp http
 		ctx = callError(ctx, s.hooks, twerr)
 		if encodeErr := trailer.EncodeStringBytes(string(marshalErrorToJSON(twerr))); encodeErr != nil {
 			_ = trailer.EncodeStringBytes("{\"code\":\"" + string(twirp.Internal) + "\",\"msg\":\"There was an error but it could not be serialized into JSON\"}") // fallback
-		}
-		_, writeErr := resp.Write(trailer.Bytes())
-		if writeErr != nil {
-			// Ignored, for the same reason as in the writeError func
-			_ = writeErr
 		}
 	}
 
@@ -1023,6 +1026,7 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 
 type protoStreamReader struct {
 	r       *bufio.Reader
+	pb      *proto.Buffer
 	maxSize int
 }
 
@@ -1072,14 +1076,14 @@ func (r protoStreamReader) Read(msg proto.Message) error {
 	if int(l) < 0 || int(l) > r.maxSize {
 		return io.ErrShortBuffer
 	}
-	buf := make([]byte, int(l))
 
 	// Go ahead and read a message.
+	buf := make([]byte, int(l))
 	if _, err = io.ReadFull(r.r, buf); err != nil {
 		return err
 	}
-
-	if err = proto.Unmarshal(buf, msg); err != nil {
+	r.pb.SetBuf(buf)
+	if err = r.pb.Unmarshal(msg); err != nil {
 		return err
 	}
 	return nil

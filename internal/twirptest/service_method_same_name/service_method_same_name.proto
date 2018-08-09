@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+// Test to make sure that a method with the same name as its service doesn't break.
+package twirp.internal.twirptest.proto;
+option go_package = "service_method_same_name";
+
+message Msg {}
+
+service Echo{
+  rpc Echo(Msg) returns (Msg) {}
+}
+

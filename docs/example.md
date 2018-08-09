@@ -184,7 +184,7 @@ import (
     "context"
     "net/http"
     "os"
-
+    "fmt"
     "github.com/twitchtv/twirpexample/rpc/haberdasher"
 )
 

@@ -7,6 +7,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -18,7 +19,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='proto.proto',
   package='twirp.internal.twirptest.proto',
   syntax='proto3',
-  serialized_options=_b('Z\005proto'),
   serialized_pb=_b('\n\x0bproto.proto\x12\x1etwirp.internal.twirptest.proto\"\x05\n\x03Msg2W\n\x03Svc\x12P\n\x04Send\x12#.twirp.internal.twirptest.proto.Msg\x1a#.twirp.internal.twirptest.proto.MsgB\x07Z\x05protob\x06proto3')
 )
 
@@ -38,7 +38,7 @@ _MSG = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -59,14 +59,15 @@ Msg = _reflection.GeneratedProtocolMessageType('Msg', (_message.Message,), dict(
 _sym_db.RegisterMessage(Msg)
 
 
-DESCRIPTOR._options = None
+DESCRIPTOR.has_options = True
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\005proto'))
 
 _SVC = _descriptor.ServiceDescriptor(
   name='Svc',
   full_name='twirp.internal.twirptest.proto.Svc',
   file=DESCRIPTOR,
   index=0,
-  serialized_options=None,
+  options=None,
   serialized_start=54,
   serialized_end=141,
   methods=[
@@ -77,7 +78,7 @@ _SVC = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_MSG,
     output_type=_MSG,
-    serialized_options=None,
+    options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC)

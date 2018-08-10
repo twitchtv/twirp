@@ -222,7 +222,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 				panic(r)
 			}
 		}()
-		respContent, err = s.MakeHat(ctx, reqContent)
+		respContent, err = s.Haberdasher.MakeHat(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 				panic(r)
 			}
 		}()
-		respContent, err = s.MakeHat(ctx, reqContent)
+		respContent, err = s.Haberdasher.MakeHat(ctx, reqContent)
 	}()
 
 	if err != nil {

@@ -222,7 +222,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 				panic(r)
 			}
 		}()
-		respContent, err = s.Send(ctx, reqContent)
+		respContent, err = s.Svc1.Send(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 				panic(r)
 			}
 		}()
-		respContent, err = s.Send(ctx, reqContent)
+		respContent, err = s.Svc1.Send(ctx, reqContent)
 	}()
 
 	if err != nil {

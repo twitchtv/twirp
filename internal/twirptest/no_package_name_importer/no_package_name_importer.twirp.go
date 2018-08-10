@@ -222,7 +222,7 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 				panic(r)
 			}
 		}()
-		respContent, err = s.Method(ctx, reqContent)
+		respContent, err = s.Svc2.Method(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 				panic(r)
 			}
 		}()
-		respContent, err = s.Method(ctx, reqContent)
+		respContent, err = s.Svc2.Method(ctx, reqContent)
 	}()
 
 	if err != nil {

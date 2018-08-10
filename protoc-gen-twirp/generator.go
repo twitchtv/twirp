@@ -987,6 +987,7 @@ func (t *twirp) generateServerMethod(service *descriptor.ServiceDescriptorProto,
 func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	servStruct := serviceStruct(service)
 	methName := stringutils.CamelCase(method.GetName())
+	servName := serviceName(service)
 	t.P(`func (s *`, servStruct, `) serve`, methName, `JSON(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
 	t.P(`  var err error`)
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
@@ -1014,7 +1015,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`        panic(r)`)
 	t.P(`      }`)
 	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = s.`, servName,`.`,methName, `(ctx, reqContent)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)
@@ -1054,7 +1055,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	servStruct := serviceStruct(service)
 	methName := stringutils.CamelCase(method.GetName())
-
+	servName := serviceName(service)
 	t.P(`func (s *`, servStruct, `) serve`, methName, `Protobuf(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
 	t.P(`  var err error`)
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
@@ -1087,7 +1088,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`        panic(r)`)
 	t.P(`      }`)
 	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = s.`, servName,`.`,methName, `(ctx, reqContent)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)

@@ -251,7 +251,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 				panic(r)
 			}
 		}()
-		respContent, err = s.Method(ctx, reqContent)
+		respContent, err = s.CompatService.Method(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -318,7 +318,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 				panic(r)
 			}
 		}()
-		respContent, err = s.Method(ctx, reqContent)
+		respContent, err = s.CompatService.Method(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -395,7 +395,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 				panic(r)
 			}
 		}()
-		respContent, err = s.NoopMethod(ctx, reqContent)
+		respContent, err = s.CompatService.NoopMethod(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -462,7 +462,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 				panic(r)
 			}
 		}()
-		respContent, err = s.NoopMethod(ctx, reqContent)
+		respContent, err = s.CompatService.NoopMethod(ctx, reqContent)
 	}()
 
 	if err != nil {

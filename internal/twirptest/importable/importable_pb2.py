@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='importable.proto',
   package='twirp.internal.twirptest.importable',
   syntax='proto3',
+  serialized_options=_b('Z\nimportable'),
   serialized_pb=_b('\n\x10importable.proto\x12#twirp.internal.twirptest.importable\"\x05\n\x03Msg2a\n\x03Svc\x12Z\n\x04Send\x12(.twirp.internal.twirptest.importable.Msg\x1a(.twirp.internal.twirptest.importable.MsgB\x0cZ\nimportableb\x06proto3')
 )
 
@@ -38,7 +38,7 @@ _MSG = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -59,15 +59,14 @@ Msg = _reflection.GeneratedProtocolMessageType('Msg', (_message.Message,), dict(
 _sym_db.RegisterMessage(Msg)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\nimportable'))
+DESCRIPTOR._options = None
 
 _SVC = _descriptor.ServiceDescriptor(
   name='Svc',
   full_name='twirp.internal.twirptest.importable.Svc',
   file=DESCRIPTOR,
   index=0,
-  options=None,
+  serialized_options=None,
   serialized_start=64,
   serialized_end=161,
   methods=[
@@ -78,7 +77,7 @@ _SVC = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_MSG,
     output_type=_MSG,
-    options=None,
+    serialized_options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC)

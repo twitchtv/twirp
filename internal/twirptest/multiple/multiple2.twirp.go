@@ -238,7 +238,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 				panic(r)
 			}
 		}()
-		respContent, err = s.Send(ctx, reqContent)
+		respContent, err = s.Svc2.Send(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -305,7 +305,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 				panic(r)
 			}
 		}()
-		respContent, err = s.Send(ctx, reqContent)
+		respContent, err = s.Svc2.Send(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -382,7 +382,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 				panic(r)
 			}
 		}()
-		respContent, err = s.SamePackageProtoImport(ctx, reqContent)
+		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -449,7 +449,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 				panic(r)
 			}
 		}()
-		respContent, err = s.SamePackageProtoImport(ctx, reqContent)
+		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
 	}()
 
 	if err != nil {

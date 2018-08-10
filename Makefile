@@ -26,7 +26,7 @@ test_python_client: generate build/clientcompat build/pycompat
 	./build/clientcompat -client ./build/pycompat
 
 setup:
-	./install_proto.bash
+#	./install_proto.bash
 	GOPATH=$(CURDIR)/_tools go install github.com/twitchtv/retool/...
 	$(RETOOL) build
 

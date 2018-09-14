@@ -47,6 +47,9 @@ type twirp struct {
 	importPrefix string            // String to prefix to imported package file names.
 	importMap    map[string]string // Mapping from .proto file name to import path.
 
+	// Package output:
+	paths string // instruction on where to write output files
+
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
 	fileToGoPackageName map[*descriptor.FileDescriptorProto]string
@@ -81,6 +84,8 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	t.importMap = params.importMap
 
 	t.genFiles = gen.FilesToGenerate(in)
+
+	t.paths = params.paths
 
 	// Collect information on types.
 	t.reg = typemap.New(in.ProtoFile)
@@ -125,7 +130,6 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 			t.fileToGoPackageName[f] = alias
 		}
 	}
-
 	// Showtime! Generate the response.
 	resp := new(plugin.CodeGeneratorResponse)
 	for _, f := range t.genFiles {
@@ -211,7 +215,7 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 
 	t.generateFileDescriptor(file)
 
-	resp.Name = proto.String(goFileName(file))
+	resp.Name = proto.String(t.goFileName(file))
 	resp.Content = proto.String(t.formattedOutput())
 	t.output.Reset()
 
@@ -269,7 +273,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	// method. Make sure to import the package of any such message. First, dedupe
 	// them.
 	deps := make(map[string]string) // Map of package name to quoted import path.
-	ourImportPath := path.Dir(goFileName(file))
+	ourImportPath := path.Dir(t.goFileName(file))
 	for _, s := range file.Service {
 		for _, m := range s.Method {
 			defs := []*typemap.MessageDefinition{
@@ -278,9 +282,12 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 			}
 			for _, def := range defs {
 				// By default, import path is the dirname of the Go filename.
-				importPath := path.Dir(goFileName(def.File))
+				importPath := path.Dir(t.goFileName(def.File))
 				if importPath == ourImportPath {
 					continue
+				}
+				if def.File.GetOptions().GetGoPackage() != "" {
+					importPath = def.File.GetOptions().GetGoPackage()
 				}
 				if substitution, ok := t.importMap[def.File.GetName()]; ok {
 					importPath = substitution
@@ -288,6 +295,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				importPath = t.importPrefix + importPath
 				pkg := t.goPackageName(def.File)
 				deps[pkg] = strconv.Quote(importPath)
+
 			}
 		}
 	}
@@ -1015,7 +1023,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`        panic(r)`)
 	t.P(`      }`)
 	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, servName,`.`,methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)
@@ -1088,7 +1096,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`        panic(r)`)
 	t.P(`      }`)
 	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, servName,`.`,methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)

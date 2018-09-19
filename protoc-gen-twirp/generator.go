@@ -48,7 +48,7 @@ type twirp struct {
 	importMap    map[string]string // Mapping from .proto file name to import path.
 
 	// Package output:
-	paths string // instruction on where to write output files
+	sourceRelativePaths bool // instruction on where to write output files
 
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
@@ -85,7 +85,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 
 	t.genFiles = gen.FilesToGenerate(in)
 
-	t.paths = params.paths
+	t.sourceRelativePaths = params.paths == "source_relative"
 
 	// Collect information on types.
 	t.reg = typemap.New(in.ProtoFile)

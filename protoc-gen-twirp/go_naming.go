@@ -71,7 +71,7 @@ func (t *twirp) goFileName(f *descriptor.FileDescriptorProto) string {
 		name = name[:len(name)-len(ext)]
 	}
 	name += ".twirp.go"
-	if t.paths == "source_relative" {
+	if t.sourceRelativePaths {
 		return name
 	}
 	// Does the file have a "go_package" option? If it does, it may override the

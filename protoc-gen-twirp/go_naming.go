@@ -85,3 +85,27 @@ func (t *twirp) goFileName(f *descriptor.FileDescriptorProto) string {
 
 	return name
 }
+
+func parseGoPackageOption(v string) (importPath, packageName string) {
+	// Allowed formats:
+	// option go_package = "foo";
+	// option go_package = "github.com/example/foo";
+	// option go_package = "github.com/example/foo;bar";
+
+	semicolonPos := strings.Index(v, ";")
+	if semicolonPos > -1 {
+		importPath = v[:semicolonPos]
+		packageName = v[semicolonPos+1:]
+		return
+	}
+
+	if strings.Contains(v, "/") {
+		importPath = v
+		_, packageName = path.Split(v)
+		return
+	}
+
+	importPath = ""
+	packageName = v
+	return
+}

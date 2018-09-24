@@ -286,9 +286,12 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				if importPath == ourImportPath {
 					continue
 				}
-				if def.File.GetOptions().GetGoPackage() != "" {
-					importPath = def.File.GetOptions().GetGoPackage()
+
+				importPathOpt, _ := parseGoPackageOption(def.File.GetOptions().GetGoPackage())
+				if importPathOpt != "" {
+					importPath = importPathOpt
 				}
+
 				if substitution, ok := t.importMap[def.File.GetName()]; ok {
 					importPath = substitution
 				}

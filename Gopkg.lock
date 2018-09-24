@@ -25,7 +25,7 @@
     "ptypes/struct",
     "ptypes/wrappers"
   ]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "7716a980bceefe9a0213654823d9ea62d23b87a2"
 
 [[projects]]
   name = "github.com/pkg/errors"

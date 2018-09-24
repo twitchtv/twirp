@@ -55,7 +55,7 @@ func TestClientSuccessAndErrorResponses(t *testing.T) {
 	var err error
 
 	// Test proto success
-	resp, err = protoCli.MakeHat(ctx, &Size{1})
+	resp, err = protoCli.MakeHat(ctx, &Size{Inches: 1})
 	if err != nil {
 		t.Fatalf("Proto client method returned unexpected error: %s", err)
 	}
@@ -64,7 +64,7 @@ func TestClientSuccessAndErrorResponses(t *testing.T) {
 	}
 
 	// Test proto failure
-	resp, err = protoCli.MakeHat(ctx, &Size{666})
+	resp, err = protoCli.MakeHat(ctx, &Size{Inches: 666})
 	if err == nil {
 		t.Fatalf("Proto client method expected to fail, but error is nil")
 	}
@@ -73,7 +73,7 @@ func TestClientSuccessAndErrorResponses(t *testing.T) {
 	}
 
 	// Test json success
-	resp, err = jsonCli.MakeHat(ctx, &Size{1})
+	resp, err = jsonCli.MakeHat(ctx, &Size{Inches: 1})
 	if err != nil {
 		t.Fatalf("JSON client method returned unexpected error: %s", err)
 	}
@@ -82,7 +82,7 @@ func TestClientSuccessAndErrorResponses(t *testing.T) {
 	}
 
 	// Test json failure
-	resp, err = jsonCli.MakeHat(ctx, &Size{666})
+	resp, err = jsonCli.MakeHat(ctx, &Size{Inches: 666})
 	if err == nil {
 		t.Fatalf("JSON client method expected to fail, but error is nil")
 	}
@@ -137,14 +137,14 @@ func TestClientSetsRequestContext(t *testing.T) {
 	// Test the JSON client and the Protobuf client.
 	client := NewHaberdasherJSONClient(s.URL, httpClient)
 
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
 
 	client = NewHaberdasherProtobufClient(s.URL, httpClient)
 
-	_, err = client.MakeHat(context.Background(), &Size{1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
@@ -172,7 +172,7 @@ func TestClientSetsAcceptHeader(t *testing.T) {
 	// Test the JSON client
 	client := NewHaberdasherJSONClient(s.URL, httpClient)
 
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
@@ -193,7 +193,7 @@ func TestClientSetsAcceptHeader(t *testing.T) {
 	// test the Protobuf client.
 	client = NewHaberdasherProtobufClient(s.URL, httpClient)
 
-	_, err = client.MakeHat(context.Background(), &Size{1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
@@ -211,7 +211,7 @@ func TestClientRedirectError(t *testing.T) {
 			defer s.Close()
 
 			client := clientMaker(s.URL, http.DefaultClient)
-			_, err := client.MakeHat(context.Background(), &Size{1})
+			_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 			if err == nil {
 				t.Fatal("MakeHat err=nil, expected an error because redirects aren't allowed")
 			}
@@ -272,7 +272,7 @@ func TestClientIntermediaryErrors(t *testing.T) {
 			defer s.Close()
 
 			client := clientMaker(s.URL, http.DefaultClient)
-			_, err := client.MakeHat(context.Background(), &Size{1})
+			_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 			if err == nil {
 				t.Fatal("Expected error, but found nil")
 			}
@@ -346,7 +346,7 @@ func TestJSONClientAllowUnknownFields(t *testing.T) {
 	defer s.Close()
 
 	client := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
-	resp, err := client.MakeHat(context.Background(), &Size{1})
+	resp, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -370,7 +370,7 @@ func TestClientErrorsCanBeCaused(t *testing.T) {
 	}
 
 	client := NewHaberdasherJSONClient("", httpClient)
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err == nil {
 		t.Errorf("JSON MakeHat err is unexpectedly nil")
 	}
@@ -380,7 +380,7 @@ func TestClientErrorsCanBeCaused(t *testing.T) {
 	}
 
 	client = NewHaberdasherProtobufClient("", httpClient)
-	_, err = client.MakeHat(context.Background(), &Size{1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err == nil {
 		t.Errorf("Protobuf MakeHat err is unexpectedly nil")
 	}
@@ -405,7 +405,7 @@ func TestCustomHTTPClientInterface(t *testing.T) {
 	// Test the JSON client and the Protobuf client with a custom http.Client interface
 	client := NewHaberdasherJSONClient(s.URL, httpClient)
 
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
@@ -420,7 +420,7 @@ func TestCustomHTTPClientInterface(t *testing.T) {
 
 	client = NewHaberdasherProtobufClient(s.URL, httpClient)
 
-	_, err = client.MakeHat(context.Background(), &Size{1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("MakeHat err=%s", err)
 	}
@@ -469,7 +469,7 @@ func TestClientReturnsCloseErrors(t *testing.T) {
 
 	testcase := func(client Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
-			_, err := client.MakeHat(context.Background(), &Size{1})
+			_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 			if err == nil {
 				t.Error("expected an error when body fails to close, have nil")
 			} else {

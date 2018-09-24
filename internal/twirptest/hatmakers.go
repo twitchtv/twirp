@@ -44,7 +44,7 @@ func PickyHatmaker(want int32) Haberdasher {
 		if s.Inches != want {
 			return nil, twirp.InvalidArgumentError("Inches", "I can't make a hat that size!")
 		}
-		return &Hat{s.Inches, "blue", "top hat"}, nil
+		return &Hat{Size: s.Inches, Color: "blue", Name: "top hat"}, nil
 	})
 }
 
@@ -52,7 +52,7 @@ func PickyHatmaker(want int32) Haberdasher {
 func SlowHatmaker(dur time.Duration) Haberdasher {
 	return hatmaker(func(ctx context.Context, s *Size) (*Hat, error) {
 		time.Sleep(dur)
-		return &Hat{s.Inches, "blue", "top hat"}, nil
+		return &Hat{Size: s.Inches, Color: "blue", Name: "top hat"}, nil
 	})
 }
 

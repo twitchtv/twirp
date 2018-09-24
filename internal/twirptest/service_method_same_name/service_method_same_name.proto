@@ -8,4 +8,3 @@ message Msg {}
 service Echo{
   rpc Echo(Msg) returns (Msg) {}
 }
-

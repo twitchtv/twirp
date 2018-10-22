@@ -118,6 +118,18 @@ func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*
 	return out, nil
 }
 
+// =========
+// Svc2 Stub
+// =========
+
+type Svc2Stub struct {
+	OnMethod func(context.Context, *no_package_name.Msg) (*no_package_name.Msg, error)
+}
+
+func (s *Svc2Stub) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	return s.OnMethod(ctx, in)
+}
+
 // ===================
 // Svc2 Server Handler
 // ===================

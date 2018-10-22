@@ -121,6 +121,18 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	return out, nil
 }
 
+// =========
+// Svc2 Stub
+// =========
+
+type Svc2Stub struct {
+	OnSend func(context.Context, *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
+}
+
+func (s *Svc2Stub) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	return s.OnSend(ctx, in)
+}
+
 // ===================
 // Svc2 Server Handler
 // ===================

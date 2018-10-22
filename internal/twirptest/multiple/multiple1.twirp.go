@@ -120,6 +120,18 @@ func (c *svc1JSONClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
 	return out, nil
 }
 
+// =========
+// Svc1 Stub
+// =========
+
+type Svc1Stub struct {
+	OnSend func(context.Context, *Msg1) (*Msg1, error)
+}
+
+func (s *Svc1Stub) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
+	return s.OnSend(ctx, in)
+}
+
 // ===================
 // Svc1 Server Handler
 // ===================

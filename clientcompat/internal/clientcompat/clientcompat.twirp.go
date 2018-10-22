@@ -144,6 +144,23 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 	return out, nil
 }
 
+// ==================
+// CompatService Stub
+// ==================
+
+type CompatServiceStub struct {
+	OnMethod     func(context.Context, *Req) (*Resp, error)
+	OnNoopMethod func(context.Context, *Empty) (*Empty, error)
+}
+
+func (s *CompatServiceStub) Method(ctx context.Context, in *Req) (*Resp, error) {
+	return s.OnMethod(ctx, in)
+}
+
+func (s *CompatServiceStub) NoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
+	return s.OnNoopMethod(ctx, in)
+}
+
 // ============================
 // CompatService Server Handler
 // ============================

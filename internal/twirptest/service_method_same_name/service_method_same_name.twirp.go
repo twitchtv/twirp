@@ -116,6 +116,18 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 	return out, nil
 }
 
+// =========
+// Echo Stub
+// =========
+
+type EchoStub struct {
+	OnEcho func(context.Context, *Msg) (*Msg, error)
+}
+
+func (s *EchoStub) Echo(ctx context.Context, in *Msg) (*Msg, error) {
+	return s.OnEcho(ctx, in)
+}
+
 // ===================
 // Echo Server Handler
 // ===================

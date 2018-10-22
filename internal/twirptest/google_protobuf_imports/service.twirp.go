@@ -119,6 +119,18 @@ func (c *svcJSONClient) Send(ctx context.Context, in *google_protobuf1.StringVal
 	return out, nil
 }
 
+// ========
+// Svc Stub
+// ========
+
+type SvcStub struct {
+	OnSend func(context.Context, *google_protobuf1.StringValue) (*google_protobuf.Empty, error)
+}
+
+func (s *SvcStub) Send(ctx context.Context, in *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
+	return s.OnSend(ctx, in)
+}
+
 // ==================
 // Svc Server Handler
 // ==================

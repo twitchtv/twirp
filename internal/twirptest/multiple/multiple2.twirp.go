@@ -131,6 +131,23 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 	return out, nil
 }
 
+// =========
+// Svc2 Stub
+// =========
+
+type Svc2Stub struct {
+	OnSend                   func(context.Context, *Msg2) (*Msg2, error)
+	OnSamePackageProtoImport func(context.Context, *Msg1) (*Msg1, error)
+}
+
+func (s *Svc2Stub) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
+	return s.OnSend(ctx, in)
+}
+
+func (s *Svc2Stub) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
+	return s.OnSamePackageProtoImport(ctx, in)
+}
+
 // ===================
 // Svc2 Server Handler
 // ===================

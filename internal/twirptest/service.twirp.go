@@ -118,6 +118,18 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	return out, nil
 }
 
+// ================
+// Haberdasher Stub
+// ================
+
+type HaberdasherStub struct {
+	OnMakeHat func(context.Context, *Size) (*Hat, error)
+}
+
+func (s *HaberdasherStub) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	return s.OnMakeHat(ctx, in)
+}
+
 // ==========================
 // Haberdasher Server Handler
 // ==========================

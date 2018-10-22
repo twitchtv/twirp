@@ -116,6 +116,18 @@ func (c *svcJSONClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 	return out, nil
 }
 
+// ========
+// Svc Stub
+// ========
+
+type SvcStub struct {
+	OnMethod func(context.Context, *Msg) (*Msg, error)
+}
+
+func (s *SvcStub) Method(ctx context.Context, in *Msg) (*Msg, error) {
+	return s.OnMethod(ctx, in)
+}
+
 // ==================
 // Svc Server Handler
 // ==================

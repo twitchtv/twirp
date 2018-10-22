@@ -782,6 +782,9 @@ func (t *twirp) generateService(file *descriptor.FileDescriptorProto, service *d
 	t.sectionComment(servName + ` JSON Client`)
 	t.generateClient("JSON", file, service)
 
+	t.sectionComment(servName + ` Stub`)
+	t.generateStub(file, service)
+
 	// Server
 	t.sectionComment(servName + ` Server Handler`)
 	t.generateServer(file, service)
@@ -804,6 +807,31 @@ func (t *twirp) generateTwirpInterface(file *descriptor.FileDescriptorProto, ser
 		t.P()
 	}
 	t.P(`}`)
+}
+
+func (t *twirp) generateStub(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
+	structName := serviceName(service) + "Stub"
+
+	t.P(`type `, structName, ` struct {`)
+	for _, method := range service.Method {
+		methName := "On"+methodName(method)
+		inputType := t.goTypeName(method.GetInputType())
+		outputType := t.goTypeName(method.GetOutputType())
+
+		t.P(methName, ` func(`, t.pkgs["context"], `.Context, *`, inputType, `) (*`, outputType, `, error)`)
+	}
+	t.P(`}`)
+
+	for _, method := range service.Method {
+		methName := methodName(method)
+		inputType := t.goTypeName(method.GetInputType())
+		outputType := t.goTypeName(method.GetOutputType())
+
+		t.P(`func (s *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
+		t.P(`  return s.On`, methName, `(ctx, in)`)
+		t.P(`}`)
+		t.P()
+	}
 }
 
 func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) string {

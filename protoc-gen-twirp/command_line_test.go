@@ -62,6 +62,15 @@ func TestParseCommandLineParams(t *testing.T) {
 			nil,
 		},
 		{
+			"emit_json_defaults parameter",
+			"emit_json_defaults=true",
+			&commandLineParams{
+				importMap:        map[string]string{},
+				emitJSONDefaults: true,
+			},
+			nil,
+		},
+		{
 			"single import parameter starting with 'M'",
 			"Mrpcutil/empty.proto=github.com/example/rpcutil",
 			&commandLineParams{

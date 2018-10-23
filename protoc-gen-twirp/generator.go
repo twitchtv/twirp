@@ -61,6 +61,9 @@ type twirp struct {
 	// Output buffer that holds the bytes we want to write out for a single file.
 	// Gets reset after working on a file.
 	output *bytes.Buffer
+
+	// Whether to render json fields with zero values.
+	emitJSONDefaults bool
 }
 
 func newGenerator() *twirp {
@@ -82,6 +85,8 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	}
 	t.importPrefix = params.importPrefix
 	t.importMap = params.importMap
+
+	t.emitJSONDefaults = params.emitJSONDefaults
 
 	t.genFiles = gen.FilesToGenerate(in)
 
@@ -668,7 +673,11 @@ func (t *twirp) generateUtils() {
 	t.P(`// doJSONRequest is common code to make a request to the remote twirp service.`)
 	t.P(`func doJSONRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, url string, in, out `, t.pkgs["proto"], `.Message) (err error) {`)
 	t.P(`  reqBody := `, t.pkgs["bytes"], `.NewBuffer(nil)`)
-	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
+	if t.emitJSONDefaults {
+		t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true, EmitDefaults: true}`)
+	} else {
+		t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
+	}
 	t.P(`  if err = marshaler.Marshal(reqBody, in); err != nil {`)
 	t.P(`    return clientError("failed to marshal json request", err)`)
 	t.P(`  }`)
@@ -1041,7 +1050,11 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
 	t.P()
 	t.P(`  var buf `, t.pkgs["bytes"], `.Buffer`)
-	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
+	if t.emitJSONDefaults {
+		t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true, EmitDefaults: true}`)
+	} else {
+		t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
+	}
 	t.P(`  if err = marshaler.Marshal(&buf, respContent); err != nil {`)
 	t.P(`    err = wrapErr(err, "failed to marshal json response")`)
 	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)

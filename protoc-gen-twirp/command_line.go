@@ -19,9 +19,10 @@ import (
 )
 
 type commandLineParams struct {
-	importPrefix string            // String to prefix to imported package file names.
-	importMap    map[string]string // Mapping from .proto file name to import path.
-	paths        string            // Paths value, used to control file output directory
+	importPrefix     string            // String to prefix to imported package file names.
+	importMap        map[string]string // Mapping from .proto file name to import path.
+	paths            string            // Paths value, used to control file output directory
+	emitJSONDefaults bool              // Whether to render json fields with zero values.
 }
 
 // parseCommandLineParams breaks the comma-separated list of key=value pairs
@@ -62,6 +63,8 @@ func parseCommandLineParams(parameter string) (*commandLineParams, error) {
 				return nil, fmt.Errorf("paths does not support %q", v)
 			}
 			clp.paths = v
+		case k == "emit_json_defaults":
+			clp.emitJSONDefaults = true
 		default:
 			return nil, fmt.Errorf("unknown parameter %q", k)
 		}

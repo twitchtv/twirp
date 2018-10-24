@@ -213,6 +213,13 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
@@ -235,6 +242,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
@@ -280,6 +288,13 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
@@ -302,6 +317,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	respBytes, err := proto.Marshal(respContent)
@@ -724,6 +740,14 @@ func callRequestRouted(ctx context.Context, h *twirp.ServerHooks) (context.Conte
 		return ctx, nil
 	}
 	return h.RequestRouted(ctx)
+}
+
+// Call twirp.ServerHooks.RequestDeserialized if the hook is available
+func callRequestDeserialized(ctx context.Context, h *twirp.ServerHooks) (context.Context, error) {
+	if h == nil || h.RequestDeserialized == nil {
+		return ctx, nil
+	}
+	return h.RequestDeserialized(ctx)
 }
 
 // Call twirp.ServerHooks.ResponsePrepared if the hook is available

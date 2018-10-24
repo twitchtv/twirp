@@ -228,6 +228,13 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg2
 	func() {
@@ -250,6 +257,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
@@ -295,6 +303,13 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg2
 	func() {
@@ -317,6 +332,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	respBytes, err := proto.Marshal(respContent)
@@ -372,6 +388,13 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg1
 	func() {
@@ -394,6 +417,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
@@ -439,6 +463,13 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg1
 	func() {
@@ -461,6 +492,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	respBytes, err := proto.Marshal(respContent)

@@ -241,6 +241,13 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Resp
 	func() {
@@ -263,6 +270,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
@@ -308,6 +316,13 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Resp
 	func() {
@@ -330,6 +345,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	respBytes, err := proto.Marshal(respContent)
@@ -385,6 +401,13 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Empty
 	func() {
@@ -407,6 +430,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
@@ -452,6 +476,13 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 		return
 	}
 
+	ctx = ctxsetters.WithRequestBody(ctx, reqContent)
+	ctx, err = callRequestDeserialized(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Empty
 	func() {
@@ -474,6 +505,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 		return
 	}
 
+	ctx = ctxsetters.WithResponseBody(ctx, respContent)
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	respBytes, err := proto.Marshal(respContent)
@@ -896,6 +928,14 @@ func callRequestRouted(ctx context.Context, h *twirp.ServerHooks) (context.Conte
 		return ctx, nil
 	}
 	return h.RequestRouted(ctx)
+}
+
+// Call twirp.ServerHooks.RequestDeserialized if the hook is available
+func callRequestDeserialized(ctx context.Context, h *twirp.ServerHooks) (context.Context, error) {
+	if h == nil || h.RequestDeserialized == nil {
+		return ctx, nil
+	}
+	return h.RequestDeserialized(ctx)
 }
 
 // Call twirp.ServerHooks.ResponsePrepared if the hook is available

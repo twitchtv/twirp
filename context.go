@@ -18,6 +18,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/twitchtv/twirp/internal/contextkeys"
 )
 
@@ -53,6 +54,30 @@ func PackageName(ctx context.Context) (string, bool) {
 func StatusCode(ctx context.Context) (string, bool) {
 	code, ok := ctx.Value(contextkeys.StatusCodeKey).(string)
 	return code, ok
+}
+
+// RequestBody retrieves a read-only copy of the request message.
+func RequestBody(ctx context.Context) (proto.Message, bool) {
+	msg, ok := ctx.Value(contextkeys.RequestBodyKey).(proto.Message)
+	if !ok {
+		return nil, false
+	}
+	// Make a copy so that the actual body cannot be modified, because
+	// modifications through hooks would allow for code that's too hard to
+	// understand.
+	return proto.Clone(msg), ok
+}
+
+// ResponseBody retrieves a read-only copy of the response message.
+func ResponseBody(ctx context.Context) (proto.Message, bool) {
+	msg, ok := ctx.Value(contextkeys.ResponseBodyKey).(proto.Message)
+	if !ok {
+		return nil, false
+	}
+	// Make a copy so that the actual body cannot be modified, because
+	// modifications through hooks would allow for code that's too hard to
+	// understand.
+	return proto.Clone(msg), ok
 }
 
 // WithHTTPRequestHeaders stores an http.Header in a context.Context. When

@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/twitchtv/twirp/internal/contextkeys"
 )
 
@@ -44,4 +45,12 @@ func WithStatusCode(ctx context.Context, code int) context.Context {
 
 func WithResponseWriter(ctx context.Context, w http.ResponseWriter) context.Context {
 	return context.WithValue(ctx, contextkeys.ResponseWriterKey, w)
+}
+
+func WithRequestBody(ctx context.Context, body proto.Message) context.Context {
+	return context.WithValue(ctx, contextkeys.RequestBodyKey, body)
+}
+
+func WithResponseBody(ctx context.Context, body proto.Message) context.Context {
+	return context.WithValue(ctx, contextkeys.ResponseBodyKey, body)
 }

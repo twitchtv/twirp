@@ -10,6 +10,7 @@ except ImportError:
     from urllib.error import HTTPError
 import json
 from google.protobuf import symbol_database as _symbol_database
+import sys
 
 _sym_db = _symbol_database.Default()
 
@@ -45,7 +46,10 @@ class EchoClient(object):
             server_address: The address of the server to send requests to, in
                 the full protocol://host:port form.
         """
-        self.__target = server_address.encode('ascii')
+        if sys.version_info[0] > 2:
+            self.__target = server_address
+        else:
+            self.__target = server_address.encode('ascii')
         self.__service_name = "Echo"
 
     def __make_request(self, body, full_method):

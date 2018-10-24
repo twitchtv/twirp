@@ -10,6 +10,7 @@ except ImportError:
     from urllib.error import HTTPError
 import json
 from google.protobuf import symbol_database as _symbol_database
+import sys
 
 _sym_db = _symbol_database.Default()
 

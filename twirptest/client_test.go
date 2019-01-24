@@ -109,8 +109,8 @@ func TestClientSetsRequestContext(t *testing.T) {
 					t.Error("packageName not found in context")
 					return
 				}
-				if pkgName != "twirp.internal.twirptest" {
-					t.Errorf("packageName has wrong value, have=%s, want=%s", pkgName, "twirp.internal.twirptest")
+				if pkgName != "twirp.twirptest" {
+					t.Errorf("packageName has wrong value, have=%s, want=%s", pkgName, "twirp.twirptest")
 				}
 
 				serviceName, exists := twirp.ServiceName(ctx)

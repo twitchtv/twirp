@@ -31,7 +31,7 @@ func TestReflection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ServiceDescriptor err: %v", err)
 	}
-	if have, want := fd.GetPackage(), "twirp.internal.twirptest.gogo_compat"; have != want {
+	if have, want := fd.GetPackage(), "twirp.twirptest.gogo_compat"; have != want {
 		t.Errorf("bad package, have=%q, want=%q", have, want)
 	}
 	if have, want := sd.GetName(), "Svc"; have != want {

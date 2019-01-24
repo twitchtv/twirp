@@ -1064,7 +1064,7 @@ func TestReflection(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unable to load descriptor: %v", err)
 		}
-		if have, want := fd.GetPackage(), "twirp.internal.twirptest"; have != want {
+		if have, want := fd.GetPackage(), "twirp.twirptest"; have != want {
 			t.Errorf("bad package name, have=%q, want=%q", have, want)
 		}
 
@@ -1104,7 +1104,7 @@ func TestReflection(t *testing.T) {
 func TestContextValues(t *testing.T) {
 	h := HaberdasherFunc(func(ctx context.Context, _ *Size) (*Hat, error) {
 		const (
-			wantPkg    = "twirp.internal.twirptest"
+			wantPkg    = "twirp.twirptest"
 			wantSvc    = "Haberdasher"
 			wantMethod = "MakeHat"
 		)

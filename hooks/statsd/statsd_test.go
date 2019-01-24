@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/twitchtv/twirp"
-	"github.com/twitchtv/twirp/internal/twirptest"
+	"github.com/twitchtv/twirp/twirptest"
 )
 
 func TestSanitize(t *testing.T) {

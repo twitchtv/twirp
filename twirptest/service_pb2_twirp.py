@@ -54,7 +54,7 @@ class HaberdasherClient(object):
             self.__target = server_address
         else:
             self.__target = server_address.encode('ascii')
-        self.__service_name = "twirp.internal.twirptest.Haberdasher"
+        self.__service_name = "twirp.twirptest.Haberdasher"
 
     def __make_request(self, body, full_method):
         req = Request(
@@ -74,8 +74,8 @@ class HaberdasherClient(object):
         MakeHat produces a hat of mysterious, randomly-selected color!
         """
 
-        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.Size").SerializeToString
-        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.Hat").FromString
+        serialize = _sym_db.GetSymbol("twirp.twirptest.Size").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.twirptest.Hat").FromString
 
         full_method = "/{}/{}".format(self.__service_name, "MakeHat")
         body = serialize(size)

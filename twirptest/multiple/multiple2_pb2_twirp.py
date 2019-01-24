@@ -50,7 +50,7 @@ class Svc2Client(object):
             self.__target = server_address
         else:
             self.__target = server_address.encode('ascii')
-        self.__service_name = "twirp.internal.twirptest.multiple.Svc2"
+        self.__service_name = "twirp.twirptest.multiple.Svc2"
 
     def __make_request(self, body, full_method):
         req = Request(
@@ -66,8 +66,8 @@ class Svc2Client(object):
         return resp.read()
 
     def send(self, msg2):
-        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.multiple.Msg2").SerializeToString
-        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.multiple.Msg2").FromString
+        serialize = _sym_db.GetSymbol("twirp.twirptest.multiple.Msg2").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.twirptest.multiple.Msg2").FromString
 
         full_method = "/{}/{}".format(self.__service_name, "Send")
         body = serialize(msg2)
@@ -75,8 +75,8 @@ class Svc2Client(object):
         return deserialize(resp_str)
 
     def same_package_proto_import(self, msg1):
-        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.multiple.Msg1").SerializeToString
-        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.multiple.Msg1").FromString
+        serialize = _sym_db.GetSymbol("twirp.twirptest.multiple.Msg1").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.twirptest.multiple.Msg1").FromString
 
         full_method = "/{}/{}".format(self.__service_name, "SamePackageProtoImport")
         body = serialize(msg1)

@@ -17,9 +17,9 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='proto.proto',
-  package='twirp.internal.twirptest.proto',
+  package='twirp.twirptest.proto',
   syntax='proto3',
-  serialized_pb=_b('\n\x0bproto.proto\x12\x1etwirp.internal.twirptest.proto\"\x05\n\x03Msg2W\n\x03Svc\x12P\n\x04Send\x12#.twirp.internal.twirptest.proto.Msg\x1a#.twirp.internal.twirptest.proto.MsgB\x07Z\x05protob\x06proto3')
+  serialized_pb=_b('\n\x0bproto.proto\x12\x15twirp.twirptest.proto\"\x05\n\x03Msg2E\n\x03Svc\x12>\n\x04Send\x12\x1a.twirp.twirptest.proto.Msg\x1a\x1a.twirp.twirptest.proto.MsgB\x07Z\x05protob\x06proto3')
 )
 
 
@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 
 _MSG = _descriptor.Descriptor(
   name='Msg',
-  full_name='twirp.internal.twirptest.proto.Msg',
+  full_name='twirp.twirptest.proto.Msg',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
@@ -44,8 +44,8 @@ _MSG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=47,
-  serialized_end=52,
+  serialized_start=38,
+  serialized_end=43,
 )
 
 DESCRIPTOR.message_types_by_name['Msg'] = _MSG
@@ -54,7 +54,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 Msg = _reflection.GeneratedProtocolMessageType('Msg', (_message.Message,), dict(
   DESCRIPTOR = _MSG,
   __module__ = 'proto_pb2'
-  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.proto.Msg)
+  # @@protoc_insertion_point(class_scope:twirp.twirptest.proto.Msg)
   ))
 _sym_db.RegisterMessage(Msg)
 
@@ -64,16 +64,16 @@ DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b
 
 _SVC = _descriptor.ServiceDescriptor(
   name='Svc',
-  full_name='twirp.internal.twirptest.proto.Svc',
+  full_name='twirp.twirptest.proto.Svc',
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=54,
-  serialized_end=141,
+  serialized_start=45,
+  serialized_end=114,
   methods=[
   _descriptor.MethodDescriptor(
     name='Send',
-    full_name='twirp.internal.twirptest.proto.Svc.Send',
+    full_name='twirp.twirptest.proto.Svc.Send',
     index=0,
     containing_service=None,
     input_type=_MSG,

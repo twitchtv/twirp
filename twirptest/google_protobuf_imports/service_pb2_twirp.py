@@ -50,7 +50,7 @@ class SvcClient(object):
             self.__target = server_address
         else:
             self.__target = server_address.encode('ascii')
-        self.__service_name = "twirp.internal.twirptest.use_empty.Svc"
+        self.__service_name = "twirp.twirptest.use_empty.Svc"
 
     def __make_request(self, body, full_method):
         req = Request(

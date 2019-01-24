@@ -25,7 +25,7 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import twirp_internal_twirptest_importable "github.com/twitchtv/twirp/twirptest/importable"
+import twirp_twirptest_importable "github.com/twitchtv/twirp/twirptest/importable"
 
 // Imports only used by utility functions:
 import io "io"
@@ -38,7 +38,7 @@ import url "net/url"
 // ==============
 
 type Svc2 interface {
-	Send(context.Context, *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error)
+	Send(context.Context, *twirp_twirptest_importable.Msg) (*twirp_twirptest_importable.Msg, error)
 }
 
 // ====================
@@ -69,11 +69,11 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
 	}
 }
 
-func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_twirptest_importable.Msg) (*twirp_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.twirptest.importer")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
-	out := new(twirp_internal_twirptest_importable.Msg)
+	out := new(twirp_twirptest_importable.Msg)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
@@ -109,11 +109,11 @@ func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
 	}
 }
 
-func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_twirptest_importable.Msg) (*twirp_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.twirptest.importer")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
-	out := new(twirp_internal_twirptest_importable.Msg)
+	out := new(twirp_twirptest_importable.Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
@@ -146,11 +146,11 @@ func (s *svc2Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 // Svc2PathPrefix is used for all URL paths on a twirp Svc2 server.
 // Requests are always: POST Svc2PathPrefix/method
 // It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
-const Svc2PathPrefix = "/twirp/twirp.internal.twirptest.importer.Svc2/"
+const Svc2PathPrefix = "/twirp/twirp.twirptest.importer.Svc2/"
 
 func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.twirptest.importer")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithResponseWriter(ctx, resp)
 
@@ -169,7 +169,7 @@ func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	switch req.URL.Path {
-	case "/twirp/twirp.internal.twirptest.importer.Svc2/Send":
+	case "/twirp/twirp.twirptest.importer.Svc2/Send":
 		s.serveSend(ctx, resp, req)
 		return
 	default:
@@ -207,7 +207,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
-	reqContent := new(twirp_internal_twirptest_importable.Msg)
+	reqContent := new(twirp_twirptest_importable.Msg)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request json")
@@ -216,7 +216,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	}
 
 	// Call service method
-	var respContent *twirp_internal_twirptest_importable.Msg
+	var respContent *twirp_twirptest_importable.Msg
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -233,7 +233,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
@@ -275,7 +275,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
-	reqContent := new(twirp_internal_twirptest_importable.Msg)
+	reqContent := new(twirp_twirptest_importable.Msg)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
@@ -283,7 +283,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 
 	// Call service method
-	var respContent *twirp_internal_twirptest_importable.Msg
+	var respContent *twirp_twirptest_importable.Msg
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -300,7 +300,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_twirptest_importable.Msg and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
@@ -753,15 +753,14 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 148 bytes of a gzipped FileDescriptorProto
+	// 136 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcb, 0xcc, 0x2d, 0xc8,
-	0x2f, 0x2a, 0x49, 0x2d, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x52, 0x2c, 0x29, 0xcf, 0x2c,
-	0x2a, 0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52, 0x8b,
-	0x4b, 0xf4, 0x60, 0x0a, 0xa5, 0x3c, 0xd2, 0x33, 0x4b, 0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3, 0x73,
-	0xf5, 0x4b, 0xca, 0x33, 0x4b, 0x92, 0x33, 0x4a, 0xca, 0xf4, 0xc1, 0xea, 0xf4, 0x61, 0xda, 0xf4,
-	0xe1, 0xda, 0xf4, 0x21, 0xda, 0x12, 0x93, 0x72, 0x52, 0x91, 0x98, 0x10, 0xcb, 0x8c, 0x92, 0xb8,
-	0x58, 0x82, 0xcb, 0x92, 0x8d, 0x84, 0xa2, 0xb8, 0x58, 0x82, 0x53, 0xf3, 0x52, 0x84, 0x34, 0xf4,
-	0x08, 0xd8, 0x0e, 0xd6, 0xeb, 0x5b, 0x9c, 0x2e, 0x45, 0xb4, 0x4a, 0x27, 0xae, 0x28, 0x0e, 0x98,
-	0xcb, 0x93, 0xd8, 0xc0, 0xd6, 0x1a, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x95, 0x06, 0x56, 0xb0,
-	0xf5, 0x00, 0x00, 0x00,
+	0x2f, 0x2a, 0x49, 0x2d, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0x28, 0x29, 0xcf, 0x2c,
+	0x2a, 0xd0, 0x03, 0x93, 0x25, 0xa9, 0xc5, 0x25, 0x7a, 0x30, 0x79, 0x29, 0xfb, 0xf4, 0xcc, 0x92,
+	0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0x92, 0xf2, 0xcc, 0x92, 0xe4, 0x8c, 0x92, 0x32,
+	0x7d, 0xb0, 0x3a, 0x7d, 0xb8, 0x6a, 0x7d, 0x88, 0xea, 0xc4, 0xa4, 0x9c, 0x54, 0x24, 0x26, 0xc4,
+	0x68, 0xa3, 0x00, 0x2e, 0x96, 0xe0, 0xb2, 0x64, 0x23, 0x21, 0x0f, 0x2e, 0x96, 0xe0, 0xd4, 0xbc,
+	0x14, 0x21, 0x79, 0x3d, 0xec, 0x76, 0x81, 0xb5, 0xf8, 0x16, 0xa7, 0x4b, 0x11, 0x52, 0xe0, 0xc4,
+	0x15, 0xc5, 0x01, 0x73, 0x5e, 0x12, 0x1b, 0xd8, 0x12, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0xd9, 0xb3, 0x11, 0xab, 0xd1, 0x00, 0x00, 0x00,
 }

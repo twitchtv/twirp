@@ -22,7 +22,7 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/twirptest/importmapping/y"
+import twirp_twirptest_importmapping_y "github.com/twitchtv/twirp/twirptest/importmapping/y"
 
 // Imports only used by utility functions:
 import io "io"
@@ -35,7 +35,7 @@ import url "net/url"
 // ==============
 
 type Svc1 interface {
-	Send(context.Context, *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error)
+	Send(context.Context, *twirp_twirptest_importmapping_y.MsgY) (*twirp_twirptest_importmapping_y.MsgY, error)
 }
 
 // ====================
@@ -66,11 +66,11 @@ func NewSvc1ProtobufClient(addr string, client HTTPClient) Svc1 {
 	}
 }
 
-func (c *svc1ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
+func (c *svc1ProtobufClient) Send(ctx context.Context, in *twirp_twirptest_importmapping_y.MsgY) (*twirp_twirptest_importmapping_y.MsgY, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.twirptest.importmapping.x")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
-	out := new(twirp_internal_twirptest_importmapping_y.MsgY)
+	out := new(twirp_twirptest_importmapping_y.MsgY)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
@@ -106,11 +106,11 @@ func NewSvc1JSONClient(addr string, client HTTPClient) Svc1 {
 	}
 }
 
-func (c *svc1JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
+func (c *svc1JSONClient) Send(ctx context.Context, in *twirp_twirptest_importmapping_y.MsgY) (*twirp_twirptest_importmapping_y.MsgY, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.twirptest.importmapping.x")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
-	out := new(twirp_internal_twirptest_importmapping_y.MsgY)
+	out := new(twirp_twirptest_importmapping_y.MsgY)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
@@ -143,11 +143,11 @@ func (s *svc1Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 // Svc1PathPrefix is used for all URL paths on a twirp Svc1 server.
 // Requests are always: POST Svc1PathPrefix/method
 // It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
-const Svc1PathPrefix = "/twirp/twirp.internal.twirptest.importmapping.x.Svc1/"
+const Svc1PathPrefix = "/twirp/twirp.twirptest.importmapping.x.Svc1/"
 
 func (s *svc1Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.twirptest.importmapping.x")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
 	ctx = ctxsetters.WithResponseWriter(ctx, resp)
 
@@ -166,7 +166,7 @@ func (s *svc1Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	switch req.URL.Path {
-	case "/twirp/twirp.internal.twirptest.importmapping.x.Svc1/Send":
+	case "/twirp/twirp.twirptest.importmapping.x.Svc1/Send":
 		s.serveSend(ctx, resp, req)
 		return
 	default:
@@ -204,7 +204,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
-	reqContent := new(twirp_internal_twirptest_importmapping_y.MsgY)
+	reqContent := new(twirp_twirptest_importmapping_y.MsgY)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request json")
@@ -213,7 +213,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	}
 
 	// Call service method
-	var respContent *twirp_internal_twirptest_importmapping_y.MsgY
+	var respContent *twirp_twirptest_importmapping_y.MsgY
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -230,7 +230,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importmapping_y.MsgY and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_twirptest_importmapping_y.MsgY and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
@@ -272,7 +272,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
-	reqContent := new(twirp_internal_twirptest_importmapping_y.MsgY)
+	reqContent := new(twirp_twirptest_importmapping_y.MsgY)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		err = wrapErr(err, "failed to parse request proto")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
@@ -280,7 +280,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 
 	// Call service method
-	var respContent *twirp_internal_twirptest_importmapping_y.MsgY
+	var respContent *twirp_twirptest_importmapping_y.MsgY
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -297,7 +297,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importmapping_y.MsgY and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_twirptest_importmapping_y.MsgY and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
@@ -750,13 +750,12 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 122 bytes of a gzipped FileDescriptorProto
+	// 112 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xac, 0xd0, 0xaf, 0xd0,
-	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xd2, 0x28, 0x29, 0xcf, 0x2c, 0x2a, 0xd0, 0xcb, 0xcc, 0x2b,
-	0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52, 0x8b, 0x4b, 0xf4, 0x32, 0x73, 0x0b,
-	0xf2, 0x8b, 0x4a, 0x72, 0x13, 0x0b, 0x0a, 0x32, 0xf3, 0xd2, 0xf5, 0x2a, 0xa4, 0x38, 0x2b, 0xf5,
-	0x2b, 0x21, 0x9a, 0x8c, 0xf2, 0xb8, 0x58, 0x82, 0xcb, 0x92, 0x0d, 0x85, 0xd2, 0xb8, 0x58, 0x82,
-	0x53, 0xf3, 0x52, 0x84, 0xf4, 0xf4, 0x88, 0x34, 0xa5, 0x52, 0xcf, 0xb7, 0x38, 0x3d, 0x52, 0x8a,
-	0x44, 0xf5, 0x4e, 0xcc, 0x51, 0x8c, 0x15, 0x49, 0x6c, 0x60, 0xbb, 0x8d, 0x01, 0x01, 0x00, 0x00,
-	0xff, 0xff, 0xe6, 0x59, 0x58, 0xe2, 0xbd, 0x00, 0x00, 0x00,
+	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0x2f, 0x29, 0xcf, 0x2c, 0x2a, 0xd0, 0x03, 0x93, 0x25,
+	0xa9, 0xc5, 0x25, 0x7a, 0x99, 0xb9, 0x05, 0xf9, 0x45, 0x25, 0xb9, 0x89, 0x05, 0x05, 0x99, 0x79,
+	0xe9, 0x7a, 0x15, 0x52, 0x9c, 0x95, 0xfa, 0x95, 0x10, 0xb5, 0x46, 0x31, 0x5c, 0x2c, 0xc1, 0x65,
+	0xc9, 0x86, 0x42, 0x21, 0x5c, 0x2c, 0xc1, 0xa9, 0x79, 0x29, 0x42, 0xaa, 0x7a, 0xf8, 0x35, 0x57,
+	0xea, 0xf9, 0x16, 0xa7, 0x47, 0x4a, 0x11, 0xa7, 0xcc, 0x89, 0x39, 0x8a, 0xb1, 0x22, 0x89, 0x0d,
+	0x6c, 0x93, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x77, 0x06, 0xfe, 0x59, 0xa2, 0x00, 0x00, 0x00,
 }

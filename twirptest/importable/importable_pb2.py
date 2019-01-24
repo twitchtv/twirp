@@ -17,9 +17,9 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='importable.proto',
-  package='twirp.internal.twirptest.importable',
+  package='twirp.twirptest.importable',
   syntax='proto3',
-  serialized_pb=_b('\n\x10importable.proto\x12#twirp.internal.twirptest.importable\"\x05\n\x03Msg2a\n\x03Svc\x12Z\n\x04Send\x12(.twirp.internal.twirptest.importable.Msg\x1a(.twirp.internal.twirptest.importable.MsgB\x0cZ\nimportableb\x06proto3')
+  serialized_pb=_b('\n\x10importable.proto\x12\x1atwirp.twirptest.importable\"\x05\n\x03Msg2O\n\x03Svc\x12H\n\x04Send\x12\x1f.twirp.twirptest.importable.Msg\x1a\x1f.twirp.twirptest.importable.MsgB\x0cZ\nimportableb\x06proto3')
 )
 
 
@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 
 _MSG = _descriptor.Descriptor(
   name='Msg',
-  full_name='twirp.internal.twirptest.importable.Msg',
+  full_name='twirp.twirptest.importable.Msg',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
@@ -44,8 +44,8 @@ _MSG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=57,
-  serialized_end=62,
+  serialized_start=48,
+  serialized_end=53,
 )
 
 DESCRIPTOR.message_types_by_name['Msg'] = _MSG
@@ -54,7 +54,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 Msg = _reflection.GeneratedProtocolMessageType('Msg', (_message.Message,), dict(
   DESCRIPTOR = _MSG,
   __module__ = 'importable_pb2'
-  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.importable.Msg)
+  # @@protoc_insertion_point(class_scope:twirp.twirptest.importable.Msg)
   ))
 _sym_db.RegisterMessage(Msg)
 
@@ -64,16 +64,16 @@ DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b
 
 _SVC = _descriptor.ServiceDescriptor(
   name='Svc',
-  full_name='twirp.internal.twirptest.importable.Svc',
+  full_name='twirp.twirptest.importable.Svc',
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=64,
-  serialized_end=161,
+  serialized_start=55,
+  serialized_end=134,
   methods=[
   _descriptor.MethodDescriptor(
     name='Send',
-    full_name='twirp.internal.twirptest.importable.Svc.Send',
+    full_name='twirp.twirptest.importable.Svc.Send',
     index=0,
     containing_service=None,
     input_type=_MSG,

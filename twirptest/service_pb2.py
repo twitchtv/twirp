@@ -17,9 +17,9 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
-  package='twirp.internal.twirptest',
+  package='twirp.twirptest',
   syntax='proto3',
-  serialized_pb=_b('\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.HatB\x0bZ\ttwirptestb\x06proto3')
+  serialized_pb=_b('\n\rservice.proto\x12\x0ftwirp.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32\x45\n\x0bHaberdasher\x12\x36\n\x07MakeHat\x12\x15.twirp.twirptest.Size\x1a\x14.twirp.twirptest.HatB\x0bZ\ttwirptestb\x06proto3')
 )
 
 
@@ -27,27 +27,27 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 
 _HAT = _descriptor.Descriptor(
   name='Hat',
-  full_name='twirp.internal.twirptest.Hat',
+  full_name='twirp.twirptest.Hat',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='size', full_name='twirp.internal.twirptest.Hat.size', index=0,
+      name='size', full_name='twirp.twirptest.Hat.size', index=0,
       number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='color', full_name='twirp.internal.twirptest.Hat.color', index=1,
+      name='color', full_name='twirp.twirptest.Hat.color', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='name', full_name='twirp.internal.twirptest.Hat.name', index=2,
+      name='name', full_name='twirp.twirptest.Hat.name', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -65,20 +65,20 @@ _HAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=43,
-  serialized_end=91,
+  serialized_start=34,
+  serialized_end=82,
 )
 
 
 _SIZE = _descriptor.Descriptor(
   name='Size',
-  full_name='twirp.internal.twirptest.Size',
+  full_name='twirp.twirptest.Size',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='inches', full_name='twirp.internal.twirptest.Size.inches', index=0,
+      name='inches', full_name='twirp.twirptest.Size.inches', index=0,
       number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -96,8 +96,8 @@ _SIZE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=93,
-  serialized_end=115,
+  serialized_start=84,
+  serialized_end=106,
 )
 
 DESCRIPTOR.message_types_by_name['Hat'] = _HAT
@@ -107,14 +107,14 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 Hat = _reflection.GeneratedProtocolMessageType('Hat', (_message.Message,), dict(
   DESCRIPTOR = _HAT,
   __module__ = 'service_pb2'
-  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.Hat)
+  # @@protoc_insertion_point(class_scope:twirp.twirptest.Hat)
   ))
 _sym_db.RegisterMessage(Hat)
 
 Size = _reflection.GeneratedProtocolMessageType('Size', (_message.Message,), dict(
   DESCRIPTOR = _SIZE,
   __module__ = 'service_pb2'
-  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.Size)
+  # @@protoc_insertion_point(class_scope:twirp.twirptest.Size)
   ))
 _sym_db.RegisterMessage(Size)
 
@@ -124,16 +124,16 @@ DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b
 
 _HABERDASHER = _descriptor.ServiceDescriptor(
   name='Haberdasher',
-  full_name='twirp.internal.twirptest.Haberdasher',
+  full_name='twirp.twirptest.Haberdasher',
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=117,
-  serialized_end=204,
+  serialized_start=108,
+  serialized_end=177,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeHat',
-    full_name='twirp.internal.twirptest.Haberdasher.MakeHat',
+    full_name='twirp.twirptest.Haberdasher.MakeHat',
     index=0,
     containing_service=None,
     input_type=_SIZE,

@@ -50,7 +50,7 @@ class SvcClient(object):
             self.__target = server_address
         else:
             self.__target = server_address.encode('ascii')
-        self.__service_name = "twirp.internal.twirptest.proto.Svc"
+        self.__service_name = "twirp.twirptest.proto.Svc"
 
     def __make_request(self, body, full_method):
         req = Request(
@@ -66,8 +66,8 @@ class SvcClient(object):
         return resp.read()
 
     def send(self, msg):
-        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.proto.Msg").SerializeToString
-        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.proto.Msg").FromString
+        serialize = _sym_db.GetSymbol("twirp.twirptest.proto.Msg").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.twirptest.proto.Msg").FromString
 
         full_method = "/{}/{}".format(self.__service_name, "Send")
         body = serialize(msg)

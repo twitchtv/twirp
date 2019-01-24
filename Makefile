@@ -14,7 +14,7 @@ generate:
 test_all: setup test_core test_clients
 
 test_core: generate
-	$(RETOOL) do errcheck -blank ./internal/twirptest
+	$(RETOOL) do errcheck -blank ./twirptest
 	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /_tools/)
 
 test_clients: test_go_client test_python_client

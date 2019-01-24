@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package twirp.internal.twirptest;
+package twirp.twirptest;
 option go_package = "twirptest";
 
 message Hat {

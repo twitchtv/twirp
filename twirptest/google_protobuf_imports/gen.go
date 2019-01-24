@@ -13,4 +13,4 @@
 
 package google_protobuf_imports
 
-//go:generate ../../protoc_gen.sh service.proto
+//go:generate ../../internal/protoc_gen.sh service.proto

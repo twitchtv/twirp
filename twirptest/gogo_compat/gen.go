@@ -13,4 +13,4 @@
 
 package gogo_compat
 
-//go:generate ../../gogo_protoc_gen.sh service.proto
+//go:generate ../../internal/gogo_protoc_gen.sh service.proto

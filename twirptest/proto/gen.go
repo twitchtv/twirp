@@ -13,4 +13,4 @@
 
 package proto
 
-//go:generate ../../protoc_gen.sh proto.proto
+//go:generate ../../internal/protoc_gen.sh proto.proto

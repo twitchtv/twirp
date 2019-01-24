@@ -1,10 +1,10 @@
 syntax = "proto3";
 
 // Test to make sure that importing other packages doesnt break
-package twirp.internal.twirptest.importer;
+package twirp.twirptest.importer;
 option go_package = "importer";
 
-import "github.com/twitchtv/twirp/internal/twirptest/importable/importable.proto";
+import "github.com/twitchtv/twirp/twirptest/importable/importable.proto";
 
 service Svc2 {
   rpc Send(importable.Msg) returns(importable.Msg);

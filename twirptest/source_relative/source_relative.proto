@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package twirp.internal.twirptest.source_relative;
+package twirp.twirptest.source_relative;
 
 option go_package = "github.com/twitchtv/twirp/internal/twirptest/source_relative";
 

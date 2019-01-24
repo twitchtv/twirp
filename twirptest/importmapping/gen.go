@@ -13,5 +13,5 @@
 
 package importmapping
 
-//go:generate ../../protoc_gen.sh y/y.proto
+//go:generate ../../internal/protoc_gen.sh y/y.proto
 //go:generate ./protoc_gen-x.sh

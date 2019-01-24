@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package twirp.internal.twirptest.importmapping.x;
+package twirp.twirptest.importmapping.x;
 option go_package = "x";
 
 import "y/y.proto";

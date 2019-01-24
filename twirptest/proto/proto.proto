@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // Test to make sure that a package named proto doesn't break
-package twirp.internal.twirptest.proto;
+package twirp.twirptest.proto;
 option go_package = "proto";
 
 message Msg {}

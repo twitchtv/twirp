@@ -13,4 +13,4 @@
 
 package source_relative
 
-//go:generate ../../protoc_gen_source_relative.sh source_relative.proto
+//go:generate ../../internal/protoc_gen_source_relative.sh source_relative.proto

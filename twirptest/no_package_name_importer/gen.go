@@ -13,4 +13,4 @@
 
 package no_package_name_importer
 
-//go:generate ../../protoc_gen.sh no_package_name_importer.proto
+//go:generate ../../internal/protoc_gen.sh no_package_name_importer.proto

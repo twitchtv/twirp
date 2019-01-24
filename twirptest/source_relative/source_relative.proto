@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package twirp.twirptest.source_relative;
 
-option go_package = "github.com/twitchtv/twirp/internal/twirptest/source_relative";
+option go_package = "github.com/twitchtv/twirp/twirptest/source_relative";
 
 message Msg {}
 

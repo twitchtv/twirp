@@ -25,7 +25,7 @@
 //
 //     resp, err := twirpClient.RPCMethod(ctx, req)
 //     if err != nil {
-//         if twerr := err.(twirp.Error) {
+//         if twerr, ok := err.(twirp.Error); ok {
 //             switch twerr.Code() {
 //             case twirp.InvalidArgument:
 //                 log.Error("invalid argument "+twirp.Meta("argument"))

@@ -70,8 +70,8 @@ class HaberdasherClient(object):
         return resp.read()
 
     def make_hat_v1(self, size_v1):
-        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.snake_case_names.Size_v1").SerializeToString
-        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.snake_case_names.Hat_v1").FromString
+        serialize = _sym_db.GetSymbol("twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1").SerializeToString
+        deserialize = _sym_db.GetSymbol("twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1").FromString
 
         full_method = "/{}/{}".format(self.__service_name, "MakeHat_v1")
         body = serialize(size_v1)

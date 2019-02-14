@@ -19,35 +19,35 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='snake_case_names.proto',
   package='twirp.internal.twirptest.snake_case_names',
   syntax='proto3',
-  serialized_pb=_b('\n\x16snake_case_names.proto\x12)twirp.internal.twirptest.snake_case_names\"3\n\x06Hat_v1\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x19\n\x07Size_v1\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32\x82\x01\n\x0bHaberdasher\x12s\n\nMakeHat_v1\x12\x32.twirp.internal.twirptest.snake_case_names.Size_v1\x1a\x31.twirp.internal.twirptest.snake_case_names.Hat_v1B\x12Z\x10snake_case_namesb\x06proto3')
+  serialized_pb=_b('\n\x16snake_case_names.proto\x12)twirp.internal.twirptest.snake_case_names\"`\n\x0eMakeHatArgs_v1\x1a\x33\n\x06Hat_v1\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x1a\x19\n\x07Size_v1\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32\xa1\x01\n\x0bHaberdasher\x12\x91\x01\n\nMakeHat_v1\x12\x41.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1\x1a@.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1B\x12Z\x10snake_case_namesb\x06proto3')
 )
 
 
 
 
-_HAT_V1 = _descriptor.Descriptor(
+_MAKEHATARGS_V1_HAT_V1 = _descriptor.Descriptor(
   name='Hat_v1',
-  full_name='twirp.internal.twirptest.snake_case_names.Hat_v1',
+  full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='size', full_name='twirp.internal.twirptest.snake_case_names.Hat_v1.size', index=0,
+      name='size', full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1.size', index=0,
       number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='color', full_name='twirp.internal.twirptest.snake_case_names.Hat_v1.color', index=1,
+      name='color', full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1.color', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='name', full_name='twirp.internal.twirptest.snake_case_names.Hat_v1.name', index=2,
+      name='name', full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1.name', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -65,20 +65,19 @@ _HAT_V1 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=69,
-  serialized_end=120,
+  serialized_start=87,
+  serialized_end=138,
 )
 
-
-_SIZE_V1 = _descriptor.Descriptor(
+_MAKEHATARGS_V1_SIZE_V1 = _descriptor.Descriptor(
   name='Size_v1',
-  full_name='twirp.internal.twirptest.snake_case_names.Size_v1',
+  full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='inches', full_name='twirp.internal.twirptest.snake_case_names.Size_v1.inches', index=0,
+      name='inches', full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1.inches', index=0,
       number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -96,27 +95,60 @@ _SIZE_V1 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=122,
-  serialized_end=147,
+  serialized_start=140,
+  serialized_end=165,
 )
 
-DESCRIPTOR.message_types_by_name['Hat_v1'] = _HAT_V1
-DESCRIPTOR.message_types_by_name['Size_v1'] = _SIZE_V1
+_MAKEHATARGS_V1 = _descriptor.Descriptor(
+  name='MakeHatArgs_v1',
+  full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[_MAKEHATARGS_V1_HAT_V1, _MAKEHATARGS_V1_SIZE_V1, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=69,
+  serialized_end=165,
+)
+
+_MAKEHATARGS_V1_HAT_V1.containing_type = _MAKEHATARGS_V1
+_MAKEHATARGS_V1_SIZE_V1.containing_type = _MAKEHATARGS_V1
+DESCRIPTOR.message_types_by_name['MakeHatArgs_v1'] = _MAKEHATARGS_V1
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Hat_v1 = _reflection.GeneratedProtocolMessageType('Hat_v1', (_message.Message,), dict(
-  DESCRIPTOR = _HAT_V1,
-  __module__ = 'snake_case_names_pb2'
-  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.snake_case_names.Hat_v1)
-  ))
-_sym_db.RegisterMessage(Hat_v1)
+MakeHatArgs_v1 = _reflection.GeneratedProtocolMessageType('MakeHatArgs_v1', (_message.Message,), dict(
 
-Size_v1 = _reflection.GeneratedProtocolMessageType('Size_v1', (_message.Message,), dict(
-  DESCRIPTOR = _SIZE_V1,
+  Hat_v1 = _reflection.GeneratedProtocolMessageType('Hat_v1', (_message.Message,), dict(
+    DESCRIPTOR = _MAKEHATARGS_V1_HAT_V1,
+    __module__ = 'snake_case_names_pb2'
+    # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1)
+    ))
+  ,
+
+  Size_v1 = _reflection.GeneratedProtocolMessageType('Size_v1', (_message.Message,), dict(
+    DESCRIPTOR = _MAKEHATARGS_V1_SIZE_V1,
+    __module__ = 'snake_case_names_pb2'
+    # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1)
+    ))
+  ,
+  DESCRIPTOR = _MAKEHATARGS_V1,
   __module__ = 'snake_case_names_pb2'
-  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.snake_case_names.Size_v1)
+  # @@protoc_insertion_point(class_scope:twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1)
   ))
-_sym_db.RegisterMessage(Size_v1)
+_sym_db.RegisterMessage(MakeHatArgs_v1)
+_sym_db.RegisterMessage(MakeHatArgs_v1.Hat_v1)
+_sym_db.RegisterMessage(MakeHatArgs_v1.Size_v1)
 
 
 DESCRIPTOR.has_options = True
@@ -128,16 +160,16 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=150,
-  serialized_end=280,
+  serialized_start=168,
+  serialized_end=329,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeHat_v1',
     full_name='twirp.internal.twirptest.snake_case_names.Haberdasher.MakeHat_v1',
     index=0,
     containing_service=None,
-    input_type=_SIZE_V1,
-    output_type=_HAT_V1,
+    input_type=_MAKEHATARGS_V1_SIZE_V1,
+    output_type=_MAKEHATARGS_V1_HAT_V1,
     options=None,
   ),
 ])

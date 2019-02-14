@@ -1228,7 +1228,7 @@ func (t *twirp) goTypeName(protoName string) string {
 	for _, parent := range def.Lineage() {
 		name += parent.Descriptor.GetName() + "_"
 	}
-	name += def.Descriptor.GetName()
+	name += stringutils.CamelCase(def.Descriptor.GetName())
 	return prefix + name
 }
 

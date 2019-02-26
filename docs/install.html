@@ -1,63 +1,109 @@
-<html lang="en"><head><meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Installing Twirp · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta property="og:title" content="Installing Twirp · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="You&#x27;ll need a few things to install Twirp:"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/></head><body class="sideNavVisible doc"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Getting started</span></h2></div><div class="navGroups"><div class="navGroup navGroupActive"><h3>Getting started</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem navListItemActive"><a class="navItem navItemActive" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup navGroupActive"><h3>Beyond the basics</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Command line parameters</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li></ul></div><div class="navGroup navGroupActive"><h3>Formal specification</h3><ul><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Proposed Draft)</a></li></ul></div></div></section></div><script>
-          var toggler = document.getElementById('navToggler');
-          var nav = document.getElementById('docsNav');
-          toggler.onclick = function() {
-            nav.classList.toggle('docsSliderActive');
-          };
-        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Installing Twirp</h1></header><article><div><span><p>You'll need a few things to install Twirp:</p>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Installing Twirp · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;You&#x27;ll need a few things to install Twirp:&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Installing Twirp · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="&lt;p&gt;You&#x27;ll need a few things to install Twirp:&lt;/p&gt;
+"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Getting started</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Command line parameters</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Proposed Draft)</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Installing Twirp</h1></header><article><div><span><p>You'll need a few things to install Twirp:</p>
 <ul>
 <li>Go1.7+</li>
 <li>The protobuf compiler <code>protoc</code></li>
 <li>Go and Twirp protoc plugins <code>protoc-gen-go</code> and <code>protoc-gen-twirp</code></li>
 </ul>
-<h2><a class="anchor" aria-hidden="true" id="install-protoc"></a><a href="#install-protoc" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Install protoc</h2>
+<h2><a class="anchor" aria-hidden="true" id="install-protoc"></a><a href="#install-protoc" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Install protoc</h2>
 <p><a href="https://developers.google.com/protocol-buffers/docs/gotutorial">Install Protocol Buffers v3</a>,
 the <code>protoc</code> compiler that is used to auto-generate code. The simplest way to do
 this is to download pre-compiled binaries for your platform from here:
 <a href="https://github.com/google/protobuf/releases">https://github.com/google/protobuf/releases</a></p>
 <p>It is also available in MacOS through Homebrew:</p>
-<pre><code class="hljs css sh">$ brew install protobuf
+<pre><code class="hljs css language-sh">$ brew install protobuf
 </code></pre>
-<h2><a class="anchor" aria-hidden="true" id="get-protoc-gen-go-and-protoc-gen-twirp-plugins"></a><a href="#get-protoc-gen-go-and-protoc-gen-twirp-plugins" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get protoc-gen-go and protoc-gen-twirp plugins</h2>
-<h3><a class="anchor" aria-hidden="true" id="with-retool"></a><a href="#with-retool" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>With retool</h3>
+<h2><a class="anchor" aria-hidden="true" id="get-protoc-gen-go-and-protoc-gen-twirp-plugins"></a><a href="#get-protoc-gen-go-and-protoc-gen-twirp-plugins" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get protoc-gen-go and protoc-gen-twirp plugins</h2>
+<h3><a class="anchor" aria-hidden="true" id="with-retool"></a><a href="#with-retool" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>With retool</h3>
 <p>We recommend using <a href="https://github.com/twitchtv/retool">retool</a> to manage go
 tools like commands and linters:</p>
-<pre><code class="hljs css sh">$ go get github.com/twitchtv/retool
+<pre><code class="hljs css language-sh">$ go get github.com/twitchtv/retool
 </code></pre>
 <p>Install the plugins into your project's <code>_tools</code> folder:</p>
-<pre><code class="hljs css sh">$ retool add github.com/golang/protobuf/protoc-gen-go master
+<pre><code class="hljs css language-sh">$ retool add github.com/golang/protobuf/protoc-gen-go master
 $ retool add github.com/twitchtv/twirp/protoc-gen-twirp master
 </code></pre>
 <p>This will make it easier to manage and update versions without causing problems
 to other project collaborators.</p>
 <p>If the plugins were installed with retool, when run the <code>protoc</code> command make
 sure to prefix with <code>retool do</code>, for example:</p>
-<pre><code class="hljs css sh">$ retool <span class="hljs-keyword">do</span> protoc --proto_path=<span class="hljs-variable">$GOPATH</span>/src:. --twirp_out=. --go_out=. ./rpc/haberdasher/service.proto
+<pre><code class="hljs css language-sh">$ retool <span class="hljs-keyword">do</span> protoc --proto_path=<span class="hljs-variable">$GOPATH</span>/src:. --twirp_out=. --go_out=. ./rpc/haberdasher/service.proto
 </code></pre>
-<h3><a class="anchor" aria-hidden="true" id="with-go-get"></a><a href="#with-go-get" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>With go get</h3>
+<h3><a class="anchor" aria-hidden="true" id="with-go-get"></a><a href="#with-go-get" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>With go get</h3>
 <p>Download and install <code>protoc-gen-go</code> using the normal Go tools:</p>
-<pre><code class="hljs css sh">$ go get -u github.com/golang/protobuf/protoc-gen-go
+<pre><code class="hljs css language-sh">$ go get -u github.com/golang/protobuf/protoc-gen-go
 $ go get -u github.com/twitchtv/twirp/protoc-gen-twirp
 </code></pre>
 <p>The normal Go tools will install <code>protoc-gen-go</code> in <code>$GOBIN</code>, defaulting to
 <code>$GOPATH/bin</code>. It must be in your <code>$PATH</code> for the protocol compiler, <code>protoc</code>,
 to find it, so you might need to explicitly add it to your path:</p>
-<pre><code class="hljs css sh">$ <span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$PATH</span>:<span class="hljs-variable">$GOPATH</span>/bin
+<pre><code class="hljs css language-sh">$ <span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$PATH</span>:<span class="hljs-variable">$GOPATH</span>/bin
 </code></pre>
-<h2><a class="anchor" aria-hidden="true" id="updating-twirp"></a><a href="#updating-twirp" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Updating Twirp</h2>
+<h2><a class="anchor" aria-hidden="true" id="updating-twirp"></a><a href="#updating-twirp" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Updating Twirp</h2>
 <p>Twirp releases are tagged with semantic versioning and releases are managed by
 Github. See the <a href="https://github.com/twitchtv/twirp/releases">releases</a> page.</p>
 <p>To stay up to date, you update <code>protoc-gen-twirp</code> and regenerate your code. If
 you are using <a href="https://github.com/twitchtv/retool">retool</a>, that's done with</p>
-<pre><code class="hljs css sh">$ retool upgrade github.com/twitchtv/twirp/protoc-gen-twirp v5.2.0
+<pre><code class="hljs css language-sh">$ retool upgrade github.com/twitchtv/twirp/protoc-gen-twirp v5.2.0
 </code></pre>
 <p>If you're not using retool, you can also do a system-wide install with checking
 out the package new version and using <code>go install</code>:</p>
-<pre><code class="hljs css sh">$ <span class="hljs-built_in">cd</span> <span class="hljs-variable">$GOPATH</span>/src/github.com/twitchtv/twirp
+<pre><code class="hljs css language-sh">$ <span class="hljs-built_in">cd</span> <span class="hljs-variable">$GOPATH</span>/src/github.com/twitchtv/twirp
 $ git checkout v5.2.0
 $ go install ./protoc-gen-twirp
 </code></pre>
 <p>With the new version of <code>protoc-gen-twirp</code>, you can re-generate code to update
 your servers. Then, any of the clients of your service can update their vendored
 copy of your service to get the latest version.</p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="intro.html">← Meet Twirp!</a><a class="docs-next button" href="example.html">Usage Example: Haberdasher →</a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2018 Twitch Interactive, Inc.</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/intro.html"><span class="arrow-prev">← </span><span>Overview</span></a><a class="docs-next button" href="/twirp/docs/example.html"><span>Usage Example</span><span class="arrow-next"> →</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2019 Twitch Interactive, Inc.</section></footer></div></body></html>

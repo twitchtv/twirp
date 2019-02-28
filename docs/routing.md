@@ -39,11 +39,12 @@ for more details.
 
 ### JSON serialization
 
-The JSON format should match the
+The JSON format generally matches the
 [official spec](https://developers.google.com/protocol-buffers/docs/proto3#json)'s
-rules for JSON serialization. In a nutshell: names are `camelCased`, _all_
+rules for JSON serialization.  In a nutshell: _all_
 fields must be set, _no_ extra fields may be set, and `null` means "I want to
 leave this field blank".
+One exception to this is that names match the proto names, this is considered more predictable to those writing custom JSON clients.
 
 ### Error responses
 

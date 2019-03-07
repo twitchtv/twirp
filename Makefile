@@ -14,6 +14,9 @@ TMP_BIN = $(TMP)/bin
 TMP_VENV = $(TMP)/venv
 TMP_VERSIONS := $(TMP)/versions
 
+$(TMP_BIN):
+	@mkdir -p $(TMP_BIN)
+
 DEP := $(TMP_VERSIONS)/dep/$(DEP_VERSION)
 ifeq ($(UNAME_OS),Darwin)
 DEP_OS := darwin
@@ -24,8 +27,7 @@ endif
 ifeq ($(UNAME_ARCH),x86_64)
 DEP_ARCH := amd64
 endif
-$(DEP):
-	@mkdir -p $(TMP_BIN)
+$(DEP): $(TMP_BIN)
 	curl -sSL https://github.com/golang/dep/releases/download/v$(DEP_VERSION)/dep-$(DEP_OS)-$(DEP_ARCH) -o $(TMP_BIN)/dep
 	@chmod +x $(TMP_BIN)/dep
 	@rm -rf $(dir $(DEP))
@@ -89,7 +91,7 @@ $(TMP_BIN)/clientcompat: $(TMP_BIN)
 	go build -o $(TMP_BIN)/clientcompat ./clientcompat
 
 $(TMP_VENV):
-	@mkdir -p $(shell dirname $(TMP_VENV))
+	@mkdir -p $(dir $(TMP_VENV))
 	virtualenv $(TMP_VENV)
 
 $(TMP_VENV)/bin/pycompat.py: $(TMP_VENV)

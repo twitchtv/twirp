@@ -23,7 +23,7 @@ goarch() {
 sha256() {
   if ! type sha256sum >/dev/null 2>/dev/null; then
     if ! type shasum >/dev/null 2>/dev/null; then
-      fail "sha256sum and shasum are not installed"
+      echo "sha256sum and shasum are not installed" >&2
       return 1
     else
       shasum -a 256 "$@"

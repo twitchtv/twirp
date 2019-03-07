@@ -1,10 +1,9 @@
 sudo: false
 language: go
+go_import_path: github.com/twitchtv/twirp
 go:
-- 1.9.x
-- 1.10.x
 - 1.11.x
+- 1.12.x
 - tip
 script:
-- go install ./...
-- go test -race ./...
+- make

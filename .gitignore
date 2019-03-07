@@ -1,5 +1,5 @@
 *.test
-/bin
+/.tmp/
 
 clientcompat/pycompat/ENV
 *.pyc

@@ -15,7 +15,7 @@ If you'd like to make changes to Twirp, read on:
 
 ## Setup Requirements ##
 
-You will need git, Go 1.9+, and Python 2.7 installed and on your system's path.
+You will need git, Go 1.11+, and Python 2.7 installed and on your system's path.
 Install them however you feel.
 
 ## Developer Loop ##

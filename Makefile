@@ -17,6 +17,10 @@ TMP_VERSIONS := $(TMP)/versions
 $(TMP_BIN):
 	@mkdir -p $(TMP_BIN)
 
+$(TMP_VENV):
+	@mkdir -p $(dir $(TMP_VENV))
+	virtualenv $(TMP_VENV)
+
 DEP := $(TMP_VERSIONS)/dep/$(DEP_VERSION)
 ifeq ($(UNAME_OS),Darwin)
 DEP_OS := darwin
@@ -84,23 +88,6 @@ $(PROTOC_GEN_GOFAST):
 export GOBIN := $(abspath $(TMP_BIN))
 export PATH := $(GOBIN):$(PATH)
 
-$(TMP_BIN)/gocompat: $(TMP_BIN)
-	go build -o $(TMP_BIN)/gocompat ./clientcompat/gocompat
-
-$(TMP_BIN)/clientcompat: $(TMP_BIN)
-	go build -o $(TMP_BIN)/clientcompat ./clientcompat
-
-$(TMP_VENV):
-	@mkdir -p $(dir $(TMP_VENV))
-	virtualenv $(TMP_VENV)
-
-$(TMP_VENV)/bin/pycompat.py: $(TMP_VENV)
-	$(TMP_VENV)/bin/pip install --upgrade ./clientcompat/pycompat
-
-$(TMP)/pycompat: $(TMP_VENV)/bin/pycompat.py
-	cp ./clientcompat/pycompat/pycompat.sh $(TMP)/pycompat
-	@chmod +x $(TMP)/pycompat
-
 .DEFAULT_GOAL := all
 
 .PHONY: all
@@ -131,9 +118,14 @@ test_core: generate $(ERRCHECK)
 test_clients: test_go_client test_python_client
 
 .PHONY: test_go_client
-test_go_client: generate $(TMP_BIN)/clientcompat $(TMP_BIN)/gocompat
+test_go_client: generate
+	go install ./clientcompat ./clientcompat/gocompat
 	./$(TMP_BIN)/clientcompat -client ./$(TMP_BIN)/gocompat
 
 .PHONY: test_python_client
-test_python_client: generate $(TMP_BIN)/clientcompat $(TMP)/pycompat
+test_python_client: generate $(TMP_VENV)
+	go install ./clientcompat
+	$(TMP_VENV)/bin/pip install --upgrade ./clientcompat/pycompat
+	cp ./clientcompat/pycompat/pycompat.sh $(TMP)/pycompat
+	@chmod +x $(TMP)/pycompat
 	./$(TMP_BIN)/clientcompat -client ./$(TMP)/pycompat

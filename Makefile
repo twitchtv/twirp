@@ -1,8 +1,8 @@
 DEP_VERSION := 0.5.0
 PROTOC_VERSION := 3.7.0
-ERRCHECK_VERSION := v1.2.0
-PROTOC_GEN_GO_VERSION := v1.3.0
-PROTOC_GEN_GOFAST_VERSION := v1.2.1
+ERRCHECK_VERSION := 1.2.0
+PROTOC_GEN_GO_VERSION := 1.3.0
+PROTOC_GEN_GOFAST_VERSION := 1.2.1
 
 SHELL := /bin/bash -o pipefail
 UNAME_OS := $(shell uname -s)
@@ -49,19 +49,19 @@ $(PROTOC): $(TMP_BIN)
 ERRCHECK := $(TMP_BIN)/errcheck
 $(ERRCHECK):
 	$(eval ERRCHECK_TMP := $(shell mktemp -d))
-	@cd $(ERRCHECK_TMP); echo module tmp > go.mod; GO111MODULE=on go get github.com/kisielk/errcheck@$(ERRCHECK_VERSION)
+	@cd $(ERRCHECK_TMP); echo module tmp > go.mod; GO111MODULE=on go get github.com/kisielk/errcheck@v$(ERRCHECK_VERSION)
 	@rm -rf $(ERRCHECK_TMP)
 
 PROTOC_GEN_GO := $(TMP_BIN)/protoc-gen-go
 $(PROTOC_GEN_GO):
 	$(eval PROTOC_GEN_GO_TMP := $(shell mktemp -d))
-	@cd $(PROTOC_GEN_GO_TMP); echo module tmp > go.mod; GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
+	@cd $(PROTOC_GEN_GO_TMP); echo module tmp > go.mod; GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@v$(PROTOC_GEN_GO_VERSION)
 	@rm -rf $(PROTOC_GEN_GO_TMP)
 
 PROTOC_GEN_GOFAST := $(TMP_BIN)/protoc-gen-gofast
 $(PROTOC_GEN_GOFAST):
 	$(eval PROTOC_GEN_GOFAST_TMP := $(shell mktemp -d))
-	@cd $(PROTOC_GEN_GOFAST_TMP); echo module tmp > go.mod; GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@$(PROTOC_GEN_GOFAST_VERSION)
+	@cd $(PROTOC_GEN_GOFAST_TMP); echo module tmp > go.mod; GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@v$(PROTOC_GEN_GOFAST_VERSION)
 	@rm -rf $(PROTOC_GEN_GOFAST_TMP)
 
 export GOBIN := $(abspath $(TMP_BIN))

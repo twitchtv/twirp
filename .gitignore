@@ -4,6 +4,4 @@
 clientcompat/pycompat/ENV
 *.pyc
 
-build
-
 npm-debug.log

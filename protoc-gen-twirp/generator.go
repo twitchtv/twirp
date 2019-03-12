@@ -202,6 +202,7 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 	if t.filesHandled == 0 {
 		t.generateUtilImports()
 	}
+	t.generateImportRefs()
 
 	// For each service, generate client stubs and server
 	for i, service := range file.Service {
@@ -318,6 +319,12 @@ func (t *twirp) generateUtilImports() {
 	t.P(`import `, t.pkgs["url"], ` "net/url"`)
 }
 
+func (t *twirp) generateImportRefs() {
+	t.P(`// Reference imports to suppress errors if they are not otherwise used.`)
+	t.P(`var _ = `, t.pkgs["ioutil"], `.ReadAll`)
+	t.P()
+}
+
 // Generate utility functions used in Twirp code.
 // These should be generated just once per package.
 func (t *twirp) generateUtils() {
@@ -352,6 +359,12 @@ func (t *twirp) generateUtils() {
 	t.P(`	// ProtocGenTwirpVersion is the semantic version string of the version of`)
 	t.P(`	// twirp used to generate this file.`)
 	t.P(`	ProtocGenTwirpVersion() string`)
+	t.P(`   // SetBuferPools sets the optional memory pools that will be used to serialize`)
+	t.P(`   // and deserialize ProtoBuf messages. The same pool object may be set for both`)
+	t.P(`   // deserialization (requests) and serialization (responses), or different pools`)
+	t.P(`   // may be used if the average size for incoming requests vastly differs from the`)
+	t.P(`   // average size for responses.`)
+	t.P(`   SetBufferPools(req BufferPool, resp BufferPool)`)
 	t.P(`}`)
 	t.P()
 
@@ -751,6 +764,31 @@ func (t *twirp) generateUtils() {
 	t.P(`  return h.Error(ctx, err)`)
 	t.P(`}`)
 	t.P()
+
+	t.P(`// BufferPool represents a pool of buffers. The *sync.Pool type satisfies this`)
+	t.P(`// interface.  The type of the value stored in a pool is not specified.`)
+	t.P(`type BufferPool interface {`)
+	t.P(`  // Get gets a value from the pool or returns nil if the pool is empty.`)
+	t.P(`  Get() interface{}`)
+	t.P(`  // Put adds a value to the pool.`)
+	t.P(`  Put(x interface{})`)
+	t.P(`}`)
+	t.P()
+	t.P(`func getbuf(pool BufferPool) []byte {`)
+	t.P(`  if pool != nil {`)
+	t.P(`    if b := pool.Get(); b != nil {`)
+	t.P(`      return b.([]byte)`)
+	t.P(`    }`)
+	t.P(`  }`)
+	t.P(`  return nil`)
+	t.P(`}`)
+	t.P()
+	t.P(`func putbuf(pool BufferPool, b []byte) {`)
+	t.P(`  if pool != nil {`)
+	t.P(`    pool.Put(b[:0])`)
+	t.P(`  }`)
+	t.P(`}`)
+	t.P()
 }
 
 // P forwards to g.gen.P, which prints output.
@@ -877,6 +915,8 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`type `, servStruct, ` struct {`)
 	t.P(`  `, servName)
 	t.P(`  hooks     *`, t.pkgs["twirp"], `.ServerHooks`)
+	t.P(`  reqPool BufferPool`)
+	t.P(`  respPool BufferPool`)
 	t.P(`}`)
 	t.P()
 
@@ -894,6 +934,13 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`// If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)`)
 	t.P(`func (s *`, servStruct, `) writeError(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, err error) {`)
 	t.P(`  writeError(ctx, resp, err, s.hooks)`)
+	t.P(`}`)
+	t.P()
+
+	// Configure buffer pools
+	t.P(`func (s *`, servStruct, `) SetBufferPools(reqPool, respPool BufferPool) {`)
+	t.P(`  s.reqPool = reqPool`)
+	t.P(`  s.respPool = respPool`)
 	t.P(`}`)
 	t.P()
 
@@ -1076,14 +1123,23 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
-	t.P(`  buf, err := `, t.pkgs["ioutil"], `.ReadAll(req.Body)`)
+	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
+
+	t.P(`  var rbuf *`, t.pkgs["bytes"], `.Buffer`)
+	t.P(`  if b := getbuf(s.reqPool); b != nil {`)
+	t.P(`    rbuf = `, t.pkgs["bytes"], `.NewBuffer(b)`)
+	t.P(`  } else {`)
+	t.P(`    rbuf = new(`, t.pkgs["bytes"], `.Buffer)`)
+	t.P(`  }`)
+	t.P(`  _, err = rbuf.ReadFrom(req.Body)`)
 	t.P(`  if err != nil {`)
 	t.P(`    err = wrapErr(err, "failed to read request body")`)
 	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
 	t.P(`    return`)
 	t.P(`  }`)
-	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
-	t.P(`  if err = `, t.pkgs["proto"], `.Unmarshal(buf, reqContent); err != nil {`)
+	t.P(`  err = `, t.pkgs["proto"], `.Unmarshal(rbuf.Bytes(), reqContent)`)
+	t.P(`  putbuf(s.reqPool, rbuf.Bytes())`)
+	t.P(`  if err != nil {`)
 	t.P(`    err = wrapErr(err, "failed to parse request proto")`)
 	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
 	t.P(`    return`)
@@ -1112,8 +1168,11 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`  }`)
 	t.P()
 	t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
-	t.P()
-	t.P(`  respBytes, err := `, t.pkgs["proto"], `.Marshal(respContent)`)
+	t.P(`  var wbuf `, t.pkgs["proto"], `.Buffer`)
+	t.P(`  if b := getbuf(s.respPool); b != nil {`)
+	t.P(`    wbuf.SetBuf(b)`)
+	t.P(`  }`)
+	t.P(`  err = wbuf.Marshal(respContent)`)
 	t.P(`  if err != nil {`)
 	t.P(`    err = wrapErr(err, "failed to marshal proto response")`)
 	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.InternalErrorWith(err))`)
@@ -1123,11 +1182,12 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)
 	t.P(`  resp.Header().Set("Content-Type", "application/protobuf")`)
 	t.P(`  resp.WriteHeader(`, t.pkgs["http"], `.StatusOK)`)
-	t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
-	t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
+	t.P(`  if n, err := resp.Write(wbuf.Bytes()); err != nil {`)
+	t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(wbuf.Bytes()), err.Error())`)
 	t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
 	t.P(`    callError(ctx, s.hooks, twerr)`)
 	t.P(`  }`)
+	t.P(`  putbuf(s.respPool, wbuf.Bytes())`)
 	t.P(`  callResponseSent(ctx, s.hooks)`)
 	t.P(`}`)
 	t.P()

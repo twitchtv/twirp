@@ -15,6 +15,9 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = ioutil.ReadAll
+
 // ==============
 // Svc2 Interface
 // ==============
@@ -137,7 +140,9 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 
 type svc2Server struct {
 	Svc2
-	hooks *twirp.ServerHooks
+	hooks    *twirp.ServerHooks
+	reqPool  BufferPool
+	respPool BufferPool
 }
 
 func NewSvc2Server(svc Svc2, hooks *twirp.ServerHooks) TwirpServer {
@@ -151,6 +156,11 @@ func NewSvc2Server(svc Svc2, hooks *twirp.ServerHooks) TwirpServer {
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
 func (s *svc2Server) writeError(ctx context.Context, resp http.ResponseWriter, err error) {
 	writeError(ctx, resp, err, s.hooks)
+}
+
+func (s *svc2Server) SetBufferPools(reqPool, respPool BufferPool) {
+	s.reqPool = reqPool
+	s.respPool = respPool
 }
 
 // Svc2PathPrefix is used for all URL paths on a twirp Svc2 server.
@@ -282,14 +292,22 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
-	buf, err := ioutil.ReadAll(req.Body)
+	reqContent := new(Msg2)
+	var rbuf *bytes.Buffer
+	if b := getbuf(s.reqPool); b != nil {
+		rbuf = bytes.NewBuffer(b)
+	} else {
+		rbuf = new(bytes.Buffer)
+	}
+	_, err = rbuf.ReadFrom(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
-	reqContent := new(Msg2)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
+	err = proto.Unmarshal(rbuf.Bytes(), reqContent)
+	putbuf(s.reqPool, rbuf.Bytes())
+	if err != nil {
 		err = wrapErr(err, "failed to parse request proto")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
@@ -318,8 +336,11 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
+	var wbuf proto.Buffer
+	if b := getbuf(s.respPool); b != nil {
+		wbuf.SetBuf(b)
+	}
+	err = wbuf.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
@@ -329,11 +350,12 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+	if n, err := resp.Write(wbuf.Bytes()); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(wbuf.Bytes()), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+	putbuf(s.respPool, wbuf.Bytes())
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -426,14 +448,22 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
-	buf, err := ioutil.ReadAll(req.Body)
+	reqContent := new(Msg1)
+	var rbuf *bytes.Buffer
+	if b := getbuf(s.reqPool); b != nil {
+		rbuf = bytes.NewBuffer(b)
+	} else {
+		rbuf = new(bytes.Buffer)
+	}
+	_, err = rbuf.ReadFrom(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
-	reqContent := new(Msg1)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
+	err = proto.Unmarshal(rbuf.Bytes(), reqContent)
+	putbuf(s.reqPool, rbuf.Bytes())
+	if err != nil {
 		err = wrapErr(err, "failed to parse request proto")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
@@ -462,8 +492,11 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
+	var wbuf proto.Buffer
+	if b := getbuf(s.respPool); b != nil {
+		wbuf.SetBuf(b)
+	}
+	err = wbuf.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
@@ -473,11 +506,12 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+	if n, err := resp.Write(wbuf.Bytes()); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(wbuf.Bytes()), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+	putbuf(s.respPool, wbuf.Bytes())
 	callResponseSent(ctx, s.hooks)
 }
 

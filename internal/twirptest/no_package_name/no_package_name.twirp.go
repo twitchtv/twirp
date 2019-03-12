@@ -28,6 +28,9 @@ import strconv "strconv"
 import json "encoding/json"
 import url "net/url"
 
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = ioutil.ReadAll
+
 // =============
 // Svc Interface
 // =============
@@ -122,7 +125,9 @@ func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 
 type svcServer struct {
 	Svc
-	hooks *twirp.ServerHooks
+	hooks    *twirp.ServerHooks
+	reqPool  BufferPool
+	respPool BufferPool
 }
 
 func NewSvcServer(svc Svc, hooks *twirp.ServerHooks) TwirpServer {
@@ -136,6 +141,11 @@ func NewSvcServer(svc Svc, hooks *twirp.ServerHooks) TwirpServer {
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
 func (s *svcServer) writeError(ctx context.Context, resp http.ResponseWriter, err error) {
 	writeError(ctx, resp, err, s.hooks)
+}
+
+func (s *svcServer) SetBufferPools(reqPool, respPool BufferPool) {
+	s.reqPool = reqPool
+	s.respPool = respPool
 }
 
 // SvcPathPrefix is used for all URL paths on a twirp Svc server.
@@ -264,14 +274,22 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 		return
 	}
 
-	buf, err := ioutil.ReadAll(req.Body)
+	reqContent := new(Msg)
+	var rbuf *bytes.Buffer
+	if b := getbuf(s.reqPool); b != nil {
+		rbuf = bytes.NewBuffer(b)
+	} else {
+		rbuf = new(bytes.Buffer)
+	}
+	_, err = rbuf.ReadFrom(req.Body)
 	if err != nil {
 		err = wrapErr(err, "failed to read request body")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
 	}
-	reqContent := new(Msg)
-	if err = proto.Unmarshal(buf, reqContent); err != nil {
+	err = proto.Unmarshal(rbuf.Bytes(), reqContent)
+	putbuf(s.reqPool, rbuf.Bytes())
+	if err != nil {
 		err = wrapErr(err, "failed to parse request proto")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
 		return
@@ -300,8 +318,11 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 	}
 
 	ctx = callResponsePrepared(ctx, s.hooks)
-
-	respBytes, err := proto.Marshal(respContent)
+	var wbuf proto.Buffer
+	if b := getbuf(s.respPool); b != nil {
+		wbuf.SetBuf(b)
+	}
+	err = wbuf.Marshal(respContent)
 	if err != nil {
 		err = wrapErr(err, "failed to marshal proto response")
 		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
@@ -311,11 +332,12 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
 	resp.WriteHeader(http.StatusOK)
-	if n, err := resp.Write(respBytes); err != nil {
-		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+	if n, err := resp.Write(wbuf.Bytes()); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(wbuf.Bytes()), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
 		callError(ctx, s.hooks, twerr)
 	}
+	putbuf(s.respPool, wbuf.Bytes())
 	callResponseSent(ctx, s.hooks)
 }
 
@@ -361,6 +383,12 @@ type TwirpServer interface {
 	// ProtocGenTwirpVersion is the semantic version string of the version of
 	// twirp used to generate this file.
 	ProtocGenTwirpVersion() string
+	// SetBuferPools sets the optional memory pools that will be used to serialize
+	// and deserialize ProtoBuf messages. The same pool object may be set for both
+	// deserialization (requests) and serialization (responses), or different pools
+	// may be used if the average size for incoming requests vastly differs from the
+	// average size for responses.
+	SetBufferPools(req BufferPool, resp BufferPool)
 }
 
 // WriteError writes an HTTP response with a valid Twirp error format.
@@ -745,6 +773,30 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 		return ctx
 	}
 	return h.Error(ctx, err)
+}
+
+// BufferPool represents a pool of buffers. The *sync.Pool type satisfies this
+// interface.  The type of the value stored in a pool is not specified.
+type BufferPool interface {
+	// Get gets a value from the pool or returns nil if the pool is empty.
+	Get() interface{}
+	// Put adds a value to the pool.
+	Put(x interface{})
+}
+
+func getbuf(pool BufferPool) []byte {
+	if pool != nil {
+		if b := pool.Get(); b != nil {
+			return b.([]byte)
+		}
+	}
+	return nil
+}
+
+func putbuf(pool BufferPool, b []byte) {
+	if pool != nil {
+		pool.Put(b[:0])
+	}
 }
 
 var twirpFileDescriptor0 = []byte{

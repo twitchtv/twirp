@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service_method_same_name.proto',
   package='',
   syntax='proto3',
+  serialized_options=_b('Z\030service_method_same_name'),
   serialized_pb=_b('\n\x1eservice_method_same_name.proto\"\x05\n\x03Msg2\x1c\n\x04\x45\x63ho\x12\x14\n\x04\x45\x63ho\x12\x04.Msg\x1a\x04.Msg\"\x00\x42\x1aZ\x18service_method_same_nameb\x06proto3')
 )
 
@@ -38,7 +38,7 @@ _MSG = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -59,15 +59,14 @@ Msg = _reflection.GeneratedProtocolMessageType('Msg', (_message.Message,), dict(
 _sym_db.RegisterMessage(Msg)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\030service_method_same_name'))
+DESCRIPTOR._options = None
 
 _ECHO = _descriptor.ServiceDescriptor(
   name='Echo',
   full_name='Echo',
   file=DESCRIPTOR,
   index=0,
-  options=None,
+  serialized_options=None,
   serialized_start=41,
   serialized_end=69,
   methods=[
@@ -78,7 +77,7 @@ _ECHO = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_MSG,
     output_type=_MSG,
-    options=None,
+    serialized_options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_ECHO)

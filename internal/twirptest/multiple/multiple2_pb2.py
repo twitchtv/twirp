@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -20,6 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='multiple2.proto',
   package='twirp.internal.twirptest.multiple',
   syntax='proto3',
+  serialized_options=_b('Z\010multiple'),
   serialized_pb=_b('\n\x0fmultiple2.proto\x12!twirp.internal.twirptest.multiple\x1a\x0fmultiple1.proto\"\x06\n\x04Msg22\xcc\x01\n\x04Svc2\x12X\n\x04Send\x12\'.twirp.internal.twirptest.multiple.Msg2\x1a\'.twirp.internal.twirptest.multiple.Msg2\x12j\n\x16SamePackageProtoImport\x12\'.twirp.internal.twirptest.multiple.Msg1\x1a\'.twirp.internal.twirptest.multiple.Msg1B\nZ\x08multipleb\x06proto3')
   ,
   dependencies=[multiple1__pb2.DESCRIPTOR,])
@@ -40,7 +40,7 @@ _MSG2 = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -61,15 +61,14 @@ Msg2 = _reflection.GeneratedProtocolMessageType('Msg2', (_message.Message,), dic
 _sym_db.RegisterMessage(Msg2)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\010multiple'))
+DESCRIPTOR._options = None
 
 _SVC2 = _descriptor.ServiceDescriptor(
   name='Svc2',
   full_name='twirp.internal.twirptest.multiple.Svc2',
   file=DESCRIPTOR,
   index=0,
-  options=None,
+  serialized_options=None,
   serialized_start=80,
   serialized_end=284,
   methods=[
@@ -80,7 +79,7 @@ _SVC2 = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_MSG2,
     output_type=_MSG2,
-    options=None,
+    serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
     name='SamePackageProtoImport',
@@ -89,7 +88,7 @@ _SVC2 = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=multiple1__pb2._MSG1,
     output_type=multiple1__pb2._MSG1,
-    options=None,
+    serialized_options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC2)

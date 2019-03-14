@@ -223,21 +223,14 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
 		return
 	}
 
 	// Call service method
 	var respContent *Msg2
 	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
+		defer handlePanics(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.Send(ctx, reqContent)
 	}()
 
@@ -255,8 +248,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	var buf bytes.Buffer
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
@@ -284,27 +276,19 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
 	reqContent := new(Msg2)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
 		return
 	}
 
 	// Call service method
 	var respContent *Msg2
 	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
+		defer handlePanics(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.Send(ctx, reqContent)
 	}()
 
@@ -321,8 +305,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
 		return
 	}
 
@@ -367,21 +350,14 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
 		return
 	}
 
 	// Call service method
 	var respContent *Msg1
 	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
+		defer handlePanics(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
 	}()
 
@@ -399,8 +375,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	var buf bytes.Buffer
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
@@ -428,27 +403,19 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
 	reqContent := new(Msg1)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
 		return
 	}
 
 	// Call service method
 	var respContent *Msg1
 	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
+		defer handlePanics(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
 	}()
 
@@ -465,8 +432,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
 		return
 	}
 

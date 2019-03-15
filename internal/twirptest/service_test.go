@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/jsonpb"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/internal/descriptors"
@@ -792,8 +793,8 @@ func TestWriteErrorFromHTTPMiddlewareInternal(t *testing.T) {
 	}
 }
 
-// If an application panics in its handler, it should return a non-retryable error.
-func TestPanickyApplication(t *testing.T) {
+// If an application panics in its handler, it should return an internal error with "Internal service panic" msg.
+func TestPanicsReturnInternalErrors(t *testing.T) {
 	hooks, recorder := recorderHooks()
 	s := NewHaberdasherServer(PanickyHatmaker("OH NO!"), hooks)
 
@@ -802,7 +803,7 @@ func TestPanickyApplication(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if r := recover(); r == nil {
-				t.Error("http server never panicked")
+				t.Error("http server never panicked") // also make sure it did panic
 			}
 		}()
 		s.ServeHTTP(w, r)
@@ -832,6 +833,60 @@ func TestPanickyApplication(t *testing.T) {
 	}
 
 	recorder.assertHookCalls(t, []hookCall{received, routed, errored, sent})
+}
+
+// If an application panics in its handler, the Error hooks should trigger and have access to the panic source.
+func TestPanicsTriggerErrorHooks(t *testing.T) {
+	errHookCalled := false
+	errHook := &twirp.ServerHooks{
+		Error: func(ctx context.Context, twerr twirp.Error) context.Context {
+			errHookCalled = true
+			// The error should have a .Cause containing the panic value for inspection
+			err := pkgerrors.Cause(twerr)
+			if err.Error() != "This Is Fine Meme" {
+				t.Fatalf("Expected error cause to be accessible, instead found %v", err)
+			}
+			return ctx
+		},
+	}
+	panicValue := errors.New("This Is Fine Meme")
+	s := NewHaberdasherServer(PanickyHatmaker(panicValue), errHook)
+
+	// Wrap the twirp server with a handler to stop the panicking from
+	// crashing the httptest server and failing our test.
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("http server never panicked") // also make sure it did panic
+			}
+		}()
+		s.ServeHTTP(w, r)
+	})
+
+	server := httptest.NewServer(h)
+	defer server.Close()
+
+	client := NewHaberdasherJSONClient(server.URL, http.DefaultClient)
+
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
+	if err == nil {
+		t.Fatalf("twirp client err was expected for panicking handler, found nil")
+	}
+
+	if !errHookCalled {
+		t.Fatal("expected error hook to be called for panicking handler")
+	}
+
+	twerr, ok := err.(twirp.Error)
+	if !ok {
+		t.Fatalf("expected twirp.Error type error, have %T", err)
+	}
+	if twerr.Code() != twirp.Internal {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", twirp.Internal, twerr.Code())
+	}
+	if twerr.Msg() != "Internal service panic" {
+		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), "Internal service panic")
+	}
 }
 
 func TestCustomRequestHeaders(t *testing.T) {

@@ -367,6 +367,9 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)
 	ctx = callError(ctx, hooks, twerr) // Error hook
 
+	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON
+	resp.WriteHeader(statusCode)                          // set HTTP status code and send response
+
 	respBody := marshalErrorToJSON(twerr)
 	_, writeErr := resp.Write(respBody)
 	if writeErr != nil {
@@ -377,9 +380,6 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 		// The best option is to ignore writeErr, the original err is being handled anyways.
 		_ = writeErr
 	}
-
-	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON
-	resp.WriteHeader(statusCode)                          // set HTTP status code and send response
 
 	callResponseSent(ctx, hooks) // ResponseSent hook
 }

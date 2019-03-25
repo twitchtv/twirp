@@ -562,14 +562,15 @@ type wrappedError struct {
 func (e *wrappedError) Cause() error  { return e.cause }
 func (e *wrappedError) Error() string { return e.prefix + ": " + e.cause.Error() }
 
-// handlePanics makes sure that panics during rpc methods respond with
-// Twirp Internal error responses (status 500) and trigger hooks with the panic wrapped as an error.
+// handlePanics makes sure that panics during rpc methods respond with Twirp Interna
+// error responses (status 500) and trigger hooks with the panic wrapped as an error.
+// The panic is not intercepted and should be handled in middleware to avoid empty responses.
 func handlePanics(ctx context.Context, resp http.ResponseWriter, hooks *twirp.ServerHooks) {
 	if r := recover(); r != nil {
 		err := errFromPanic(r)                                                 // allow to inspect error on Error hooks
 		twerr := &internalWithCause{msg: "Internal service panic", cause: err} // avoid internal data on response
 		writeError(ctx, resp, twerr, hooks)                                    // write response and trigger Error hooks
-		panic(r)                                                               // re-panic to keep standard recovery flow (http middleware or standard http.Server handling)
+		panic(r)                                                               // keep the panic going
 	}
 }
 

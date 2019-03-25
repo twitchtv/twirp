@@ -201,7 +201,7 @@ func TestClientSetsAcceptHeader(t *testing.T) {
 
 // If a server returns a 3xx response, give a clear error message
 func TestClientRedirectError(t *testing.T) {
-	testcase := func(code int, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
+	testcase := func(code int, clientMaker func(string, twirp.HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that redirects all requests
 			redirecter := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +258,7 @@ func TestClientRedirectError(t *testing.T) {
 }
 
 func TestClientIntermediaryErrors(t *testing.T) {
-	testcase := func(code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
+	testcase := func(code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, twirp.HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that returns invalid twirp error responses,
 			// simulating a network intermediary.
@@ -486,7 +486,7 @@ func TestClientReturnsCloseErrors(t *testing.T) {
 // bodyCloseErrClient implements HTTPClient, but the response bodies it returns
 // give an error when they are closed.
 type bodyCloseErrClient struct {
-	base HTTPClient
+	base twirp.HTTPClient
 }
 
 func (c *bodyCloseErrClient) Do(req *http.Request) (*http.Response, error) {

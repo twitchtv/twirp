@@ -43,26 +43,33 @@ type Haberdasher interface {
 // ===========================
 
 type haberdasherProtobufClient struct {
-	client HTTPClient
+	client twirp.HTTPClient
 	urls   [1]string
+	opts   twirp.ClientOptions
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewHaberdasherProtobufClient(addr string, client HTTPClient) Haberdasher {
+func NewHaberdasherProtobufClient(addr string, client twirp.HTTPClient, opt ...twirp.ClientOption) Haberdasher {
+	var httpClient twirp.HTTPClient = client
+
+	if c, ok := client.(*http.Client); ok {
+		httpClient = withoutRedirects(c)
+	}
+
+	opts := twirp.DefaultClientOptions(client)
+	for _, o := range opt {
+		o(&opts)
+	}
+
 	prefix := urlBase(addr) + HaberdasherPathPrefix
 	urls := [1]string{
 		prefix + "MakeHat",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &haberdasherProtobufClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
 	return &haberdasherProtobufClient{
-		client: client,
+		client: httpClient,
 		urls:   urls,
+		opts:   opts,
 	}
 }
 
@@ -83,26 +90,33 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 // =======================
 
 type haberdasherJSONClient struct {
-	client HTTPClient
+	client twirp.HTTPClient
 	urls   [1]string
+	opts   twirp.ClientOptions
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewHaberdasherJSONClient(addr string, client HTTPClient) Haberdasher {
+func NewHaberdasherJSONClient(addr string, client twirp.HTTPClient, opt ...twirp.ClientOption) Haberdasher {
+	var httpClient twirp.HTTPClient = client
+
+	if c, ok := client.(*http.Client); ok {
+		httpClient = withoutRedirects(c)
+	}
+
+	opts := twirp.DefaultClientOptions(client)
+	for _, o := range opt {
+		o(&opts)
+	}
 	prefix := urlBase(addr) + HaberdasherPathPrefix
 	urls := [1]string{
 		prefix + "MakeHat",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &haberdasherJSONClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &haberdasherJSONClient{
-		client: client,
+		client: httpClient,
 		urls:   urls,
+		opts:   opts,
 	}
 }
 

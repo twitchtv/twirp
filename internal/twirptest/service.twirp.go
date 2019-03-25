@@ -138,7 +138,7 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.opts.Client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
 	}

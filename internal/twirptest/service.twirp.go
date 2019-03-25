@@ -57,7 +57,7 @@ func NewHaberdasherProtobufClient(addr string, client twirp.HTTPClient, opt ...t
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions(client)
+	opts := twirp.DefaultClientOptions(httpClient)
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -78,11 +78,24 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.opts.Client, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
 	return out, nil
+}
+
+func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error) context.Context {
+	if h == nil || h.Error == nil {
+		return ctx
+	}
+
+	return h.Error(ctx, err)
 }
 
 // =======================
@@ -104,7 +117,7 @@ func NewHaberdasherJSONClient(addr string, client twirp.HTTPClient, opt ...twirp
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions(client)
+	opts := twirp.DefaultClientOptions(httpClient)
 	for _, o := range opt {
 		o(&opts)
 	}

@@ -332,6 +332,10 @@ func (s *haberdasherServer) ProtocGenTwirpVersion() string {
 	return "v5.5.2"
 }
 
+func (s *haberdasherServer) PathPrefix() string {
+	return HaberdasherPathPrefix
+}
+
 // =====
 // Utils
 // =====
@@ -366,6 +370,10 @@ type TwirpServer interface {
 	// ProtocGenTwirpVersion is the semantic version string of the version of
 	// twirp used to generate this file.
 	ProtocGenTwirpVersion() string
+	// PathPrefix is used for all URL paths on the generated server.
+	// Requests are always: POST PathPrefix/method
+	// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+	PathPrefix() string
 }
 
 // WriteError writes an HTTP response with a valid Twirp error format.

@@ -489,6 +489,10 @@ func (s *svc2Server) ProtocGenTwirpVersion() string {
 	return "v5.5.2"
 }
 
+func (s *svc2Server) PathPrefix() string {
+	return Svc2PathPrefix
+}
+
 var twirpFileDescriptor1 = []byte{
 	// 152 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcf, 0x2d, 0xcd, 0x29,

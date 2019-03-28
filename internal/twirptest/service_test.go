@@ -648,7 +648,21 @@ func TestConnectTLS(t *testing.T) {
 }
 
 // It should be possible to serve twirp alongside non-twirp handlers
-func TestMuxingTwirpServer(t *testing.T) {
+func TestMuxingTwirpServerConst(t *testing.T) {
+	// Create a twirp endpoint.
+	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
+
+	testMuxingTwirpServer(t, HaberdasherPathPrefix, twirpHandler)
+}
+
+func TestMuxingTwirpServerPrefixMethod(t *testing.T) {
+	// Create a twirp endpoint.
+	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
+
+	testMuxingTwirpServer(t, twirpHandler.PathPrefix(), twirpHandler)
+}
+
+func testMuxingTwirpServer(t *testing.T, prefix string, handler TwirpServer) {
 	// Create a healthcheck endpoint. Record that it got called in a boolean.
 	healthcheckCalled := false
 	healthcheck := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -660,14 +674,11 @@ func TestMuxingTwirpServer(t *testing.T) {
 		}
 	})
 
-	// Create a twirp endpoint.
-	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
-
 	// Serve the healthcheck at /health and the twirp handler at the
 	// provided URL prefix.
 	mux := http.NewServeMux()
 	mux.Handle("/health", healthcheck)
-	mux.Handle(HaberdasherPathPrefix, twirpHandler)
+	mux.Handle(prefix, handler)
 
 	s := httptest.NewServer(mux)
 	defer s.Close()

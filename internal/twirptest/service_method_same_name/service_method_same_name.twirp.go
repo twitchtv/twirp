@@ -212,7 +212,7 @@ func (s *echoServer) serveEchoJSON(ctx context.Context, resp http.ResponseWriter
 	// Call service method
 	var respContent *Msg
 	func() {
-		defer handlePanics(ctx, resp, s.hooks)
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Echo.Echo(ctx, reqContent)
 	}()
 
@@ -270,7 +270,7 @@ func (s *echoServer) serveEchoProtobuf(ctx context.Context, resp http.ResponseWr
 	// Call service method
 	var respContent *Msg
 	func() {
-		defer handlePanics(ctx, resp, s.hooks)
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Echo.Echo(ctx, reqContent)
 	}()
 
@@ -363,7 +363,7 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 
 	statusCode := twirp.ServerHTTPStatusFromErrorCode(twerr.Code())
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)
-	ctx = callError(ctx, hooks, twerr) // Error hook
+	ctx = callError(ctx, hooks, twerr)
 
 	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON
 	resp.WriteHeader(statusCode)                          // set HTTP status code and send response
@@ -371,15 +371,24 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	respBody := marshalErrorToJSON(twerr)
 	_, writeErr := resp.Write(respBody)
 	if writeErr != nil {
-		// Most likely the connection is broken.
-		// Logging the error is unacceptable because we don't have a user-controlled
+		// We have three options here. We could log the error, call the Error
+		// hook, or just silently ignore the error.
+		//
+		// Logging is unacceptable because we don't have a user-controlled
 		// logger; writing out to stderr without permission is too rude.
-		// Calling the Error hook is unacceptable because it would trigger twice.
-		// The best option is to ignore writeErr, the original err is being handled anyways.
+		//
+		// Calling the Error hook would confuse users: it would mean the Error
+		// hook got called twice for one request, which is likely to lead to
+		// duplicated log messages and metrics, no matter how well we document
+		// the behavior.
+		//
+		// Silently ignoring the error is our least-bad option. It's highly
+		// likely that the connection is broken and the original 'err' says
+		// so anyway.
 		_ = writeErr
 	}
 
-	callResponseSent(ctx, hooks) // ResponseSent hook
+	callResponseSent(ctx, hooks)
 }
 
 // urlBase helps ensure that addr specifies a scheme. If it is unparsable
@@ -557,15 +566,18 @@ type wrappedError struct {
 func (e *wrappedError) Cause() error  { return e.cause }
 func (e *wrappedError) Error() string { return e.prefix + ": " + e.cause.Error() }
 
-// handlePanics makes sure that panics during rpc methods respond with Twirp Interna
-// error responses (status 500) and trigger hooks with the panic wrapped as an error.
-// The panic is not intercepted and should be handled in middleware to avoid empty responses.
-func handlePanics(ctx context.Context, resp http.ResponseWriter, hooks *twirp.ServerHooks) {
+// ensurePanicResponses makes sure that rpc methods causing a panic still result in a Twirp Internal
+// error response (status 500), and error hooks are properly called with the panic wrapped as an error.
+// The panic is re-raised so it can be handled normally with middleware.
+func ensurePanicResponses(ctx context.Context, resp http.ResponseWriter, hooks *twirp.ServerHooks) {
 	if r := recover(); r != nil {
-		err := errFromPanic(r)                                                 // allow to inspect error on Error hooks
-		twerr := &internalWithCause{msg: "Internal service panic", cause: err} // avoid internal data on response
-		writeError(ctx, resp, twerr, hooks)                                    // write response and trigger Error hooks
-		panic(r)                                                               // keep the panic going
+		// Wrap the panic as an error so it can be passed to error hooks.
+		// The original error is accessible from error hooks, but not visible in the response.
+		err := errFromPanic(r)
+		twerr := &internalWithCause{msg: "Internal service panic", cause: err}
+		writeError(ctx, resp, twerr, hooks)
+
+		panic(r)
 	}
 }
 

@@ -230,7 +230,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	// Call service method
 	var respContent *Msg2
 	func() {
-		defer handlePanics(ctx, resp, s.hooks)
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.Send(ctx, reqContent)
 	}()
 
@@ -288,7 +288,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	// Call service method
 	var respContent *Msg2
 	func() {
-		defer handlePanics(ctx, resp, s.hooks)
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.Send(ctx, reqContent)
 	}()
 
@@ -357,7 +357,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	// Call service method
 	var respContent *Msg1
 	func() {
-		defer handlePanics(ctx, resp, s.hooks)
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
 	}()
 
@@ -415,7 +415,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	// Call service method
 	var respContent *Msg1
 	func() {
-		defer handlePanics(ctx, resp, s.hooks)
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
 	}()
 

@@ -368,9 +368,9 @@ type TwirpServer interface {
 	// ProtocGenTwirpVersion is the semantic version string of the version of
 	// twirp used to generate this file.
 	ProtocGenTwirpVersion() string
-	// PathPrefix is used for all URL paths on the generated server.
-	// Requests are always: POST PathPrefix/method
-	// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+	// PathPrefix returns the HTTP URL path prefix for all methods handled by this
+	// service. This can be used with an HTTP mux to route twirp requests
+	// alongside non-twirp requests on one HTTP listener.
 	PathPrefix() string
 }
 

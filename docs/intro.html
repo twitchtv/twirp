@@ -110,9 +110,9 @@ easily start an http listener).</li>
     twirpHandler := pb.NewHelloWorldServer(&amp;HelloWorldServer{}, <span class="hljs-literal">nil</span>)
     <span class="hljs-comment">// You can use any mux you like - NewHelloWorldServer gives you an http.Handler.</span>
     mux := http.NewServeMux()
-    <span class="hljs-comment">// The generated code includes a const, &lt;ServiceName&gt;PathPrefix, which</span>
+    <span class="hljs-comment">// The generated code includes a method, PathPrefix(), which</span>
     <span class="hljs-comment">// can be used to mount your service on a mux.</span>
-    mux.Handle(pb.HelloWorldPathPrefix, twirpHandler)
+    mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
     http.ListenAndServe(<span class="hljs-string">":8080"</span>, mux)
 }
 </code></pre>

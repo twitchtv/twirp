@@ -59,7 +59,7 @@ Twirp requests correctly. It's an exported string const, always as
 twirpHandler := haberdasher.NewHaberdasherServer(server, <span class="hljs-literal">nil</span>)
 
 mux := http.NewServeMux()
-mux.Handle(haberdasher.HaberdasherPathPrefix, twirpHandler)
+mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
 mux.Handle(<span class="hljs-string">"/some/other/path"</span>, someOtherHandler)
 
 http.ListenAndServe(<span class="hljs-string">":8080"</span>, mux)
@@ -70,7 +70,7 @@ http.ListenAndServe(<span class="hljs-string">":8080"</span>, mux)
 twirpHandler := haberdasher.NewHaberdasherServer(server, <span class="hljs-literal">nil</span>)
 
 mux := goji.NewMux()
-mux.Handle(pat.Post(haberdasher.NewHaberdasherPathPrefix+<span class="hljs-string">"*"</span>), twirpHandler)
+mux.Handle(pat.Post(twirpHandler.PathPrefix()+<span class="hljs-string">"*"</span>), twirpHandler)
 <span class="hljs-comment">// mux.Handle other things like health checks ...</span>
 http.ListenAndServe(<span class="hljs-string">"localhost:8000"</span>, mux)
 </code></pre>

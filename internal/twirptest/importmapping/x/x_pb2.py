@@ -7,6 +7,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,7 +20,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='x/x.proto',
   package='twirp.internal.twirptest.importmapping.x',
   syntax='proto3',
-  serialized_options=_b('Z\001x'),
   serialized_pb=_b('\n\tx/x.proto\x12(twirp.internal.twirptest.importmapping.x\x1a\ty/y.proto2n\n\x04Svc1\x12\x66\n\x04Send\x12..twirp.internal.twirptest.importmapping.y.MsgY\x1a..twirp.internal.twirptest.importmapping.y.MsgYB\x03Z\x01xb\x06proto3')
   ,
   dependencies=[y_dot_y__pb2.DESCRIPTOR,])
@@ -29,14 +29,15 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
-DESCRIPTOR._options = None
+DESCRIPTOR.has_options = True
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\001x'))
 
 _SVC1 = _descriptor.ServiceDescriptor(
   name='Svc1',
   full_name='twirp.internal.twirptest.importmapping.x.Svc1',
   file=DESCRIPTOR,
   index=0,
-  serialized_options=None,
+  options=None,
   serialized_start=66,
   serialized_end=176,
   methods=[
@@ -47,7 +48,7 @@ _SVC1 = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=y_dot_y__pb2._MSGY,
     output_type=y_dot_y__pb2._MSGY,
-    serialized_options=None,
+    options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC1)

@@ -7,6 +7,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -18,7 +19,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='snake_case_names.proto',
   package='twirp.internal.twirptest.snake_case_names',
   syntax='proto3',
-  serialized_options=_b('Z\020snake_case_names'),
   serialized_pb=_b('\n\x16snake_case_names.proto\x12)twirp.internal.twirptest.snake_case_names\"`\n\x0eMakeHatArgs_v1\x1a\x33\n\x06Hat_v1\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x1a\x19\n\x07Size_v1\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32\xa1\x01\n\x0bHaberdasher\x12\x91\x01\n\nMakeHat_v1\x12\x41.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1\x1a@.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1B\x12Z\x10snake_case_namesb\x06proto3')
 )
 
@@ -38,28 +38,28 @@ _MAKEHATARGS_V1_HAT_V1 = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='color', full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1.color', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1.name', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -82,14 +82,14 @@ _MAKEHATARGS_V1_SIZE_V1 = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -112,7 +112,7 @@ _MAKEHATARGS_V1 = _descriptor.Descriptor(
   nested_types=[_MAKEHATARGS_V1_HAT_V1, _MAKEHATARGS_V1_SIZE_V1, ],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -151,14 +151,15 @@ _sym_db.RegisterMessage(MakeHatArgs_v1.Hat_v1)
 _sym_db.RegisterMessage(MakeHatArgs_v1.Size_v1)
 
 
-DESCRIPTOR._options = None
+DESCRIPTOR.has_options = True
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\020snake_case_names'))
 
 _HABERDASHER = _descriptor.ServiceDescriptor(
   name='Haberdasher',
   full_name='twirp.internal.twirptest.snake_case_names.Haberdasher',
   file=DESCRIPTOR,
   index=0,
-  serialized_options=None,
+  options=None,
   serialized_start=168,
   serialized_end=329,
   methods=[
@@ -169,7 +170,7 @@ _HABERDASHER = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_MAKEHATARGS_V1_SIZE_V1,
     output_type=_MAKEHATARGS_V1_HAT_V1,
-    serialized_options=None,
+    options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_HABERDASHER)

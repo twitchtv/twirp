@@ -16,7 +16,7 @@ server := &haberdasherserver.Server{}
 twirpHandler := haberdasher.NewHaberdasherServer(server, nil)
 
 mux := http.NewServeMux()
-mux.Handle(haberdasher.HaberdasherPathPrefix, twirpHandler)
+mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
 mux.Handle("/some/other/path", someOtherHandler)
 
 http.ListenAndServe(":8080", mux)
@@ -30,7 +30,7 @@ server := &haberdasherserver.Server{} // implements Haberdasher interface
 twirpHandler := haberdasher.NewHaberdasherServer(server, nil)
 
 mux := goji.NewMux()
-mux.Handle(pat.Post(haberdasher.NewHaberdasherPathPrefix+"*"), twirpHandler)
+mux.Handle(pat.Post(twirpHandler.PathPrefix()+"*"), twirpHandler)
 // mux.Handle other things like health checks ...
 http.ListenAndServe("localhost:8000", mux)
 ```

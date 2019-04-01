@@ -352,6 +352,10 @@ func (t *twirp) generateUtils() {
 	t.P(`	// ProtocGenTwirpVersion is the semantic version string of the version of`)
 	t.P(`	// twirp used to generate this file.`)
 	t.P(`	ProtocGenTwirpVersion() string`)
+	t.P(`// PathPrefix returns the HTTP URL path prefix for all methods handled by this`)
+	t.P(`// service. This can be used with an HTTP mux to route twirp requests`)
+	t.P(`// alongside non-twirp requests on one HTTP listener.`)
+	t.P(`	PathPrefix() string`)
 	t.P(`}`)
 	t.P()
 
@@ -1159,6 +1163,10 @@ func (t *twirp) generateServiceMetadataAccessors(file *descriptor.FileDescriptor
 	t.P()
 	t.P(`func (s *`, servStruct, `) ProtocGenTwirpVersion() (string) {`)
 	t.P(`  return `, strconv.Quote(gen.Version))
+	t.P(`}`)
+	t.P()
+	t.P(`func (s *`, servStruct, `) PathPrefix() (string) {`)
+	t.P(`  return `, serviceName(service), `PathPrefix`)
 	t.P(`}`)
 }
 

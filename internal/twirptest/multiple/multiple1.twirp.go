@@ -331,6 +331,10 @@ func (s *svc1Server) ProtocGenTwirpVersion() string {
 	return "v5.5.2"
 }
 
+func (s *svc1Server) PathPrefix() string {
+	return Svc1PathPrefix
+}
+
 // =====
 // Utils
 // =====
@@ -365,6 +369,10 @@ type TwirpServer interface {
 	// ProtocGenTwirpVersion is the semantic version string of the version of
 	// twirp used to generate this file.
 	ProtocGenTwirpVersion() string
+	// PathPrefix returns the HTTP URL path prefix for all methods handled by this
+	// service. This can be used with an HTTP mux to route twirp requests
+	// alongside non-twirp requests on one HTTP listener.
+	PathPrefix() string
 }
 
 // WriteError writes an HTTP response with a valid Twirp error format.

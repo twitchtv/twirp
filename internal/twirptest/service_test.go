@@ -20,6 +20,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -1199,4 +1200,41 @@ func TestContextValues(t *testing.T) {
 	if err != nil {
 		t.Errorf("Client err=%q", err)
 	}
+}
+
+func TestPanicFlushing(t *testing.T) {
+	h := PanickyHatmaker("bang!")
+	s := httptest.NewUnstartedServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+	s.Config.ErrorLog = testLogger(t)
+	s.Start()
+
+	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
+	if err == nil {
+		t.Logf("hat: %+v", hat)
+		t.Fatal("twirp client err is nil for panicking handler")
+	}
+	twerr, ok := err.(twirp.Error)
+	if !ok {
+		t.Fatalf("expected twirp.Error type error, have %T", err)
+	}
+
+	if twerr.Code() != twirp.Internal {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", twirp.Internal, twerr.Code())
+	}
+	if twerr.Msg() != "Internal service panic" {
+		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), "Internal service panic")
+	}
+}
+
+type testWriter struct{ t *testing.T }
+
+func (w testWriter) Write(p []byte) (int, error) {
+	w.t.Log(string(p))
+	return len(p), nil
+}
+
+func testLogger(t *testing.T) *log.Logger {
+	return log.New(testWriter{t}, "", log.LstdFlags)
 }

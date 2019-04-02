@@ -741,7 +741,18 @@ func ensurePanicResponses(ctx context.Context, resp http.ResponseWriter, hooks *
 		// The original error is accessible from error hooks, but not visible in the response.
 		err := errFromPanic(r)
 		twerr := &internalWithCause{msg: "Internal service panic", cause: err}
+		// Set Content-Length of response to avoid switching to chunked transfer
+		// encoding when we flush, and so the client knows that it has received the
+		// complete response when we flush.
+		length := len(marshalErrorToJSON(twerr))
+		resp.Header().Set("Content-Length", strconv.Itoa(length))
+		// Actually write the error
 		writeError(ctx, resp, twerr, hooks)
+		// If possible, flush the error to the wire.
+		f, ok := resp.(http.Flusher)
+		if ok {
+			f.Flush()
+		}
 
 		panic(r)
 	}

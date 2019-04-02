@@ -207,21 +207,14 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 	reqContent := new(Size)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request json")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
 		return
 	}
 
 	// Call service method
 	var respContent *Hat
 	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Haberdasher.MakeHat(ctx, reqContent)
 	}()
 
@@ -239,8 +232,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 	var buf bytes.Buffer
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
-		err = wrapErr(err, "failed to marshal json response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
@@ -268,27 +260,19 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		err = wrapErr(err, "failed to read request body")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
 	reqContent := new(Size)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		err = wrapErr(err, "failed to parse request proto")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
 		return
 	}
 
 	// Call service method
 	var respContent *Hat
 	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if r := recover(); r != nil {
-				s.writeError(ctx, resp, twirp.InternalError("Internal service panic"))
-				panic(r)
-			}
-		}()
+		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Haberdasher.MakeHat(ctx, reqContent)
 	}()
 
@@ -305,8 +289,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 
 	respBytes, err := proto.Marshal(respContent)
 	if err != nil {
-		err = wrapErr(err, "failed to marshal proto response")
-		s.writeError(ctx, resp, twirp.InternalErrorWith(err))
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
 		return
 	}
 
@@ -373,7 +356,8 @@ type TwirpServer interface {
 	PathPrefix() string
 }
 
-// WriteError writes an HTTP response with a valid Twirp error format.
+// WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).
+// Useful outside of the Twirp server (e.g. http middleware), but does not trigger hooks.
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
 func WriteError(resp http.ResponseWriter, err error) {
 	writeError(context.Background(), resp, err, nil)
@@ -391,8 +375,8 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)
 	ctx = callError(ctx, hooks, twerr)
 
-	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON (instead of protobuf)
-	resp.WriteHeader(statusCode)                          // HTTP response status code
+	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON
+	resp.WriteHeader(statusCode)                          // set HTTP status code and send response
 
 	respBody := marshalErrorToJSON(twerr)
 	_, writeErr := resp.Write(respBody)
@@ -517,7 +501,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 
 	respBodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return clientError("failed to read server error response body", err)
+		return wrapInternal(err, "failed to read server error response body")
 	}
 	var tj twerrJSON
 	if err := json.Unmarshal(respBodyBytes, &tj); err != nil {
@@ -573,25 +557,62 @@ func twirpErrorFromIntermediary(status int, msg string, bodyOrLocation string) t
 	}
 	return twerr
 }
+
 func isHTTPRedirect(status int) bool {
 	return status >= 300 && status <= 399
 }
 
-// wrappedError implements the github.com/pkg/errors.Causer interface, allowing errors to be
-// examined for their root cause.
+// wrapInternal wraps an error with a prefix as an Internal error.
+// The original error cause is accessible by github.com/pkg/errors.Cause.
+func wrapInternal(err error, prefix string) twirp.Error {
+	return twirp.InternalErrorWith(&wrappedError{prefix: prefix, cause: err})
+}
+
 type wrappedError struct {
+	prefix string
+	cause  error
+}
+
+func (e *wrappedError) Cause() error  { return e.cause }
+func (e *wrappedError) Error() string { return e.prefix + ": " + e.cause.Error() }
+
+// ensurePanicResponses makes sure that rpc methods causing a panic still result in a Twirp Internal
+// error response (status 500), and error hooks are properly called with the panic wrapped as an error.
+// The panic is re-raised so it can be handled normally with middleware.
+func ensurePanicResponses(ctx context.Context, resp http.ResponseWriter, hooks *twirp.ServerHooks) {
+	if r := recover(); r != nil {
+		// Wrap the panic as an error so it can be passed to error hooks.
+		// The original error is accessible from error hooks, but not visible in the response.
+		err := errFromPanic(r)
+		twerr := &internalWithCause{msg: "Internal service panic", cause: err}
+		writeError(ctx, resp, twerr, hooks)
+
+		panic(r)
+	}
+}
+
+// errFromPanic returns the typed error if the recovered panic is an error, otherwise formats as error.
+func errFromPanic(p interface{}) error {
+	if err, ok := p.(error); ok {
+		return err
+	}
+	return fmt.Errorf("panic: %v", p)
+}
+
+// internalWithCause is a Twirp Internal error wrapping an original error cause, accessible
+// by github.com/pkg/errors.Cause, but the original error message is not exposed on Msg().
+type internalWithCause struct {
 	msg   string
 	cause error
 }
 
-func wrapErr(err error, msg string) error { return &wrappedError{msg: msg, cause: err} }
-func (e *wrappedError) Cause() error      { return e.cause }
-func (e *wrappedError) Error() string     { return e.msg + ": " + e.cause.Error() }
-
-// clientError adds consistency to errors generated in the client
-func clientError(desc string, err error) twirp.Error {
-	return twirp.InternalErrorWith(wrapErr(err, desc))
-}
+func (e *internalWithCause) Cause() error                                { return e.cause }
+func (e *internalWithCause) Error() string                               { return e.msg + ": " + e.cause.Error() }
+func (e *internalWithCause) Code() twirp.ErrorCode                       { return twirp.Internal }
+func (e *internalWithCause) Msg() string                                 { return e.msg }
+func (e *internalWithCause) Meta(key string) string                      { return "" }
+func (e *internalWithCause) MetaMap() map[string]string                  { return nil }
+func (e *internalWithCause) WithMeta(key string, val string) twirp.Error { return e }
 
 // badRouteError is used when the twirp server cannot route a request
 func badRouteError(msg string, method, url string) twirp.Error {
@@ -600,6 +621,7 @@ func badRouteError(msg string, method, url string) twirp.Error {
 	return err
 }
 
+// withoutRedirects makes sure that the POST request can not be redirected.
 // The standard library will, by default, redirect requests (including POSTs) if it gets a 302 or
 // 303 response, and also 301s in go1.8. It redirects by making a second request, changing the
 // method to GET and removing the body. This produces very confusing error messages, so instead we
@@ -623,35 +645,35 @@ func withoutRedirects(in *http.Client) *http.Client {
 	return &copy
 }
 
-// doProtobufRequest is common code to make a request to the remote twirp service.
+// doProtobufRequest makes a Protobuf request to the remote Twirp service.
 func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
-		return clientError("failed to marshal proto request", err)
+		return wrapInternal(err, "failed to marshal proto request")
 	}
 	reqBody := bytes.NewBuffer(reqBodyBytes)
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return wrapInternal(err, "aborted because context was done")
 	}
 
 	req, err := newRequest(ctx, url, reqBody, "application/protobuf")
 	if err != nil {
-		return clientError("could not build request", err)
+		return wrapInternal(err, "could not build request")
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return clientError("failed to do request", err)
+		return wrapInternal(err, "failed to do request")
 	}
 
 	defer func() {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = clientError("failed to close response body", cerr)
+			err = wrapInternal(cerr, "failed to close response body")
 		}
 	}()
 
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return wrapInternal(err, "aborted because context was done")
 	}
 
 	if resp.StatusCode != 200 {
@@ -660,47 +682,47 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 
 	respBodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return clientError("failed to read response body", err)
+		return wrapInternal(err, "failed to read response body")
 	}
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return wrapInternal(err, "aborted because context was done")
 	}
 
 	if err = proto.Unmarshal(respBodyBytes, out); err != nil {
-		return clientError("failed to unmarshal proto response", err)
+		return wrapInternal(err, "failed to unmarshal proto response")
 	}
 	return nil
 }
 
-// doJSONRequest is common code to make a request to the remote twirp service.
+// doJSONRequest makes a JSON request to the remote Twirp service.
 func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(reqBody, in); err != nil {
-		return clientError("failed to marshal json request", err)
+		return wrapInternal(err, "failed to marshal json request")
 	}
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return wrapInternal(err, "aborted because context was done")
 	}
 
 	req, err := newRequest(ctx, url, reqBody, "application/json")
 	if err != nil {
-		return clientError("could not build request", err)
+		return wrapInternal(err, "could not build request")
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return clientError("failed to do request", err)
+		return wrapInternal(err, "failed to do request")
 	}
 
 	defer func() {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = clientError("failed to close response body", cerr)
+			err = wrapInternal(cerr, "failed to close response body")
 		}
 	}()
 
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return wrapInternal(err, "aborted because context was done")
 	}
 
 	if resp.StatusCode != 200 {
@@ -709,10 +731,10 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
-		return clientError("failed to unmarshal json response", err)
+		return wrapInternal(err, "failed to unmarshal json response")
 	}
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return wrapInternal(err, "aborted because context was done")
 	}
 	return nil
 }

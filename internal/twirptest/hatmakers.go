@@ -64,9 +64,9 @@ func ErroringHatmaker(err error) Haberdasher {
 }
 
 // Panics.
-func PanickyHatmaker(msg string) Haberdasher {
+func PanickyHatmaker(p interface{}) Haberdasher {
 	return hatmaker(func(ctx context.Context, s *Size) (*Hat, error) {
-		panic(msg)
+		panic(p)
 	})
 }
 

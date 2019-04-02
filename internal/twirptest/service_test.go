@@ -20,7 +20,6 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -1206,6 +1205,8 @@ func TestPanicFlushing(t *testing.T) {
 	h := PanickyHatmaker("bang!")
 	s := httptest.NewUnstartedServer(NewHaberdasherServer(h, nil))
 	defer s.Close()
+	// If the server config's ErrorLog is left nil, then it will log the panic and
+	// a stack trace straight to stderr. Override it to log to test output.
 	s.Config.ErrorLog = testLogger(t)
 	s.Start()
 
@@ -1226,15 +1227,4 @@ func TestPanicFlushing(t *testing.T) {
 	if twerr.Msg() != "Internal service panic" {
 		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), "Internal service panic")
 	}
-}
-
-type testWriter struct{ t *testing.T }
-
-func (w testWriter) Write(p []byte) (int, error) {
-	w.t.Log(string(p))
-	return len(p), nil
-}
-
-func testLogger(t *testing.T) *log.Logger {
-	return log.New(testWriter{t}, "", log.LstdFlags)
 }

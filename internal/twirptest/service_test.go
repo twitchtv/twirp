@@ -879,6 +879,7 @@ func TestPanicsTriggerErrorHooks(t *testing.T) {
 		if !errHookCalled {
 			t.Fatalf("%s client: expected error hook to be called for panicking handler", name)
 		}
+		errHookCalled = false // Reset for the next loop iteration
 
 		twerr, ok := err.(twirp.Error)
 		if !ok {

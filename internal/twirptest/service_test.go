@@ -32,8 +32,8 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	pkgerrors "github.com/pkg/errors"
 
-	"github.com/twitchtv/twirp"
-	"github.com/twitchtv/twirp/internal/descriptors"
+	"github.com/twitchtv/twirp/v6"
+	"github.com/twitchtv/twirp/v6/internal/descriptors"
 )
 
 func TestServeJSON(t *testing.T) {

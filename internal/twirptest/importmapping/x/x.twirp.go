@@ -19,10 +19,10 @@ import http "net/http"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
 import proto "github.com/golang/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+import twirp "github.com/twitchtv/twirp/v6"
+import ctxsetters "github.com/twitchtv/twirp/v6/ctxsetters"
 
-import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/internal/twirptest/importmapping/y"
+import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/v6/internal/twirptest/importmapping/y"
 
 // Imports only used by utility functions:
 import io "io"

@@ -1,4 +1,4 @@
-module github.com/twitchtv/twirp
+module github.com/twitchtv/twirp/v6
 
 go 1.12
 
@@ -9,4 +9,5 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/stretchr/testify v1.2.0
+	github.com/twitchtv/twirp v5.6.0+incompatible // indirect
 )

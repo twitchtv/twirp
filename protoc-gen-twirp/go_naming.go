@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/twitchtv/twirp/internal/gen/stringutils"
+	"github.com/twitchtv/twirp/v6/internal/gen/stringutils"
 )
 
 // goPackageOption interprets the file's go_package option.

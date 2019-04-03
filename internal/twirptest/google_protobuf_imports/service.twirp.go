@@ -19,8 +19,8 @@ import http "net/http"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
 import proto "github.com/golang/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+import twirp "github.com/twitchtv/twirp/v6"
+import ctxsetters "github.com/twitchtv/twirp/v6/ctxsetters"
 
 import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
 import google_protobuf "github.com/golang/protobuf/ptypes/empty"

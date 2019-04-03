@@ -6,7 +6,7 @@ package no_package_name_importer
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	_ "github.com/twitchtv/twirp/internal/twirptest/no_package_name"
+	_ "github.com/twitchtv/twirp/v6/internal/twirptest/no_package_name"
 	math "math"
 )
 

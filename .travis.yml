@@ -4,8 +4,9 @@ go:
 - 1.11.x
 - 1.12.x
 - tip
-environment:
-  - GO111MODULE=on
+env:	
+  global:
+    - GO111MODULE=on
 script:
 - go install ./...
 - go test -race ./...

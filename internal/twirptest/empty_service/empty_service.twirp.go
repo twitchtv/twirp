@@ -11,7 +11,6 @@ It is generated from these files:
 package empty_service
 
 import bytes "bytes"
-import strings "strings"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -47,7 +46,6 @@ type emptyProtobufClient struct {
 // NewEmptyProtobufClient creates a Protobuf client that implements the Empty interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewEmptyProtobufClient(addr string, client HTTPClient) Empty {
-	prefix := urlBase(addr) + EmptyPathPrefix
 	urls := [0]string{}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &emptyProtobufClient{
@@ -73,7 +71,6 @@ type emptyJSONClient struct {
 // NewEmptyJSONClient creates a JSON client that implements the Empty interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewEmptyJSONClient(addr string, client HTTPClient) Empty {
-	prefix := urlBase(addr) + EmptyPathPrefix
 	urls := [0]string{}
 	if httpClient, ok := client.(*http.Client); ok {
 		return &emptyJSONClient{

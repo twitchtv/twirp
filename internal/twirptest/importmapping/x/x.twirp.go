@@ -16,6 +16,7 @@ import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
 import http "net/http"
+import strconv "strconv"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
 import proto "github.com/golang/protobuf/proto"
@@ -26,7 +27,6 @@ import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/inter
 
 // Imports only used by utility functions:
 import io "io"
-import strconv "strconv"
 import json "encoding/json"
 import url "net/url"
 
@@ -237,10 +237,11 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
 
-	respBytes := buf.Bytes()
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
@@ -295,6 +296,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
 	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
@@ -375,10 +377,12 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)
 	ctx = callError(ctx, hooks, twerr)
 
-	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON
-	resp.WriteHeader(statusCode)                          // set HTTP status code and send response
-
 	respBody := marshalErrorToJSON(twerr)
+
+	resp.Header().Set("Content-Type", "application/json") // Error responses are always JSON
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBody)))
+	resp.WriteHeader(statusCode) // set HTTP status code and send response
+
 	_, writeErr := resp.Write(respBody)
 	if writeErr != nil {
 		// We have three options here. We could log the error, call the Error
@@ -585,11 +589,6 @@ func ensurePanicResponses(ctx context.Context, resp http.ResponseWriter, hooks *
 		// The original error is accessible from error hooks, but not visible in the response.
 		err := errFromPanic(r)
 		twerr := &internalWithCause{msg: "Internal service panic", cause: err}
-		// Set Content-Length of response to avoid switching to chunked transfer
-		// encoding when we flush, and so the client knows that it has received the
-		// complete response when we flush.
-		length := len(marshalErrorToJSON(twerr))
-		resp.Header().Set("Content-Length", strconv.Itoa(length))
 		// Actually write the error
 		writeError(ctx, resp, twerr, hooks)
 		// If possible, flush the error to the wire.

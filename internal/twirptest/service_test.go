@@ -1200,3 +1200,31 @@ func TestContextValues(t *testing.T) {
 		t.Errorf("Client err=%q", err)
 	}
 }
+
+func TestPanicFlushing(t *testing.T) {
+	h := PanickyHatmaker("bang!")
+	s := httptest.NewUnstartedServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+	// If the server config's ErrorLog is left nil, then it will log the panic and
+	// a stack trace straight to stderr. Override it to log to test output.
+	s.Config.ErrorLog = testLogger(t)
+	s.Start()
+
+	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
+	if err == nil {
+		t.Logf("hat: %+v", hat)
+		t.Fatal("twirp client err is nil for panicking handler")
+	}
+	twerr, ok := err.(twirp.Error)
+	if !ok {
+		t.Fatalf("expected twirp.Error type error, have %T", err)
+	}
+
+	if twerr.Code() != twirp.Internal {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", twirp.Internal, twerr.Code())
+	}
+	if twerr.Msg() != "Internal service panic" {
+		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), "Internal service panic")
+	}
+}

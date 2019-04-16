@@ -256,8 +256,19 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	if len(file.Service) == 0 {
 		return
 	}
+
+	allServicesEmpty := true
+	for _, s := range file.Service {
+		if len(s.Method) > 0 {
+			allServicesEmpty = false
+		}
+	}
+
 	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
-	t.P(`import `, t.pkgs["strings"], ` "strings"`)
+	// strings package is only used in generated method code.
+	if !allServicesEmpty {
+		t.P(`import `, t.pkgs["strings"], ` "strings"`)
+	}
 	t.P(`import `, t.pkgs["context"], ` "context"`)
 	t.P(`import `, t.pkgs["fmt"], ` "fmt"`)
 	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
@@ -880,7 +891,9 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`// `, newClientFunc, ` creates a `, name, ` client that implements the `, servName, ` interface.`)
 	t.P(`// It communicates using `, name, ` and can be configured with a custom HTTPClient.`)
 	t.P(`func `, newClientFunc, `(addr string, client HTTPClient) `, servName, ` {`)
-	t.P(`  prefix := urlBase(addr) + `, pathPrefixConst)
+	if len(service.Method) > 0 {
+		t.P(`  prefix := urlBase(addr) + `, pathPrefixConst)
+	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
 		t.P(`    	prefix + "`, methodName(method), `",`)

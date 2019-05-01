@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/jsonpb"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/internal/descriptors"
@@ -42,7 +43,7 @@ func TestServeJSON(t *testing.T) {
 
 	client := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
 
-	hat, err := client.MakeHat(context.Background(), &Size{1})
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Fatalf("JSON Client err=%q", err)
 	}
@@ -50,7 +51,7 @@ func TestServeJSON(t *testing.T) {
 		t.Errorf("wrong hat size returned")
 	}
 
-	_, err = client.MakeHat(context.Background(), &Size{-1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: -1})
 	if err == nil {
 		t.Errorf("JSON Client expected err, got nil")
 	}
@@ -98,7 +99,7 @@ func TestServeProtobuf(t *testing.T) {
 
 	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
 
-	hat, err := client.MakeHat(context.Background(), &Size{1})
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Fatalf("Protobuf Client err=%q", err)
 	}
@@ -106,7 +107,7 @@ func TestServeProtobuf(t *testing.T) {
 		t.Errorf("wrong hat size returned")
 	}
 
-	_, err = client.MakeHat(context.Background(), &Size{-1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: -1})
 	if err == nil {
 		t.Errorf("Protobuf Client expected err, got nil")
 	}
@@ -114,7 +115,7 @@ func TestServeProtobuf(t *testing.T) {
 
 type contentTypeOverriderClient struct {
 	contentType string
-	base HTTPClient
+	base        HTTPClient
 }
 
 func (c *contentTypeOverriderClient) Do(req *http.Request) (*http.Response, error) {
@@ -130,11 +131,11 @@ func TestContentTypes(t *testing.T) {
 	makeClientWithMimeType := func(mime string) Haberdasher {
 		return NewHaberdasherJSONClient(s.URL, &contentTypeOverriderClient{
 			contentType: mime,
-			base: http.DefaultClient,
+			base:        http.DefaultClient,
 		})
 	}
 	expectNoError := func(t *testing.T, mime string) {
-		_, err := makeClientWithMimeType(mime).MakeHat(context.Background(), &Size{1})
+		_, err := makeClientWithMimeType(mime).MakeHat(context.Background(), &Size{Inches: 1})
 		if err != nil {
 			t.Fatalf("Client using valid mime type %s err=%q", mime, err)
 		}
@@ -169,7 +170,7 @@ func TestDeadline(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		_, err := client.MakeHat(ctx, &Size{1})
+		_, err := client.MakeHat(ctx, &Size{Inches: 1})
 		if err == nil {
 			t.Errorf("should have timed out, but got nil err")
 		}
@@ -276,7 +277,7 @@ func TestHooks(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		recorder.reset()
-		_, clientErr := client.MakeHat(context.Background(), &Size{1})
+		_, clientErr := client.MakeHat(context.Background(), &Size{Inches: 1})
 		if clientErr != nil {
 			t.Fatalf("client err=%q", clientErr)
 		}
@@ -287,7 +288,7 @@ func TestHooks(t *testing.T) {
 
 	t.Run("application error", func(t *testing.T) {
 		recorder.reset()
-		_, clientErr := client.MakeHat(context.Background(), &Size{-1})
+		_, clientErr := client.MakeHat(context.Background(), &Size{Inches: -1})
 		if clientErr == nil {
 			t.Fatal("client err expected with negative Size parameter, but have nil")
 		}
@@ -309,7 +310,7 @@ func TestHooks(t *testing.T) {
 		httpClient := &http.Client{Transport: rw}
 		client := NewHaberdasherProtobufClient(s.URL, httpClient)
 
-		_, clientErr := client.MakeHat(context.Background(), &Size{-1})
+		_, clientErr := client.MakeHat(context.Background(), &Size{Inches: -1})
 		if clientErr == nil {
 			t.Fatal("client err expected with bad HTTP method, but have nil")
 		}
@@ -331,7 +332,7 @@ func TestHooks(t *testing.T) {
 		httpClient := &http.Client{Transport: rw}
 		client := NewHaberdasherProtobufClient(s.URL, httpClient)
 
-		_, clientErr := client.MakeHat(context.Background(), &Size{-1})
+		_, clientErr := client.MakeHat(context.Background(), &Size{Inches: -1})
 		if clientErr == nil {
 			t.Fatal("client err expected with bad URL, but have nil")
 		}
@@ -353,7 +354,7 @@ func TestHooks(t *testing.T) {
 		httpClient := &http.Client{Transport: rw}
 		client := NewHaberdasherProtobufClient(s.URL, httpClient)
 
-		_, clientErr := client.MakeHat(context.Background(), &Size{-1})
+		_, clientErr := client.MakeHat(context.Background(), &Size{Inches: -1})
 		if clientErr == nil {
 			t.Fatal("client err expected with missing headers, but have nil")
 		}
@@ -376,7 +377,7 @@ func TestHooks(t *testing.T) {
 		httpClient := &http.Client{Transport: rw}
 		client := NewHaberdasherProtobufClient(s.URL, httpClient)
 
-		_, clientErr := client.MakeHat(context.Background(), &Size{-1})
+		_, clientErr := client.MakeHat(context.Background(), &Size{Inches: -1})
 		if clientErr == nil {
 			t.Fatal("client err expected with partial request body, but have nil")
 		}
@@ -395,7 +396,7 @@ func TestNilHooks(t *testing.T) {
 			s := httptest.NewServer(NewHaberdasherServer(h, hooks))
 			defer s.Close()
 			c := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
-			_, err := c.MakeHat(context.Background(), &Size{1})
+			_, err := c.MakeHat(context.Background(), &Size{Inches: 1})
 			if err != nil {
 				t.Fatalf("client err=%q", err)
 			}
@@ -450,7 +451,7 @@ func TestErroringHooks(t *testing.T) {
 		s := httptest.NewServer(NewHaberdasherServer(h, hooks))
 		defer s.Close()
 		c := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
-		_, err := c.MakeHat(context.Background(), &Size{1})
+		_, err := c.MakeHat(context.Background(), &Size{Inches: 1})
 		if err == nil {
 			t.Fatalf("client err=nil, expected=%v", hookErr)
 		}
@@ -490,7 +491,7 @@ func TestErroringHooks(t *testing.T) {
 		s := httptest.NewServer(NewHaberdasherServer(h, hooks))
 		defer s.Close()
 		c := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
-		_, err := c.MakeHat(context.Background(), &Size{1})
+		_, err := c.MakeHat(context.Background(), &Size{Inches: 1})
 		if err == nil {
 			t.Fatalf("client err=nil, expected=%v", hookErr)
 		}
@@ -633,7 +634,7 @@ func TestConnectTLS(t *testing.T) {
 
 	client := NewHaberdasherJSONClient(s.URL, httpsClient)
 
-	hat, err := client.MakeHat(context.Background(), &Size{1})
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Fatalf("JSON Client err=%q", err)
 	}
@@ -641,14 +642,28 @@ func TestConnectTLS(t *testing.T) {
 		t.Errorf("wrong hat size returned")
 	}
 
-	_, err = client.MakeHat(context.Background(), &Size{-1})
+	_, err = client.MakeHat(context.Background(), &Size{Inches: -1})
 	if err == nil {
 		t.Errorf("JSON Client expected err, got nil")
 	}
 }
 
 // It should be possible to serve twirp alongside non-twirp handlers
-func TestMuxingTwirpServer(t *testing.T) {
+func TestMuxingTwirpServerConst(t *testing.T) {
+	// Create a twirp endpoint.
+	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
+
+	testMuxingTwirpServer(t, HaberdasherPathPrefix, twirpHandler)
+}
+
+func TestMuxingTwirpServerPrefixMethod(t *testing.T) {
+	// Create a twirp endpoint.
+	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
+
+	testMuxingTwirpServer(t, twirpHandler.PathPrefix(), twirpHandler)
+}
+
+func testMuxingTwirpServer(t *testing.T, prefix string, handler TwirpServer) {
 	// Create a healthcheck endpoint. Record that it got called in a boolean.
 	healthcheckCalled := false
 	healthcheck := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -660,14 +675,11 @@ func TestMuxingTwirpServer(t *testing.T) {
 		}
 	})
 
-	// Create a twirp endpoint.
-	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
-
 	// Serve the healthcheck at /health and the twirp handler at the
 	// provided URL prefix.
 	mux := http.NewServeMux()
 	mux.Handle("/health", healthcheck)
-	mux.Handle(HaberdasherPathPrefix, twirpHandler)
+	mux.Handle(prefix, handler)
 
 	s := httptest.NewServer(mux)
 	defer s.Close()
@@ -675,7 +687,7 @@ func TestMuxingTwirpServer(t *testing.T) {
 	// Try to do a twirp request. It should get routed just fine.
 	client := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
 
-	_, twerr := client.MakeHat(context.Background(), &Size{1})
+	_, twerr := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if twerr != nil {
 		t.Errorf("twirp client err=%q", twerr)
 	}
@@ -727,7 +739,7 @@ func TestMuxingTwirpServerDefaultRequestContext(t *testing.T) {
 
 	// And make a request to run the expectations
 	client := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
-	_, twerr := client.MakeHat(context.Background(), &Size{1})
+	_, twerr := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if twerr != nil {
 		t.Errorf("twirp client err=%q", twerr)
 	}
@@ -748,7 +760,7 @@ func TestWriteErrorFromHTTPMiddleware(t *testing.T) {
 
 	// A Twirp client is still able to receive the error
 	client := NewHaberdasherJSONClient(server.URL, http.DefaultClient)
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err == nil {
 		t.Fatal("an error was expected")
 	}
@@ -776,7 +788,7 @@ func TestWriteErrorFromHTTPMiddlewareInternal(t *testing.T) {
 
 	// A Twirp client is still able to receive the error as a twirp.Internal
 	client := NewHaberdasherJSONClient(server.URL, http.DefaultClient)
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err == nil {
 		t.Fatal("an error was expected")
 	}
@@ -792,8 +804,8 @@ func TestWriteErrorFromHTTPMiddlewareInternal(t *testing.T) {
 	}
 }
 
-// If an application panics in its handler, it should return a non-retryable error.
-func TestPanickyApplication(t *testing.T) {
+// If an application panics in its handler, it should return an internal error with "Internal service panic" msg.
+func TestPanicsReturnInternalErrors(t *testing.T) {
 	hooks, recorder := recorderHooks()
 	s := NewHaberdasherServer(PanickyHatmaker("OH NO!"), hooks)
 
@@ -813,7 +825,7 @@ func TestPanickyApplication(t *testing.T) {
 
 	client := NewHaberdasherJSONClient(server.URL, http.DefaultClient)
 
-	hat, err := client.MakeHat(context.Background(), &Size{1})
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err == nil {
 		t.Logf("hat: %+v", hat)
 		t.Fatal("twirp client err is nil for panicking handler")
@@ -832,6 +844,65 @@ func TestPanickyApplication(t *testing.T) {
 	}
 
 	recorder.assertHookCalls(t, []hookCall{received, routed, errored, sent})
+}
+
+// If an application panics in its handler, the Error hooks should trigger and have access to the panic source.
+func TestPanicsTriggerErrorHooks(t *testing.T) {
+	panicValue := errors.New("This Is Fine Meme")
+	errHookCalled := false
+	errHook := &twirp.ServerHooks{
+		Error: func(ctx context.Context, twerr twirp.Error) context.Context {
+			errHookCalled = true
+			// The error should have a .Cause containing the panic value for inspection
+			err := pkgerrors.Cause(twerr)
+			if err != panicValue {
+				t.Fatalf("Unexpected error cause from panic: %v", err)
+			}
+			return ctx
+		},
+	}
+
+	s := NewHaberdasherServer(PanickyHatmaker(panicValue), errHook)
+
+	// Wrap the twirp server with a handler to stop the panicking from
+	// crashing the httptest server and failing our test.
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("http server never panicked")
+			}
+		}()
+		s.ServeHTTP(w, r)
+	})
+
+	server := httptest.NewServer(h)
+	defer server.Close()
+
+	clients := map[string]Haberdasher{
+		"protobuf": NewHaberdasherProtobufClient(server.URL, http.DefaultClient),
+		"json":     NewHaberdasherJSONClient(server.URL, http.DefaultClient),
+	}
+	for name, c := range clients {
+		_, err := c.MakeHat(context.Background(), &Size{Inches: 1})
+		if err == nil {
+			t.Fatalf("%s client: err was expected for panicking handler, found nil", name)
+		}
+		if !errHookCalled {
+			t.Fatalf("%s client: expected error hook to be called for panicking handler", name)
+		}
+		errHookCalled = false // Reset for the next loop iteration
+
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			t.Fatalf("%s client: expected twirp.Error type error, have %T", name, err)
+		}
+		if twerr.Code() != twirp.Internal {
+			t.Errorf("%s client: ErrorCode expected to be %q, but found %q", name, twirp.Internal, twerr.Code())
+		}
+		if twerr.Msg() != "Internal service panic" {
+			t.Errorf("%s client: err has unexpected message %q, want %q", name, twerr.Msg(), "Internal service panic")
+		}
+	}
 }
 
 func TestCustomRequestHeaders(t *testing.T) {
@@ -867,7 +938,7 @@ func TestCustomRequestHeaders(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%q client WithHTTPRequestHeaders err=%q", name, err)
 		}
-		_, err = c.MakeHat(ctx, &Size{1})
+		_, err = c.MakeHat(ctx, &Size{Inches: 1})
 		if err != nil {
 			t.Errorf("%q client err=%q", name, err)
 		}
@@ -935,7 +1006,7 @@ func TestCustomResponseHeaders(t *testing.T) {
 	defer s.Close()
 
 	c := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
-	resp, err := c.MakeHat(context.Background(), &Size{1})
+	resp, err := c.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("unexpected service error: %q", err)
 	}
@@ -965,16 +1036,15 @@ func TestNilResponse(t *testing.T) {
 		"json":     NewHaberdasherJSONClient(s.URL, http.DefaultClient),
 	}
 	for name, c := range clients {
-		_, err := c.MakeHat(context.Background(), &Size{1})
+		_, err := c.MakeHat(context.Background(), &Size{Inches: 1})
 		if err == nil {
 			t.Errorf("%q client err=nil, which is unexpected", name)
 		}
 	}
 }
 
-
 var expectBadRouteError = func(t *testing.T, client Haberdasher) {
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err == nil {
 		t.Fatalf("err=nil, expected bad_route")
 	}
@@ -1008,7 +1078,7 @@ func TestBadRoute(t *testing.T) {
 		t.Run(name+" client", func(t *testing.T) {
 			t.Run("good route", func(t *testing.T) {
 				rw.rewrite = func(r *http.Request) *http.Request { return r }
-				_, err := client.MakeHat(context.Background(), &Size{1})
+				_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 				if err != nil {
 					t.Errorf("unexpected error with vanilla client and transport: %v", err)
 				}
@@ -1125,8 +1195,36 @@ func TestContextValues(t *testing.T) {
 
 	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
 
-	_, err := client.MakeHat(context.Background(), &Size{1})
+	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
 	if err != nil {
 		t.Errorf("Client err=%q", err)
+	}
+}
+
+func TestPanicFlushing(t *testing.T) {
+	h := PanickyHatmaker("bang!")
+	s := httptest.NewUnstartedServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+	// If the server config's ErrorLog is left nil, then it will log the panic and
+	// a stack trace straight to stderr. Override it to log to test output.
+	s.Config.ErrorLog = testLogger(t)
+	s.Start()
+
+	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	hat, err := client.MakeHat(context.Background(), &Size{Inches: 1})
+	if err == nil {
+		t.Logf("hat: %+v", hat)
+		t.Fatal("twirp client err is nil for panicking handler")
+	}
+	twerr, ok := err.(twirp.Error)
+	if !ok {
+		t.Fatalf("expected twirp.Error type error, have %T", err)
+	}
+
+	if twerr.Code() != twirp.Internal {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", twirp.Internal, twerr.Code())
+	}
+	if twerr.Msg() != "Internal service panic" {
+		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), "Internal service panic")
 	}
 }

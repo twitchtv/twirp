@@ -8,7 +8,7 @@ The service constructor can use `hooks *twirp.ServerHooks` to plug in additional
 functionality:
 
 ```go
-func NewHaberdasherServer(svc Haberdasher, hooks *twirp.ServerHooks, ctxSrc ContextSource) http.Handler
+func NewHaberdasherServer(svc Haberdasher, hooks *twirp.ServerHooks) http.Handler
 ```
 
 These _hooks_ provide a framework for side-effects at important points while a

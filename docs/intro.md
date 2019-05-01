@@ -75,9 +75,9 @@ func main() {
 	twirpHandler := pb.NewHelloWorldServer(&HelloWorldServer{}, nil)
 	// You can use any mux you like - NewHelloWorldServer gives you an http.Handler.
 	mux := http.NewServeMux()
-	// The generated code includes a const, <ServiceName>PathPrefix, which
+	// The generated code includes a method, PathPrefix(), which
 	// can be used to mount your service on a mux.
-	mux.Handle(pb.HelloWorldPathPrefix, twirpHandler)
+	mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
 	http.ListenAndServe(":8080", mux)
 }
 ```

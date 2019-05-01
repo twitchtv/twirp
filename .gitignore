@@ -7,3 +7,5 @@ clientcompat/pycompat/ENV
 build
 
 npm-debug.log
+
+/release

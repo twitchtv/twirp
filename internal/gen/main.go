@@ -50,7 +50,7 @@ Outer:
 }
 
 func readGenRequest(r io.Reader) *plugin.CodeGeneratorRequest {
-	data, err := ioutil.ReadAll(os.Stdin)
+	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		Error(err, "reading input")
 	}

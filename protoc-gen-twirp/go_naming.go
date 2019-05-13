@@ -65,13 +65,15 @@ func goPackageName(f *descriptor.FileDescriptorProto) (name string, explicit boo
 }
 
 // goFileName returns the output name for the generated Go file.
-func goFileName(f *descriptor.FileDescriptorProto) string {
+func (t *twirp) goFileName(f *descriptor.FileDescriptorProto) string {
 	name := *f.Name
 	if ext := path.Ext(name); ext == ".proto" || ext == ".protodevel" {
 		name = name[:len(name)-len(ext)]
 	}
 	name += ".twirp.go"
-
+	if t.sourceRelativePaths {
+		return name
+	}
 	// Does the file have a "go_package" option? If it does, it may override the
 	// filename.
 	if impPath, _, ok := goPackageOption(f); ok && impPath != "" {
@@ -82,4 +84,28 @@ func goFileName(f *descriptor.FileDescriptorProto) string {
 	}
 
 	return name
+}
+
+func parseGoPackageOption(v string) (importPath, packageName string) {
+	// Allowed formats:
+	// option go_package = "foo";
+	// option go_package = "github.com/example/foo";
+	// option go_package = "github.com/example/foo;bar";
+
+	semicolonPos := strings.Index(v, ";")
+	if semicolonPos > -1 {
+		importPath = v[:semicolonPos]
+		packageName = v[semicolonPos+1:]
+		return
+	}
+
+	if strings.Contains(v, "/") {
+		importPath = v
+		_, packageName = path.Split(v)
+		return
+	}
+
+	importPath = ""
+	packageName = v
+	return
 }

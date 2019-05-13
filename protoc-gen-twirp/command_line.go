@@ -21,6 +21,7 @@ import (
 type commandLineParams struct {
 	importPrefix string            // String to prefix to imported package file names.
 	importMap    map[string]string // Mapping from .proto file name to import path.
+	paths        string            // Paths value, used to control file output directory
 }
 
 // parseCommandLineParams breaks the comma-separated list of key=value pairs
@@ -56,6 +57,11 @@ func parseCommandLineParams(parameter string) (*commandLineParams, error) {
 			clp.importMap[k[1:]] = v // 1 is the length of 'M'.
 		case len(k) > 0 && strings.HasPrefix(k, "go_import_mapping@"):
 			clp.importMap[k[18:]] = v // 18 is the length of 'go_import_mapping@'.
+		case k == "paths":
+			if v != "source_relative" {
+				return nil, fmt.Errorf("paths does not support %q", v)
+			}
+			clp.paths = v
 		default:
 			return nil, fmt.Errorf("unknown parameter %q", k)
 		}

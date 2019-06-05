@@ -123,3 +123,12 @@ func SetHTTPResponseHeader(ctx context.Context, key, value string) error {
 
 	return nil
 }
+
+// SetHTTPCookie adds a Set-Cookie header using a context provided by
+// a twirp-generated server, or a child of that context.
+func SetHTTPCookie(ctx context.Context, cookie *http.Cookie) {
+	responseWriter, ok := ctx.Value(contextkeys.ResponseWriterKey).(http.ResponseWriter)
+	if ok {
+		http.SetCookie(responseWriter, cookie)
+	}
+}

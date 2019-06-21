@@ -224,7 +224,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request json"))
 		return
 	}
 
@@ -283,7 +283,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	}
 	reqContent := new(Msg2)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request proto"))
 		return
 	}
 
@@ -353,7 +353,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request json"))
 		return
 	}
 
@@ -412,7 +412,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	}
 	reqContent := new(Msg1)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request proto"))
 		return
 	}
 

@@ -458,6 +458,13 @@ func (e *internalWithCause) Meta(key string) string                      { retur
 func (e *internalWithCause) MetaMap() map[string]string                  { return nil }
 func (e *internalWithCause) WithMeta(key string, val string) twirp.Error { return e }
 
+// badRequestError is used when the twirp server cannot unmarshal a request
+func badRequestError(cause error, msg string) twirp.Error {
+	err := twirp.NewError(twirp.InvalidArgument, msg)
+	err = err.WithMeta("twirp_invalid_request", cause.Error())
+	return err
+}
+
 // badRouteError is used when the twirp server cannot route a request
 func badRouteError(msg string, method, url string) twirp.Error {
 	err := twirp.NewError(twirp.BadRoute, msg)

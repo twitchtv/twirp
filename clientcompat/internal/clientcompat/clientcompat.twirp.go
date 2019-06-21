@@ -236,7 +236,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 	reqContent := new(Req)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request json"))
 		return
 	}
 
@@ -295,7 +295,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 	}
 	reqContent := new(Req)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request proto"))
 		return
 	}
 
@@ -365,7 +365,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 	reqContent := new(Empty)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request json"))
 		return
 	}
 
@@ -424,7 +424,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 	}
 	reqContent := new(Empty)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
+		s.writeError(ctx, resp, badRequestError(err, "failed to parse request proto"))
 		return
 	}
 
@@ -781,6 +781,13 @@ func (e *internalWithCause) Msg() string                                 { retur
 func (e *internalWithCause) Meta(key string) string                      { return "" }
 func (e *internalWithCause) MetaMap() map[string]string                  { return nil }
 func (e *internalWithCause) WithMeta(key string, val string) twirp.Error { return e }
+
+// badRequestError is used when the twirp server cannot unmarshal a request
+func badRequestError(cause error, msg string) twirp.Error {
+	err := twirp.NewError(twirp.InvalidArgument, msg)
+	err = err.WithMeta("twirp_invalid_request", cause.Error())
+	return err
+}
 
 // badRouteError is used when the twirp server cannot route a request
 func badRouteError(msg string, method, url string) twirp.Error {

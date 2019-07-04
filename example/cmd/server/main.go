@@ -33,7 +33,7 @@ func (h *randomHaberdasher) MakeHat(ctx context.Context, size *example.Size) (*e
 	}
 	colors := []string{"white", "black", "brown", "red", "blue"}
 	names := []string{"bowler", "baseball cap", "top hat", "derby"}
-	return &haberdasher.Hat{
+	return &example.Hat{
 		Size:  size.Inches,
 		Color: colors[rand.Intn(len(colors))],
 		Name:  names[rand.Intn(len(names))],

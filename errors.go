@@ -151,6 +151,11 @@ const (
 	// etc.).
 	InvalidArgument ErrorCode = "invalid_argument"
 
+	// Malformed indicates an error occurred while decoding the client's request.
+	// This may mean that the message was encoded improperly, or that there is a
+	// disagreement in message format between the client and server.
+	Malformed ErrorCode = "malformed"
+
 	// DeadlineExceeded means operation expired before completion. For operations
 	// that change the state of the system, this error may be returned even if the
 	// operation has completed successfully (timeout).
@@ -238,6 +243,8 @@ func ServerHTTPStatusFromErrorCode(code ErrorCode) int {
 	case Unknown:
 		return 500 // Internal Server Error
 	case InvalidArgument:
+		return 400 // BadRequest
+	case Malformed:
 		return 400 // BadRequest
 	case DeadlineExceeded:
 		return 408 // RequestTimeout

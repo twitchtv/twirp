@@ -57,7 +57,7 @@ func TestServeJSON(t *testing.T) {
 	}
 }
 
-func TestServerJSONWithBadRequest(t *testing.T) {
+func TestServerJSONWithMalformedRequest(t *testing.T) {
 	// Trivial Haberdasher server
 	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
 		return &Hat{}, nil
@@ -85,8 +85,8 @@ func TestServerJSONWithBadRequest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
-	if !strings.Contains(string(respBytes), "failed to parse request json") {
-		t.Fatalf(`Expected response to contain "failed to parse request json", got: %q`, string(respBytes))
+	if !strings.Contains(string(respBytes), "the json request could not be decoded") {
+		t.Fatalf(`Expected response to contain "the json request could not be decoded", got: %q`, string(respBytes))
 	}
 }
 
@@ -125,7 +125,7 @@ func TestServerJSONWithUnknownFields(t *testing.T) {
 	}
 }
 
-func TestServerProtobufBadRequest(t *testing.T) {
+func TestServerProtobufMalformedRequest(t *testing.T) {
 	// Trivial Haberdasher server
 	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
 		return &Hat{}, nil
@@ -151,8 +151,8 @@ func TestServerProtobufBadRequest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
-	if !strings.Contains(string(respBytes), "failed to parse request proto") {
-		t.Fatalf(`Expected response to contain "failed to parse request proto", got: %q`, string(respBytes))
+	if !strings.Contains(string(respBytes), "the protobuf request could not be decoded") {
+		t.Fatalf(`Expected response to contain "the protobuf request could not be decoded", got: %q`, string(respBytes))
 	}
 }
 

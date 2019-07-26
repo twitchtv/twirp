@@ -45,6 +45,7 @@ Each error code is defined by a constant in the `twirp` package:
 | Canceled           | canceled            | 408 RequestTimeout
 | Unknown            | unknown             | 500 Internal Server Error
 | InvalidArgument    | invalid_argument    | 400 BadRequest
+| Malformed          | malformed           | 400 BadRequest
 | DeadlineExceeded   | deadline_exceeded   | 408 RequestTimeout
 | NotFound           | not_found           | 404 Not Found
 | BadRoute           | bad_route           | 404 Not Found

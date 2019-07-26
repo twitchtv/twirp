@@ -57,6 +57,39 @@ func TestServeJSON(t *testing.T) {
 	}
 }
 
+func TestServerJSONWithMalformedRequest(t *testing.T) {
+	// Trivial Haberdasher server
+	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
+		return &Hat{}, nil
+	})
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+	// Make JSON request with incorrectly-typed field
+	reqJSON := `{"inches":"should_be_number"}`
+	url := s.URL + HaberdasherPathPrefix + "MakeHat"
+	resp, err := http.Post(url, "application/json", bytes.NewBufferString(reqJSON))
+	if err != nil {
+		t.Fatalf("Unexpected error: %q", err.Error())
+	}
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			t.Fatalf("Closing body: %q", err.Error())
+		}
+	}()
+	// Make sure that a 400 status code was returned
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("Expected 400 BadRequest when sending malformed request, got %d", resp.StatusCode)
+	}
+	// Make sure the response is meaningful
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Could not even read bytes from response: %q", err.Error())
+	}
+	if !strings.Contains(string(respBytes), "the json request could not be decoded") {
+		t.Fatalf(`Expected response to contain "the json request could not be decoded", got: %q`, string(respBytes))
+	}
+}
+
 func TestServerJSONWithUnknownFields(t *testing.T) {
 	// Haberdasher server that returns same size it was requested
 	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
@@ -89,6 +122,37 @@ func TestServerJSONWithUnknownFields(t *testing.T) {
 	}
 	if hat.Size != 0 {
 		t.Errorf("Expected empty size (zero-value), found %q", hat.Size)
+	}
+}
+
+func TestServerProtobufMalformedRequest(t *testing.T) {
+	// Trivial Haberdasher server
+	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
+		return &Hat{}, nil
+	})
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	defer s.Close()
+	url := s.URL + HaberdasherPathPrefix + "MakeHat"
+	resp, err := http.Post(url, "application/protobuf", bytes.NewBuffer([]byte{1}))
+	if err != nil {
+		t.Fatalf("Unexpected error: %q", err.Error())
+	}
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			t.Fatalf("Closing body: %q", err.Error())
+		}
+	}()
+	// Make sure that a 400 status code was returned
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("Expected 400 BadRequest when sending malformed request, got %d", resp.StatusCode)
+	}
+	// Make sure the response is meaningful
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Could not even read bytes from response: %q", err.Error())
+	}
+	if !strings.Contains(string(respBytes), "the protobuf request could not be decoded") {
+		t.Fatalf(`Expected response to contain "the protobuf request could not be decoded", got: %q`, string(respBytes))
 	}
 }
 

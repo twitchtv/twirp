@@ -207,7 +207,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 	reqContent := new(Size)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request json"))
+		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
 		return
 	}
 
@@ -266,7 +266,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 	}
 	reqContent := new(Size)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
-		s.writeError(ctx, resp, wrapInternal(err, "failed to parse request proto"))
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
 		return
 	}
 
@@ -623,6 +623,11 @@ func (e *internalWithCause) Msg() string                                 { retur
 func (e *internalWithCause) Meta(key string) string                      { return "" }
 func (e *internalWithCause) MetaMap() map[string]string                  { return nil }
 func (e *internalWithCause) WithMeta(key string, val string) twirp.Error { return e }
+
+// malformedRequestError is used when the twirp server cannot unmarshal a request
+func malformedRequestError(msg string) twirp.Error {
+	return twirp.NewError(twirp.Malformed, msg)
+}
 
 // badRouteError is used when the twirp server cannot route a request
 func badRouteError(msg string, method, url string) twirp.Error {

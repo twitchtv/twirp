@@ -258,13 +258,13 @@ func TestClientRedirectError(t *testing.T) {
 }
 
 func TestClientIntermediaryErrors(t *testing.T) {
-	testcase := func(code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
+	testcase := func(body string, code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that returns invalid twirp error responses,
 			// simulating a network intermediary.
 			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(code)
-				_, err := w.Write([]byte("response from intermediary"))
+				_, err := w.Write([]byte(body))
 				if err != nil {
 					t.Fatalf("Unexpected error: %s", err.Error())
 				}
@@ -292,7 +292,7 @@ func TestClientIntermediaryErrors(t *testing.T) {
 					t.Errorf("expected error.Meta('status_code') to be %q, but found %q", code, twerr.Meta("status_code"))
 				}
 				// error meta should include body
-				if twerr.Meta("body") != "response from intermediary" {
+				if twerr.Meta("body") != body {
 					t.Errorf("expected error.Meta('body') to be the response from intermediary, but found %q", twerr.Meta("body"))
 				}
 				// error code should be properly mapped from HTTP Code
@@ -303,31 +303,47 @@ func TestClientIntermediaryErrors(t *testing.T) {
 		}
 	}
 
-	var cases = []struct {
-		httpStatusCode int
-		twirpErrorCode twirp.ErrorCode
-	}{
+	// HTTP Status Code -> desired Twirp Error Code
+	statusCodes := map[int]twirp.ErrorCode{
 		// Map meaningful HTTP codes to semantic equivalent twirp.ErrorCodes
-		{400, twirp.Internal},
-		{401, twirp.Unauthenticated},
-		{403, twirp.PermissionDenied},
-		{404, twirp.BadRoute},
-		{429, twirp.Unavailable},
-		{502, twirp.Unavailable},
-		{503, twirp.Unavailable},
-		{504, twirp.Unavailable},
+		400: twirp.Internal,
+		401: twirp.Unauthenticated,
+		403: twirp.PermissionDenied,
+		404: twirp.BadRoute,
+		429: twirp.Unavailable,
+		502: twirp.Unavailable,
+		503: twirp.Unavailable,
+		504: twirp.Unavailable,
 
 		// all other codes are unknown
-		{505, twirp.Unknown},
-		{410, twirp.Unknown},
-		{408, twirp.Unknown},
+		505: twirp.Unknown,
+		410: twirp.Unknown,
+		408: twirp.Unknown,
 	}
-	for _, c := range cases {
-		jsonTestName := fmt.Sprintf("json_client/%d_to_%s", c.httpStatusCode, c.twirpErrorCode)
-		t.Run(jsonTestName, testcase(c.httpStatusCode, c.twirpErrorCode, NewHaberdasherJSONClient))
 
-		protoTestName := fmt.Sprintf("proto_client/%d_to_%s", c.httpStatusCode, c.twirpErrorCode)
-		t.Run(protoTestName, testcase(c.httpStatusCode, c.twirpErrorCode, NewHaberdasherProtobufClient))
+	// label -> http response body
+	bodies := map[string]string{
+		"text":        "error from intermediary",
+		"emptyjson":   "{}",
+		"invalidjson": `{"message":"Signature expired: 19700101T000000Z is now earlier than 20190612T110154Z (20190612T110654Z - 5 min.)"}`,
+	}
+
+	clients := map[string]func(string, HTTPClient) Haberdasher{
+		"json_client":  NewHaberdasherJSONClient,
+		"proto_client": NewHaberdasherProtobufClient,
+	}
+
+	for name, client := range clients {
+		t.Run(name, func(t *testing.T) {
+			for name, body := range bodies {
+				t.Run(name, func(t *testing.T) {
+					for httpcode, twirpcode := range statusCodes {
+						t.Run(fmt.Sprintf("%d_to_%s", httpcode, twirpcode),
+							testcase(body, httpcode, twirpcode, client))
+					}
+				})
+			}
+		})
 	}
 }
 

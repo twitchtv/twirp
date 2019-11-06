@@ -341,8 +341,11 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 	if err != nil {
 		return wrapInternal(err, "failed to read server error response body")
 	}
+
 	var tj twerrJSON
-	if err := json.Unmarshal(respBodyBytes, &tj); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(respBodyBytes))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&tj); err != nil || tj.Code == "" {
 		// Invalid JSON response; it must be an error from an intermediary.
 		msg := fmt.Sprintf("Error from intermediary with HTTP status code %d %q", statusCode, statusText)
 		return twirpErrorFromIntermediary(statusCode, msg, string(respBodyBytes))

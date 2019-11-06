@@ -59,14 +59,14 @@ func NewStatsdServerHooks(stats Statter) *twirp.ServerHooks {
 	}
 
 	// ResponseSent:
-	// - inc twirp.total.response
-	// - inc twirp.<method>.response
-	// - inc twirp.by_code.total.<code>.response
-	// - inc twirp.by_code.<method>.<code>.response
-	// - time twirp.total.response
+	// - inc twirp.total.responses
+	// - inc twirp.<method>.responses
+	// - inc twirp.status_codes.total.<code>
+	// - inc twirp.status_codes.<method>.<code>
+	// - time twirp.all_methods.response
 	// - time twirp.<method>.response
-	// - time twirp.by_code.total.<code>.response
-	// - time twirp.by_code.<method>.<code>.response
+	// - time twirp.status_codes.all_methods.<code>
+	// - time twirp.status_codes.<method>.<code>
 	hooks.ResponseSent = func(ctx context.Context) {
 		// Three pieces of data to get, none are guaranteed to be present:
 		// - time that the request started

@@ -347,46 +347,6 @@ func TestClientIntermediaryErrors(t *testing.T) {
 	}
 }
 
-func TestClientIntermediaryJSONErrors(t *testing.T) {
-	// If a service responds with a JSON error, but it's not a twirp-style JSON
-	// error, detect that and provide a useful error.
-	const body = `{"message":"Signature expired: 19700101T000000Z is now earlier than 20190612T110154Z (20190612T110654Z - 5 min.)"}`
-	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(403)
-		_, err := w.Write([]byte(body))
-		if err != nil {
-			t.Fatalf("Unexpected error: %s", err.Error())
-		}
-	}))
-	defer s.Close()
-
-	client := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
-	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
-	if err == nil {
-		t.Fatal("Expected error, but found nil")
-	}
-	if twerr, ok := err.(twirp.Error); !ok {
-		t.Fatalf("expected twirp.Error typed err, have=%T", err)
-	} else {
-		// error message should mention the code
-		if !strings.Contains(twerr.Msg(), "Error from intermediary with HTTP status code 403") {
-			t.Errorf("unexpected error message: %q", twerr.Msg())
-		}
-		// error meta should include http_error_from_intermediary
-		if twerr.Meta("http_error_from_intermediary") != "true" {
-			t.Errorf("expected error.Meta('http_error_from_intermediary') to be %q, but found %q", "true", twerr.Meta("http_error_from_intermediary"))
-		}
-		// error meta should include status
-		if twerr.Meta("status_code") != "403" {
-			t.Errorf("expected error.Meta('status_code') to be %q, but found %q", "403", twerr.Meta("status_code"))
-		}
-		// error meta should include body
-		if twerr.Meta("body") != body {
-			t.Errorf("expected error.Meta('body') to be the response from intermediary, but found %q", twerr.Meta("body"))
-		}
-	}
-}
-
 func TestJSONClientAllowUnknownFields(t *testing.T) {
 	// Make a server that always returns JSON with extra fields
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

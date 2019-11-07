@@ -45,6 +45,7 @@ Each error code is defined by a constant in the `twirp` package:
 | Canceled           | canceled            | 408 RequestTimeout
 | Unknown            | unknown             | 500 Internal Server Error
 | InvalidArgument    | invalid_argument    | 400 BadRequest
+| Malformed          | malformed           | 400 BadRequest
 | DeadlineExceeded   | deadline_exceeded   | 408 RequestTimeout
 | NotFound           | not_found           | 404 Not Found
 | BadRoute           | bad_route           | 404 Not Found
@@ -120,3 +121,24 @@ If your service requires errors with complex metadata, you should consider addin
 wrappers on top of the auto-generated clients, or just include business-logic errors as
 part of the Protobuf messages (add an error field to proto messages).
 
+### Writing HTTP Errors outside Twirp services
+
+Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses 
+and error codes _outside_ Twirp servers, such as http middlewares, you can call `twirp.WriteError`. 
+
+The error is expected to satisfy a `twirp.Error`, otherwise it is wrapped with `twirp.InternalError`.
+
+Usage:
+
+```go
+rpc.WriteError(w, twirp.NewError(twirp.Unauthenticated, "invalid token"))
+```
+
+To simplify `twirp.Error` composition, a few constructors are available, such as `NotFoundError` 
+and `RequiredArgumentError`. See [docs](https://godoc.org/github.com/twitchtv/twirp#Error).
+
+With constructor:
+
+```go
+rpc.WriteError(w, twirp.RequiredArgumentError("user_id"))
+```

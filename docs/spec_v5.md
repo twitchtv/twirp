@@ -199,6 +199,7 @@ corresponding HTTP Status Code for the response.
 | canceled            | 408 | The operation was cancelled.
 | unknown             | 500 | An unknown error occurred. For example, this can be used when handling errors raised by APIs that do not return any error information.
 | invalid_argument    | 400 | The client specified an invalid argument. This indicates arguments that are invalid regardless of the state of the system (i.e. a malformed file name, required argument, number out of range, etc.).
+| malformed           | 400 | The client sent a message which could not be decoded. This may mean that the message was encoded improperly or that the client and server have incompatible message definitions.
 | deadline_exceeded   | 408 | Operation expired before completion. For operations that change the state of the system, this error may be returned even if the operation has completed successfully (timeout).
 | not_found           | 404 | Some requested entity was not found.
 | bad_route           | 404 | The requested URL path wasn't routable to a Twirp service and method. This is returned by generated server code and should not be returned by application code (use "not_found" or "unimplemented" instead).

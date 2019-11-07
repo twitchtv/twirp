@@ -4,4 +4,4 @@ idna==2.5
 protobuf==3.5.1
 requests==2.21.0
 six==1.10.0
-urllib3==1.24.1
+urllib3>=1.24.2

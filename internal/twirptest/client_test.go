@@ -201,7 +201,7 @@ func TestClientSetsAcceptHeader(t *testing.T) {
 
 // If a server returns a 3xx response, give a clear error message
 func TestClientRedirectError(t *testing.T) {
-	testcase := func(code int, clientMaker func(string, twirp.HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
+	testcase := func(code int, clientMaker func(string, HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that redirects all requests
 			redirecter := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +258,7 @@ func TestClientRedirectError(t *testing.T) {
 }
 
 func TestClientIntermediaryErrors(t *testing.T) {
-	testcase := func(body string, code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, twirp.HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
+	testcase := func(body string, code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that returns invalid twirp error responses,
 			// simulating a network intermediary.
@@ -328,7 +328,7 @@ func TestClientIntermediaryErrors(t *testing.T) {
 		"invalidjson": `{"message":"Signature expired: 19700101T000000Z is now earlier than 20190612T110154Z (20190612T110654Z - 5 min.)"}`,
 	}
 
-	clients := map[string]func(string, twirp.HTTPClient, ...twirp.ClientOption) Haberdasher{
+	clients := map[string]func(string, HTTPClient, ...twirp.ClientOption) Haberdasher{
 		"json_client":  NewHaberdasherJSONClient,
 		"proto_client": NewHaberdasherProtobufClient,
 	}
@@ -502,7 +502,7 @@ func TestClientReturnsCloseErrors(t *testing.T) {
 // bodyCloseErrClient implements HTTPClient, but the response bodies it returns
 // give an error when they are closed.
 type bodyCloseErrClient struct {
-	base twirp.HTTPClient
+	base HTTPClient
 }
 
 func (c *bodyCloseErrClient) Do(req *http.Request) (*http.Response, error) {

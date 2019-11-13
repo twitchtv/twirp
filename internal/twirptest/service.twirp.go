@@ -10,23 +10,36 @@ It is generated from these files:
 */
 package twirptest
 
-import bytes "bytes"
-import strings "strings"
-import context "context"
-import fmt "fmt"
-import ioutil "io/ioutil"
-import http "net/http"
-import strconv "strconv"
+import (
+	bytes "bytes"
+	strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+	context "context"
 
-// Imports only used by utility functions:
-import io "io"
-import json "encoding/json"
-import url "net/url"
+	fmt "fmt"
+
+	ioutil "io/ioutil"
+
+	http "net/http"
+
+	strconv "strconv"
+
+	jsonpb "github.com/golang/protobuf/jsonpb"
+
+	proto "github.com/golang/protobuf/proto"
+
+	twirp "github.com/twitchtv/twirp"
+
+	ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+
+	// Imports only used by utility functions:
+
+	io "io"
+
+	json "encoding/json"
+
+	url "net/url"
+)
 
 // =====================
 // Haberdasher Interface
@@ -43,21 +56,21 @@ type Haberdasher interface {
 // ===========================
 
 type haberdasherProtobufClient struct {
-	client twirp.HTTPClient
+	client HTTPClient
 	urls   [1]string
 	opts   twirp.ClientOptions
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewHaberdasherProtobufClient(addr string, client twirp.HTTPClient, opt ...twirp.ClientOption) Haberdasher {
-	var httpClient twirp.HTTPClient = client
+func NewHaberdasherProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Haberdasher {
+	var httpClient HTTPClient = client
 
 	if c, ok := client.(*http.Client); ok {
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions(httpClient)
+	opts := twirp.DefaultClientOptions()
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -78,7 +91,7 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	err := doProtobufRequest(ctx, c.opts.Client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -103,21 +116,21 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 // =======================
 
 type haberdasherJSONClient struct {
-	client twirp.HTTPClient
+	client HTTPClient
 	urls   [1]string
 	opts   twirp.ClientOptions
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewHaberdasherJSONClient(addr string, client twirp.HTTPClient, opt ...twirp.ClientOption) Haberdasher {
-	var httpClient twirp.HTTPClient = client
+func NewHaberdasherJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Haberdasher {
+	var httpClient HTTPClient = client
 
 	if c, ok := client.(*http.Client); ok {
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions(httpClient)
+	opts := twirp.DefaultClientOptions()
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -138,7 +151,7 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	err := doJSONRequest(ctx, c.opts.Client, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
 	}

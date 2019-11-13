@@ -17,23 +17,10 @@ import (
 	"net/http"
 )
 
-// HTTPClient is the interface used by generated clients to send HTTP requests.
-// It is fulfilled by *(net/http).Client, which is sufficient for most users.
-// Users can provide their own implementation for special retry policies.
-//
-// HTTPClient implementations should not follow redirects. Redirects are
-// automatically disabled if *(net/http).Client is passed to client
-// constructors. See the withoutRedirects function in this file for more
-// details.
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
 type ClientOption func(*ClientOptions)
 
 type ClientOptions struct {
-	Client HTTPClient
-	Hooks  *ClientHooks
+	Hooks *ClientHooks
 }
 
 type ClientHooks struct {
@@ -51,10 +38,9 @@ type ClientHooks struct {
 	Error func(context.Context, Error) context.Context
 }
 
-func DefaultClientOptions(client HTTPClient) ClientOptions {
+func DefaultClientOptions() ClientOptions {
 	return ClientOptions{
-		Client: client,
-		Hooks:  nil,
+		Hooks: nil,
 	}
 }
 

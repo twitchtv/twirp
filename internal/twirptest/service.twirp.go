@@ -12,32 +12,21 @@ package twirptest
 
 import (
 	bytes "bytes"
+	context "context"
+	fmt "fmt"
+	ioutil "io/ioutil"
+	http "net/http"
+	strconv "strconv"
 	strings "strings"
 
-	context "context"
-
-	fmt "fmt"
-
-	ioutil "io/ioutil"
-
-	http "net/http"
-
-	strconv "strconv"
-
 	jsonpb "github.com/golang/protobuf/jsonpb"
-
 	proto "github.com/golang/protobuf/proto"
-
 	twirp "github.com/twitchtv/twirp"
-
 	ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
 	// Imports only used by utility functions:
-
-	io "io"
-
 	json "encoding/json"
-
+	io "io"
 	url "net/url"
 )
 

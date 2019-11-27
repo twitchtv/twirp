@@ -45,24 +45,31 @@ type Svc2 interface {
 type svc2ProtobufClient struct {
 	client HTTPClient
 	urls   [1]string
+	opts   twirp.ClientOptions
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
+func NewSvc2ProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc2 {
+	var httpClient HTTPClient = client
+	if c, ok := client.(*http.Client); ok {
+		httpClient = withoutRedirects(c)
+	}
+
+	opts := twirp.DefaultClientOptions()
+	for _, o := range opt {
+		o(&opts)
+	}
+
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [1]string{
 		prefix + "Method",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &svc2ProtobufClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &svc2ProtobufClient{
-		client: client,
+		client: httpClient,
 		urls:   urls,
+		opts:   opts,
 	}
 }
 
@@ -71,10 +78,18 @@ func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
-	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientRequestFinished(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -85,24 +100,31 @@ func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg
 type svc2JSONClient struct {
 	client HTTPClient
 	urls   [1]string
+	opts   twirp.ClientOptions
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
+func NewSvc2JSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc2 {
+	var httpClient HTTPClient = client
+	if c, ok := client.(*http.Client); ok {
+		httpClient = withoutRedirects(c)
+	}
+
+	opts := twirp.DefaultClientOptions()
+	for _, o := range opt {
+		o(&opts)
+	}
+
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [1]string{
 		prefix + "Method",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &svc2JSONClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &svc2JSONClient{
-		client: client,
+		client: httpClient,
 		urls:   urls,
+		opts:   opts,
 	}
 }
 
@@ -111,10 +133,18 @@ func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
-	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientRequestFinished(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -664,7 +694,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtobufRequest makes a Protobuf request to the remote Twirp service.
-func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
+func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (err error) {
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
 		return wrapInternal(err, "failed to marshal proto request")
@@ -678,6 +708,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 	if err != nil {
 		return wrapInternal(err, "could not build request")
 	}
+	callClientRequestPrepared(ctx, hooks, req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return wrapInternal(err, "failed to do request")
@@ -713,7 +744,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 }
 
 // doJSONRequest makes a JSON request to the remote Twirp service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
+func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (err error) {
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(reqBody, in); err != nil {
@@ -727,6 +758,7 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 	if err != nil {
 		return wrapInternal(err, "could not build request")
 	}
+	callClientRequestPrepared(ctx, hooks, req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return wrapInternal(err, "failed to do request")
@@ -791,6 +823,27 @@ func callResponseSent(ctx context.Context, h *twirp.ServerHooks) {
 
 // Call twirp.ServerHooks.Error if the hook is available
 func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) context.Context {
+	if h == nil || h.Error == nil {
+		return ctx
+	}
+	return h.Error(ctx, err)
+}
+
+func callClientRequestFinished(ctx context.Context, h *twirp.ClientHooks) {
+	if h == nil || h.RequestFinished == nil {
+		return
+	}
+	h.RequestFinished(ctx)
+}
+
+func callClientRequestPrepared(ctx context.Context, h *twirp.ClientHooks, req *http.Request) (context.Context, error) {
+	if h == nil || h.RequestPrepared == nil {
+		return ctx, nil
+	}
+	return h.RequestPrepared(ctx, req)
+}
+
+func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error) context.Context {
 	if h == nil || h.Error == nil {
 		return ctx
 	}

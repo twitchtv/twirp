@@ -33,25 +33,32 @@ type Svc2 interface {
 type svc2ProtobufClient struct {
 	client HTTPClient
 	urls   [2]string
+	opts   twirp.ClientOptions
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewSvc2ProtobufClient(addr string, client HTTPClient) Svc2 {
+func NewSvc2ProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc2 {
+	var httpClient HTTPClient = client
+	if c, ok := client.(*http.Client); ok {
+		httpClient = withoutRedirects(c)
+	}
+
+	opts := twirp.DefaultClientOptions()
+	for _, o := range opt {
+		o(&opts)
+	}
+
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [2]string{
 		prefix + "Send",
 		prefix + "SamePackageProtoImport",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &svc2ProtobufClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &svc2ProtobufClient{
-		client: client,
+		client: httpClient,
 		urls:   urls,
+		opts:   opts,
 	}
 }
 
@@ -60,10 +67,18 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) 
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
-	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientRequestFinished(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -72,10 +87,18 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
-	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientRequestFinished(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -86,25 +109,32 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 type svc2JSONClient struct {
 	client HTTPClient
 	urls   [2]string
+	opts   twirp.ClientOptions
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewSvc2JSONClient(addr string, client HTTPClient) Svc2 {
+func NewSvc2JSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc2 {
+	var httpClient HTTPClient = client
+	if c, ok := client.(*http.Client); ok {
+		httpClient = withoutRedirects(c)
+	}
+
+	opts := twirp.DefaultClientOptions()
+	for _, o := range opt {
+		o(&opts)
+	}
+
 	prefix := urlBase(addr) + Svc2PathPrefix
 	urls := [2]string{
 		prefix + "Send",
 		prefix + "SamePackageProtoImport",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &svc2JSONClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &svc2JSONClient{
-		client: client,
+		client: httpClient,
 		urls:   urls,
+		opts:   opts,
 	}
 }
 
@@ -113,10 +143,18 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
-	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientRequestFinished(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -125,10 +163,18 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
-	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientRequestFinished(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 

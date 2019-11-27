@@ -853,6 +853,8 @@ func (t *twirp) generateService(file *descriptor.FileDescriptorProto, service *d
 	t.sectionComment(servName + ` JSON Client`)
 	t.generateClient("JSON", file, service)
 
+	t.generateClientHooks()
+
 	// Server
 	t.sectionComment(servName + ` Server Handler`)
 	t.generateServer(file, service)
@@ -932,14 +934,46 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
 		t.P(`  out := new(`, outputType, `)`)
-		t.P(`  err := do`, name, `Request(ctx, c.client, c.urls[`, strconv.Itoa(i), `], in, out)`)
+		t.P(`  err := do`, name, `Request(ctx, c.client, c.opts.Hooks, c.urls[`, strconv.Itoa(i), `], in, out)`)
 		t.P(`  if err != nil {`)
+		t.P(`    twerr, ok := err.(twirp.Error)`)
+		t.P(`    if !ok {`)
+		t.P(`      twerr = twirp.InternalErrorWith(err)`)
+		t.P(`    }`)
+		t.P(`  callClientError(ctx, c.opts.Hooks, twerr)`)
 		t.P(`    return nil, err`)
 		t.P(`  }`)
+		t.P()
+		t.P(`  callClientRequestFinished(ctx, c.opts.Hooks)`)
+		t.P()
 		t.P(`  return out, nil`)
 		t.P(`}`)
 		t.P()
 	}
+
+}
+
+func (t *twirp) generateClientHooks() {
+	t.P(`func callClientRequestFinished(ctx context.Context, h *twirp.ClientHooks) {`)
+	t.P(`  if h == nil || h.RequestFinished == nil {`)
+	t.P(`    return`)
+	t.P(`  }`)
+	t.P(`  h.RequestFinished(ctx)`)
+	t.P(`}`)
+	t.P()
+	t.P(`func callClientRequestPrepared(ctx context.Context, h *twirp.ClientHooks, req *http.Request) (context.Context, error) {`)
+	t.P(`  if h == nil || h.RequestPrepared == nil {`)
+	t.P(`    return ctx, nil`)
+	t.P(`  }`)
+	t.P(`  return h.RequestPrepared(ctx, req)`)
+	t.P(`}`)
+	t.P()
+	t.P(`func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error) context.Context {`)
+	t.P(`  if h == nil || h.Error == nil {`)
+	t.P(`    return ctx`)
+	t.P(`  }`)
+	t.P(`  return h.Error(ctx, err)`)
+	t.P(`}`)
 }
 
 func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {

@@ -687,7 +687,7 @@ func (t *twirp) generateUtils() {
 	t.P()
 
 	t.P(`// doProtobufRequest makes a Protobuf request to the remote Twirp service.`)
-	t.P(`func doProtobufRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, url string, in, out `, t.pkgs["proto"], `.Message) (err error) {`)
+	t.P(`func doProtobufRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out `, t.pkgs["proto"], `.Message) (err error) {`)
 	t.P(`  reqBodyBytes, err := `, t.pkgs["proto"], `.Marshal(in)`)
 	t.P(`  if err != nil {`)
 	t.P(`    return wrapInternal(err, "failed to marshal proto request")`)
@@ -701,6 +701,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  if err != nil {`)
 	t.P(`    return wrapInternal(err, "could not build request")`)
 	t.P(`  }`)
+	t.P(`  callClientRequestPrepared(ctx, hooks, req)`)
 	t.P(`  resp, err := client.Do(req)`)
 	t.P(`  if err != nil {`)
 	t.P(`    return wrapInternal(err, "failed to do request")`)
@@ -737,7 +738,7 @@ func (t *twirp) generateUtils() {
 	t.P()
 
 	t.P(`// doJSONRequest makes a JSON request to the remote Twirp service.`)
-	t.P(`func doJSONRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, url string, in, out `, t.pkgs["proto"], `.Message) (err error) {`)
+	t.P(`func doJSONRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out `, t.pkgs["proto"], `.Message) (err error) {`)
 	t.P(`  reqBody := `, t.pkgs["bytes"], `.NewBuffer(nil)`)
 	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
 	t.P(`  if err = marshaler.Marshal(reqBody, in); err != nil {`)
@@ -751,6 +752,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  if err != nil {`)
 	t.P(`    return wrapInternal(err, "could not build request")`)
 	t.P(`  }`)
+	t.P(`  callClientRequestPrepared(ctx, hooks, req)`)
 	t.P(`  resp, err := client.Do(req)`)
 	t.P(`  if err != nil {`)
 	t.P(`    return wrapInternal(err, "failed to do request")`)

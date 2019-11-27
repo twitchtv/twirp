@@ -824,6 +824,8 @@ func (t *twirp) generateUtils() {
 	t.P(`  return h.Error(ctx, err)`)
 	t.P(`}`)
 	t.P()
+
+	t.generateClientHooks()
 }
 
 // P forwards to g.gen.P, which prints output.
@@ -854,8 +856,6 @@ func (t *twirp) generateService(file *descriptor.FileDescriptorProto, service *d
 
 	t.sectionComment(servName + ` JSON Client`)
 	t.generateClient("JSON", file, service)
-
-	t.generateClientHooks()
 
 	// Server
 	t.sectionComment(servName + ` Server Handler`)

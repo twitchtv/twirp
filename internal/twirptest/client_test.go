@@ -267,7 +267,7 @@ func TestClientWithHooks(t *testing.T) {
 			requestPreparedCalled = true
 			return ctx, nil
 		},
-		RequestFinished: func(ctx context.Context) {
+		ResponseReceived: func(ctx context.Context) {
 			responseReceivedCalled = true
 		},
 		Error: func(ctx context.Context, err twirp.Error) {

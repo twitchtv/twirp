@@ -958,7 +958,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		t.P(`    return nil, err`)
 		t.P(`  }`)
 		t.P()
-		t.P(`  callClientRequestFinished(ctx, c.opts.Hooks)`)
+		t.P(`  callClientResponseReceived(ctx, c.opts.Hooks)`)
 		t.P()
 		t.P(`  return out, nil`)
 		t.P(`}`)
@@ -968,11 +968,11 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 }
 
 func (t *twirp) generateClientHooks() {
-	t.P(`func callClientRequestFinished(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks) {`)
-	t.P(`  if h == nil || h.RequestFinished == nil {`)
+	t.P(`func callClientResponseReceived(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks) {`)
+	t.P(`  if h == nil || h.ResponseReceived == nil {`)
 	t.P(`    return`)
 	t.P(`  }`)
-	t.P(`  h.RequestFinished(ctx)`)
+	t.P(`  h.ResponseReceived(ctx)`)
 	t.P(`}`)
 	t.P()
 	t.P(`func callClientRequestPrepared(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks, req *http.Request) (`, t.pkgs["context"], `.Context, error) {`)

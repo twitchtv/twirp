@@ -77,7 +77,7 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) 
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -97,7 +97,7 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -153,7 +153,7 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -173,7 +173,7 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }

@@ -86,7 +86,7 @@ func (c *echoProtobufClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -141,7 +141,7 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -832,11 +832,11 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 	return h.Error(ctx, err)
 }
 
-func callClientRequestFinished(ctx context.Context, h *twirp.ClientHooks) {
-	if h == nil || h.RequestFinished == nil {
+func callClientResponseReceived(ctx context.Context, h *twirp.ClientHooks) {
+	if h == nil || h.ResponseReceived == nil {
 		return
 	}
-	h.RequestFinished(ctx)
+	h.ResponseReceived(ctx)
 }
 
 func callClientRequestPrepared(ctx context.Context, h *twirp.ClientHooks, req *http.Request) (context.Context, error) {

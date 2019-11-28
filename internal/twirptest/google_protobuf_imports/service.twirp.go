@@ -23,8 +23,8 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
+import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 
 // Imports only used by utility functions:
 import io "io"
@@ -89,7 +89,7 @@ func (c *svcProtobufClient) Send(ctx context.Context, in *google_protobuf1.Strin
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -144,7 +144,7 @@ func (c *svcJSONClient) Send(ctx context.Context, in *google_protobuf1.StringVal
 		return nil, err
 	}
 
-	callClientRequestFinished(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -835,11 +835,11 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 	return h.Error(ctx, err)
 }
 
-func callClientRequestFinished(ctx context.Context, h *twirp.ClientHooks) {
-	if h == nil || h.RequestFinished == nil {
+func callClientResponseReceived(ctx context.Context, h *twirp.ClientHooks) {
+	if h == nil || h.ResponseReceived == nil {
 		return
 	}
-	h.RequestFinished(ctx)
+	h.ResponseReceived(ctx)
 }
 
 func callClientRequestPrepared(ctx context.Context, h *twirp.ClientHooks, req *http.Request) (context.Context, error) {

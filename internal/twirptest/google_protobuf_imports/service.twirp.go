@@ -23,8 +23,8 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
 import google_protobuf "github.com/golang/protobuf/ptypes/empty"
+import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
 
 // Imports only used by utility functions:
 import io "io"
@@ -714,7 +714,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 		return wrapInternal(err, "failed to call RequestPrepared hook")
 	}
 
-	req.WithContext(ctx)
+	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return wrapInternal(err, "failed to do request")
@@ -764,7 +764,12 @@ func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHo
 	if err != nil {
 		return wrapInternal(err, "could not build request")
 	}
-	callClientRequestPrepared(ctx, hooks, req)
+	ctx, err = callClientRequestPrepared(ctx, hooks, req)
+	if err != nil {
+		return wrapInternal(err, "failed to call RequestPrepared hook")
+	}
+
+	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return wrapInternal(err, "failed to do request")

@@ -259,7 +259,7 @@ func TestClientRedirectError(t *testing.T) {
 
 func TestClientWithHooks(t *testing.T) {
 	requestPreparedCalled := false
-	requestFinishedCalled := false
+	responseReceivedCalled := false
 	errorCalled := false
 
 	hooks := &twirp.ClientHooks{
@@ -268,7 +268,7 @@ func TestClientWithHooks(t *testing.T) {
 			return ctx, nil
 		},
 		RequestFinished: func(ctx context.Context) {
-			requestFinishedCalled = true
+			responseReceivedCalled = true
 		},
 		Error: func(ctx context.Context, err twirp.Error) {
 			errorCalled = true
@@ -295,8 +295,8 @@ func TestClientWithHooks(t *testing.T) {
 		t.Fatalf("Proto client method expected to return non-nil response, but it is nil")
 	}
 
-	if requestPreparedCalled == false || requestFinishedCalled == false {
-		t.Fatalf("expected both requestPreparedCalled and requestFinishedCalled to be true")
+	if requestPreparedCalled == false || responseReceivedCalled == false {
+		t.Fatalf("expected both requestPreparedCalled and responseReceivedCalled to be true")
 	}
 
 	// Test proto failure
@@ -313,7 +313,7 @@ func TestClientWithHooks(t *testing.T) {
 	}
 
 	requestPreparedCalled = false
-	requestFinishedCalled = false
+	responseReceivedCalled = false
 	errorCalled = false
 
 	// Test json success
@@ -325,8 +325,8 @@ func TestClientWithHooks(t *testing.T) {
 		t.Fatalf("JSON client method expected to return non-nil response, but it is nil")
 	}
 
-	if requestPreparedCalled == false || requestFinishedCalled == false {
-		t.Fatalf("expected both requestPreparedCalled and requestFinishedCalled to be true")
+	if requestPreparedCalled == false || responseReceivedCalled == false {
+		t.Fatalf("expected both requestPreparedCalled and responseReceivedCalled to be true")
 	}
 
 	// Test json failure

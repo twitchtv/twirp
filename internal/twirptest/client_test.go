@@ -270,9 +270,8 @@ func TestClientWithHooks(t *testing.T) {
 		RequestFinished: func(ctx context.Context) {
 			requestFinishedCalled = true
 		},
-		Error: func(ctx context.Context, err twirp.Error) context.Context {
+		Error: func(ctx context.Context, err twirp.Error) {
 			errorCalled = true
-			return ctx
 		},
 	}
 

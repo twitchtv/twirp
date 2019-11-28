@@ -34,7 +34,7 @@ type ClientHooks struct {
 
 	// Error hook is called whenever an error occurs during the sending of a request. The Error is passed
 	// as an argument to the hook.
-	Error func(context.Context, Error) context.Context
+	Error func(context.Context, Error)
 }
 
 func DefaultClientOptions() ClientOptions {

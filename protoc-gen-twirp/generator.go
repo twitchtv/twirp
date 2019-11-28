@@ -982,11 +982,11 @@ func (t *twirp) generateClientHooks() {
 	t.P(`  return h.RequestPrepared(ctx, req)`)
 	t.P(`}`)
 	t.P()
-	t.P(`func callClientError(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks, err `, t.pkgs["twirp"], `.Error) `, t.pkgs["context"], `.Context {`)
+	t.P(`func callClientError(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks, err `, t.pkgs["twirp"], `.Error) {`)
 	t.P(`  if h == nil || h.Error == nil {`)
-	t.P(`    return ctx`)
+	t.P(`    return`)
 	t.P(`  }`)
-	t.P(`  return h.Error(ctx, err)`)
+	t.P(`  h.Error(ctx, err)`)
 	t.P(`}`)
 }
 

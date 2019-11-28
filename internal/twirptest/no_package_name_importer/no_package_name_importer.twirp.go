@@ -848,11 +848,11 @@ func callClientRequestPrepared(ctx context.Context, h *twirp.ClientHooks, req *h
 	return h.RequestPrepared(ctx, req)
 }
 
-func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error) context.Context {
+func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error) {
 	if h == nil || h.Error == nil {
-		return ctx
+		return
 	}
-	return h.Error(ctx, err)
+	h.Error(ctx, err)
 }
 
 var twirpFileDescriptor0 = []byte{

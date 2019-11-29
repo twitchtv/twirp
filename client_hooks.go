@@ -66,3 +66,46 @@ func WithClientHooks(hooks *ClientHooks) ClientOption {
 		o.Hooks = hooks
 	}
 }
+
+// ChainClientHooks creates a new *ClientHooks which chains the callbacks in
+// each of the constituent hooks passed in. Each hook function will be
+// called in the order of the ClientHooks values passed in.
+//
+// For the erroring hook, RequestPrepared, any returned
+// errors prevent processing by later hooks.
+func ChainClientHooks(hooks ...*ClientHooks) *ClientHooks {
+	if len(hooks) == 0 {
+		return nil
+	}
+	if len(hooks) == 1 {
+		return hooks[0]
+	}
+	return &ClientHooks{
+		RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
+			var err error
+			for _, h := range hooks {
+				if h != nil && h.RequestPrepared != nil {
+					ctx, err = h.RequestPrepared(ctx, req)
+					if err != nil {
+						return ctx, err
+					}
+				}
+			}
+			return ctx, nil
+		},
+		ResponseReceived: func(ctx context.Context) {
+			for _, h := range hooks {
+				if h != nil && h.ResponseReceived != nil {
+					h.ResponseReceived(ctx)
+				}
+			}
+		},
+		Error: func(ctx context.Context, twerr Error) {
+			for _, h := range hooks {
+				if h != nil && h.Error != nil {
+					h.Error(ctx, twerr)
+				}
+			}
+		},
+	}
+}

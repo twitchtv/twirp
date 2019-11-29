@@ -387,7 +387,7 @@ func TestChainClientHooks(t *testing.T) {
 		t.Fatalf("RequestPrepared chain has unexpected err %v", err)
 	}
 	have := haveCtx.Value(key)
-	if !reflect.DeepEqual(want, have) {
+	if !reflect.DeepEqual(have, want) {
 		t.Errorf("RequestPrepared chain has unexpected ctx, have=%v, want=%v", have, want)
 	}
 
@@ -395,24 +395,24 @@ func TestChainClientHooks(t *testing.T) {
 	// there should be no panic.
 	want = []string{"hook1"}
 	chain.ResponseReceived(ctx)
-	if got := responseReceivedCalled; !reflect.DeepEqual(want, got) {
-		t.Errorf("unexpected hooks called, want: %v, got: %v", want, got)
+	if have := responseReceivedCalled; !reflect.DeepEqual(have, want) {
+		t.Errorf("unexpected hooks called, have: %v, want: %v", have, want)
 	}
 
 	// When only the second chained hook has a handler, it should be called, and
 	// there should be no panic.
 	want = []string{"hook2"}
 	chain.Error(ctx, twirp.InternalError("whoops"))
-	if got := errorCalled; !reflect.DeepEqual(want, got) {
-		t.Errorf("unexpected hooks called, want: %v, got: %v", want, got)
+	if have := errorCalled; !reflect.DeepEqual(have, want) {
+		t.Errorf("unexpected hooks called, have: %v, want: %v", have, want)
 	}
 
 	// When none of the chained hooks has a handler there should be no panic.
 	errorCalled = nil
 	hook2.Error = nil
 	chain.Error(ctx, twirp.InternalError("whoops"))
-	if want, got := 0, len(errorCalled); want != got {
-		t.Errorf("unexpected number of calls, want: %d, got: %d", want, got)
+	if have, want := 0, len(errorCalled); have != want {
+		t.Errorf("unexpected number of calls, have: %d, want: %d", have, want)
 	}
 }
 

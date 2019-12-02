@@ -709,7 +709,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 	}
 	ctx, err = callClientRequestPrepared(ctx, hooks, req)
 	if err != nil {
-		return wrapInternal(err, "failed to call RequestPrepared hook")
+		return err
 	}
 
 	req = req.WithContext(ctx)

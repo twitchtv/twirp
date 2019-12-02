@@ -703,7 +703,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  }`)
 	t.P(`  ctx, err = callClientRequestPrepared(ctx, hooks, req)`)
 	t.P(`	 if err != nil {`)
-	t.P(`    return wrapInternal(err, "failed to call RequestPrepared hook")`)
+	t.P(`    return err`)
 	t.P(`  }`)
 	t.P()
 	t.P(`  req = req.WithContext(ctx)`)

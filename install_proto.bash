@@ -30,8 +30,8 @@ if [ "$(uname)" == "Darwin" ]; then
 elif [ `whoami` == "root" ]; then
     mkdir -p /usr/local/src/protoc
     pushd /usr/local/src/protoc
-    wget https://github.com/google/protobuf/releases/download/v3.10.1/protoc-3.10.1-linux-x86_64.zip -O /usr/local/src/protoc-3.10.1-linux-x86_64.zip
-    unzip -x ../protoc-3.10.1-linux-x86_64.zip
+    wget https://github.com/google/protobuf/releases/download/v3.11.0/protoc-3.11.0-linux-x86_64.zip -O /usr/local/src/protoc-3.11.0-linux-x86_64.zip
+    unzip -x ../protoc-3.11.0-linux-x86_64.zip
     if [ ! -e /usr/local/bin/protoc ]; then
         ln -s `pwd`/bin/protoc /usr/local/bin/protoc
     fi
@@ -41,8 +41,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     sudo chmod a+w /usr/local/src
     mkdir -p /usr/local/src/protoc
     pushd /usr/local/src/protoc
-    wget https://github.com/google/protobuf/releases/download/v3.10.1/protoc-3.10.1-linux-x86_64.zip -O /usr/local/src/protoc-3.10.1-linux-x86_64.zip
-    unzip -x ../protoc-3.10.1-linux-x86_64.zip
+    wget https://github.com/google/protobuf/releases/download/v3.11.0/protoc-3.11.0-linux-x86_64.zip -O /usr/local/src/protoc-3.11.0-linux-x86_64.zip
+    unzip -x ../protoc-3.11.0-linux-x86_64.zip
     if [ ! -e /usr/local/bin/protoc ]; then
         sudo ln -s `pwd`/bin/protoc /usr/local/bin/protoc
     fi

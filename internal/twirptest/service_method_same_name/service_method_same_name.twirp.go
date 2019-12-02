@@ -48,14 +48,14 @@ type echoProtobufClient struct {
 
 // NewEchoProtobufClient creates a Protobuf client that implements the Echo interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewEchoProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Echo {
+func NewEchoProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Echo {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
 
-	opts := twirp.ClientOptions{}
-	for _, o := range opt {
-		o(&opts)
+	clientOpts := twirp.ClientOptions{}
+	for _, o := range opts {
+		o(&clientOpts)
 	}
 
 	prefix := urlBase(addr) + EchoPathPrefix
@@ -66,7 +66,7 @@ func NewEchoProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOp
 	return &echoProtobufClient{
 		client: client,
 		urls:   urls,
-		opts:   opts,
+		opts:   clientOpts,
 	}
 }
 
@@ -102,14 +102,14 @@ type echoJSONClient struct {
 
 // NewEchoJSONClient creates a JSON client that implements the Echo interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewEchoJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Echo {
+func NewEchoJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Echo {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
 
-	opts := twirp.ClientOptions{}
-	for _, o := range opt {
-		o(&opts)
+	clientOpts := twirp.ClientOptions{}
+	for _, o := range opts {
+		o(&clientOpts)
 	}
 
 	prefix := urlBase(addr) + EchoPathPrefix
@@ -120,7 +120,7 @@ func NewEchoJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption
 	return &echoJSONClient{
 		client: client,
 		urls:   urls,
-		opts:   opts,
+		opts:   clientOpts,
 	}
 }
 

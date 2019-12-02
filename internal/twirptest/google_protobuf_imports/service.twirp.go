@@ -23,8 +23,8 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
+import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 
 // Imports only used by utility functions:
 import io "io"
@@ -51,14 +51,14 @@ type svcProtobufClient struct {
 
 // NewSvcProtobufClient creates a Protobuf client that implements the Svc interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewSvcProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc {
+func NewSvcProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Svc {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
 
-	opts := twirp.ClientOptions{}
-	for _, o := range opt {
-		o(&opts)
+	clientOpts := twirp.ClientOptions{}
+	for _, o := range opts {
+		o(&clientOpts)
 	}
 
 	prefix := urlBase(addr) + SvcPathPrefix
@@ -69,7 +69,7 @@ func NewSvcProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOpt
 	return &svcProtobufClient{
 		client: client,
 		urls:   urls,
-		opts:   opts,
+		opts:   clientOpts,
 	}
 }
 
@@ -105,14 +105,14 @@ type svcJSONClient struct {
 
 // NewSvcJSONClient creates a JSON client that implements the Svc interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewSvcJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc {
+func NewSvcJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Svc {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
 
-	opts := twirp.ClientOptions{}
-	for _, o := range opt {
-		o(&opts)
+	clientOpts := twirp.ClientOptions{}
+	for _, o := range opts {
+		o(&clientOpts)
 	}
 
 	prefix := urlBase(addr) + SvcPathPrefix
@@ -123,7 +123,7 @@ func NewSvcJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption)
 	return &svcJSONClient{
 		client: client,
 		urls:   urls,
-		opts:   opts,
+		opts:   clientOpts,
 	}
 }
 

@@ -54,9 +54,8 @@ type svc2ProtobufClient struct {
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewSvc2ProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc2 {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -70,7 +69,7 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOp
 	}
 
 	return &svc2ProtobufClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}
@@ -109,9 +108,8 @@ type svc2JSONClient struct {
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewSvc2JSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Svc2 {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -125,7 +123,7 @@ func NewSvc2JSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption
 	}
 
 	return &svc2JSONClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}

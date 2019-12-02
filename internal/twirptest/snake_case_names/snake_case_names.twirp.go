@@ -54,9 +54,8 @@ type haberdasherProtobufClient struct {
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewHaberdasherProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Haberdasher {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -70,7 +69,7 @@ func NewHaberdasherProtobufClient(addr string, client HTTPClient, opt ...twirp.C
 	}
 
 	return &haberdasherProtobufClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}
@@ -109,9 +108,8 @@ type haberdasherJSONClient struct {
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewHaberdasherJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Haberdasher {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -125,7 +123,7 @@ func NewHaberdasherJSONClient(addr string, client HTTPClient, opt ...twirp.Clien
 	}
 
 	return &haberdasherJSONClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}

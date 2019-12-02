@@ -47,9 +47,8 @@ type emptyProtobufClient struct {
 // NewEmptyProtobufClient creates a Protobuf client that implements the Empty interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewEmptyProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Empty {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -60,7 +59,7 @@ func NewEmptyProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientO
 	urls := [0]string{}
 
 	return &emptyProtobufClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}
@@ -79,9 +78,8 @@ type emptyJSONClient struct {
 // NewEmptyJSONClient creates a JSON client that implements the Empty interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewEmptyJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Empty {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -92,7 +90,7 @@ func NewEmptyJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOptio
 	urls := [0]string{}
 
 	return &emptyJSONClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}

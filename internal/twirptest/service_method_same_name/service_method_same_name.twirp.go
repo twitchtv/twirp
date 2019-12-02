@@ -49,9 +49,8 @@ type echoProtobufClient struct {
 // NewEchoProtobufClient creates a Protobuf client that implements the Echo interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewEchoProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Echo {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -65,7 +64,7 @@ func NewEchoProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOp
 	}
 
 	return &echoProtobufClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}
@@ -104,9 +103,8 @@ type echoJSONClient struct {
 // NewEchoJSONClient creates a JSON client that implements the Echo interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewEchoJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) Echo {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -120,7 +118,7 @@ func NewEchoJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption
 	}
 
 	return &echoJSONClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}

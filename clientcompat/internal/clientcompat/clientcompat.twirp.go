@@ -51,9 +51,8 @@ type compatServiceProtobufClient struct {
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
 func NewCompatServiceProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOption) CompatService {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -68,7 +67,7 @@ func NewCompatServiceProtobufClient(addr string, client HTTPClient, opt ...twirp
 	}
 
 	return &compatServiceProtobufClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}
@@ -127,9 +126,8 @@ type compatServiceJSONClient struct {
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
 func NewCompatServiceJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption) CompatService {
-	var httpClient HTTPClient = client
 	if c, ok := client.(*http.Client); ok {
-		httpClient = withoutRedirects(c)
+		client = withoutRedirects(c)
 	}
 
 	opts := twirp.ClientOptions{}
@@ -144,7 +142,7 @@ func NewCompatServiceJSONClient(addr string, client HTTPClient, opt ...twirp.Cli
 	}
 
 	return &compatServiceJSONClient{
-		client: httpClient,
+		client: client,
 		urls:   urls,
 		opts:   opts,
 	}

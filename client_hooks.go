@@ -27,7 +27,7 @@ type ClientOptions struct {
 
 // ClientHooks is a container for callbacks that can instrument a
 // Twirp-generated client. These callbacks all accept a context and some return
-// a context. They can use this to add to the contxt, appending values or
+// a context. They can use this to add to the context, appending values or
 // deadlilns to it.
 //
 // The RequestPrepared hook is special because it can return errors. If it

@@ -43,13 +43,13 @@ type ClientHooks struct {
 	// to the Twirp server.
 	RequestPrepared func(context.Context, *http.Request) (context.Context, error)
 
-	// ResponseReceived is called after a request has finished sending. Since this is terminal, the context is
-	// not returned. ResponseReceived will not be called in the case of an error
-	// being returned from the request.
+	// ResponseReceived is called after a request has finished sending. Since this
+	// is terminal, the context is not returned. ResponseReceived will not be
+	// called in the case of an error being returned from the request.
 	ResponseReceived func(context.Context)
 
-	// Error hook is called whenever an error occurs during the sending of a request. The Error is passed
-	// as an argument to the hook.
+	// Error hook is called whenever an error occurs during the sending of a
+	// request. The Error is passed as an argument to the hook.
 	Error func(context.Context, Error)
 }
 

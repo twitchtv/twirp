@@ -261,6 +261,7 @@ func TestClientWithHooks(t *testing.T) {
 	tests := []struct {
 		desc                       string
 		in                         *Size
+		requestPreparedError       error
 		wantRequestPreparedCalled  bool
 		wantResponseReceivedCalled bool
 		wantErrorCalled            bool
@@ -273,9 +274,17 @@ func TestClientWithHooks(t *testing.T) {
 			wantErrorCalled:            false,
 		},
 		{
-			desc:                       "calls ResponseReceived, RequestPrepared, and Error hooks for errored calls",
+			desc:                       "calls RequestPrepared and Error hooks for errored calls",
 			in:                         &Size{Inches: 666},
 			wantRequestPreparedCalled:  true,
+			wantResponseReceivedCalled: false,
+			wantErrorCalled:            true,
+		},
+		{
+			desc:                       "calls RequestPrepared and Error hooks for error in hook",
+			in:                         &Size{Inches: 1},
+			wantRequestPreparedCalled:  true,
+			requestPreparedError:       errors.New("test"),
 			wantResponseReceivedCalled: false,
 			wantErrorCalled:            true,
 		},
@@ -293,7 +302,7 @@ func TestClientWithHooks(t *testing.T) {
 			hooks := &twirp.ClientHooks{
 				RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
 					requestPreparedCalled = true
-					return ctx, nil
+					return ctx, tt.requestPreparedError
 				},
 				ResponseReceived: func(ctx context.Context) {
 					responseReceivedCalled = true

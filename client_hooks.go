@@ -34,9 +34,9 @@ type ClientOptions struct {
 // returns non-nil error, handling for that request will be stopped at that
 // point. The Error hook will then be triggered.
 //
-// The RequestPrepaared hook will always be called first and wlil be called for
-// every outgoinig request from the Twirp client. The last hook to be called
-// will either be Error or ResponseReceived, so be sure to handle both case in
+// The RequestPrepaared hook will always be called first and will be called for
+// each outgoing request from the Twirp client. The last hook to be called
+// will either be Error or ResponseReceived, so be sure to handle both cases in
 // your hooks.
 type ClientHooks struct {
 	// RequestPrepared is called as soon as a request has been created and before it has been sent

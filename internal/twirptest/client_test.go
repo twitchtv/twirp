@@ -258,88 +258,88 @@ func TestClientRedirectError(t *testing.T) {
 }
 
 func TestClientWithHooks(t *testing.T) {
-	requestPreparedCalled := false
-	responseReceivedCalled := false
-	errorCalled := false
-
-	hooks := &twirp.ClientHooks{
-		RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
-			requestPreparedCalled = true
-			return ctx, nil
+	tests := []struct {
+		desc                       string
+		in                         *Size
+		wantRequestPreparedCalled  bool
+		wantResponseReceivedCalled bool
+		wantErrorCalled            bool
+	}{
+		{
+			desc:                       "calls ResponseReceived and RequestPrepared hooks but not Error for successful calls",
+			in:                         &Size{Inches: 1},
+			wantRequestPreparedCalled:  true,
+			wantResponseReceivedCalled: true,
+			wantErrorCalled:            false,
 		},
-		ResponseReceived: func(ctx context.Context) {
-			responseReceivedCalled = true
+		{
+			desc:                       "calls ResponseReceived, RequestPrepared, and Error hooks for errored calls",
+			in:                         &Size{Inches: 666},
+			wantRequestPreparedCalled:  true,
+			wantResponseReceivedCalled: false,
+			wantErrorCalled:            true,
 		},
-		Error: func(ctx context.Context, err twirp.Error) {
-			errorCalled = true
-		},
 	}
 
-	h := PickyHatmaker(1)
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
-	defer s.Close()
+	for _, tt := range tests {
+		h := PickyHatmaker(1)
+		s := httptest.NewServer(NewHaberdasherServer(h, nil))
+		defer s.Close()
+		t.Run(tt.desc, func(t *testing.T) {
+			requestPreparedCalled := false
+			responseReceivedCalled := false
+			errorCalled := false
 
-	// Clients
-	protoCli := NewHaberdasherProtobufClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
-	jsonCli := NewHaberdasherJSONClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
-	ctx := context.Background()
-	var resp *Hat
-	var err error
+			hooks := &twirp.ClientHooks{
+				RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
+					requestPreparedCalled = true
+					return ctx, nil
+				},
+				ResponseReceived: func(ctx context.Context) {
+					responseReceivedCalled = true
+				},
+				Error: func(ctx context.Context, err twirp.Error) {
+					errorCalled = true
+				},
+			}
 
-	// Test proto success
-	resp, err = protoCli.MakeHat(ctx, &Size{Inches: 1})
-	if err != nil {
-		t.Fatalf("Proto client method returned unexpected error: %s", err)
-	}
-	if resp == nil {
-		t.Fatalf("Proto client method expected to return non-nil response, but it is nil")
-	}
+			// Clients
+			protoCli := NewHaberdasherProtobufClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
+			ctx := context.Background()
 
-	if requestPreparedCalled == false || responseReceivedCalled == false {
-		t.Fatalf("expected both requestPreparedCalled and responseReceivedCalled to be true")
-	}
+			_, _ = protoCli.MakeHat(ctx, tt.in)
 
-	// Test proto failure
-	resp, err = protoCli.MakeHat(ctx, &Size{Inches: 666})
-	if err == nil {
-		t.Fatalf("Proto client method expected to fail, but error is nil")
-	}
-	if resp != nil {
-		t.Fatalf("Proto client method expected to return nil response on error, but returned non-nil")
-	}
+			if tt.wantRequestPreparedCalled != requestPreparedCalled {
+				t.Errorf("unexpected value for requestPreparedCalled: got %t, want %t", requestPreparedCalled, tt.wantRequestPreparedCalled)
+			}
 
-	if errorCalled == false {
-		t.Fatalf("expected errorCalled to be true")
-	}
+			if tt.wantResponseReceivedCalled != responseReceivedCalled {
+				t.Errorf("unexpected value for responseReceivedCalled: got %t, want %t", responseReceivedCalled, tt.wantResponseReceivedCalled)
+			}
 
-	requestPreparedCalled = false
-	responseReceivedCalled = false
-	errorCalled = false
+			if tt.wantErrorCalled != errorCalled {
+				t.Errorf("unexpected value for errorCalled: got %t, want %t", errorCalled, tt.wantErrorCalled)
+			}
 
-	// Test json success
-	resp, err = jsonCli.MakeHat(ctx, &Size{Inches: 1})
-	if err != nil {
-		t.Fatalf("JSON client method returned unexpected error: %s", err)
-	}
-	if resp == nil {
-		t.Fatalf("JSON client method expected to return non-nil response, but it is nil")
-	}
+			requestPreparedCalled = false
+			responseReceivedCalled = false
+			errorCalled = false
 
-	if requestPreparedCalled == false || responseReceivedCalled == false {
-		t.Fatalf("expected both requestPreparedCalled and responseReceivedCalled to be true")
-	}
+			jsonCli := NewHaberdasherJSONClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
+			_, _ = jsonCli.MakeHat(ctx, tt.in)
 
-	// Test json failure
-	resp, err = jsonCli.MakeHat(ctx, &Size{Inches: 666})
-	if err == nil {
-		t.Fatalf("JSON client method expected to fail, but error is nil")
-	}
-	if resp != nil {
-		t.Fatalf("JSON client method expected to return nil response on error, but returned non-nil")
-	}
+			if tt.wantRequestPreparedCalled != requestPreparedCalled {
+				t.Errorf("unexpected value for requestPreparedCalled: got %t, want %t", requestPreparedCalled, tt.wantRequestPreparedCalled)
+			}
 
-	if errorCalled == false {
-		t.Fatalf("expected errorCalled to be true")
+			if tt.wantResponseReceivedCalled != responseReceivedCalled {
+				t.Errorf("unexpected value for responseReceivedCalled: got %t, want %t", responseReceivedCalled, tt.wantResponseReceivedCalled)
+			}
+
+			if tt.wantErrorCalled != errorCalled {
+				t.Errorf("unexpected value for errorCalled: got %t, want %t", errorCalled, tt.wantErrorCalled)
+			}
+		})
 	}
 }
 

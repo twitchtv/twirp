@@ -761,7 +761,7 @@ func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHo
 	}
 	ctx, err = callClientRequestPrepared(ctx, hooks, req)
 	if err != nil {
-		return wrapInternal(err, "failed to call RequestPrepared hook")
+		return err
 	}
 
 	req = req.WithContext(ctx)

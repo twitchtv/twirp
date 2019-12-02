@@ -23,8 +23,8 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
+import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 
 // Imports only used by utility functions:
 import io "io"
@@ -57,7 +57,7 @@ func NewSvcProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOpt
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -112,7 +112,7 @@ func NewSvcJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption)
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}

@@ -52,7 +52,7 @@ func NewEmptyProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientO
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -84,7 +84,7 @@ func NewEmptyJSONClient(addr string, client HTTPClient, opt ...twirp.ClientOptio
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}

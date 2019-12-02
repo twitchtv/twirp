@@ -56,7 +56,7 @@ func NewCompatServiceProtobufClient(addr string, client HTTPClient, opt ...twirp
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -132,7 +132,7 @@ func NewCompatServiceJSONClient(addr string, client HTTPClient, opt ...twirp.Cli
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}

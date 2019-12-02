@@ -44,7 +44,7 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient, opt ...twirp.ClientOp
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -120,7 +120,7 @@ func NewSvc2JSONClient(addr string, client HTTPClient, opt ...twirp.ClientOption
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}

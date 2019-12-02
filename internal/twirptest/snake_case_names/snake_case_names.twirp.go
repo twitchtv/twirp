@@ -59,7 +59,7 @@ func NewHaberdasherProtobufClient(addr string, client HTTPClient, opt ...twirp.C
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}
@@ -114,7 +114,7 @@ func NewHaberdasherJSONClient(addr string, client HTTPClient, opt ...twirp.Clien
 		httpClient = withoutRedirects(c)
 	}
 
-	opts := twirp.DefaultClientOptions()
+	opts := twirp.ClientOptions{}
 	for _, o := range opt {
 		o(&opts)
 	}

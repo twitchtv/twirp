@@ -920,7 +920,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`    httpClient = withoutRedirects(c)`)
 	t.P(`  }`)
 	t.P()
-	t.P(`  opts := `, t.pkgs["twirp"], `.DefaultClientOptions()`)
+	t.P(`  opts := `, t.pkgs["twirp"], `.ClientOptions{}`)
 	t.P(`  for _, o := range opt {`)
 	t.P(`    o(&opts)`)
 	t.P(`  }`)

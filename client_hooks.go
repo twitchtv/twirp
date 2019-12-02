@@ -53,13 +53,6 @@ type ClientHooks struct {
 	Error func(context.Context, Error)
 }
 
-// DefaultClientOptions instantiates ClientOptions with their default options.
-func DefaultClientOptions() ClientOptions {
-	return ClientOptions{
-		Hooks: nil,
-	}
-}
-
 // WithClientHooks defines the hooks for a Twirp client.
 func WithClientHooks(hooks *ClientHooks) ClientOption {
 	return func(o *ClientOptions) {

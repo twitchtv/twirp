@@ -18,10 +18,10 @@ PROTOC_EXISTS=$?
 if [ $PROTOC_EXISTS -eq 0 ]; then
     echo "Protoc already installed"
 	PROTOC_VERSION=`protoc --version`
-	if [ "$PROTOC_VERSION" == "libprotoc 3.10.1" ]; then
+	if [ "$PROTOC_VERSION" == "libprotoc 3.11.0" ]; then
 		exit 0
 	fi
-	echo "libprotoc 3.10.1 required, but found: $PROTOC_VERSION"
+	echo "libprotoc 3.11.0 required, but found: $PROTOC_VERSION"
 	exit 1
 fi
 

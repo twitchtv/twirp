@@ -33,7 +33,7 @@ import url "net/url"
 // =============
 
 type Svc interface {
-	Send(context.Context, *twirp_internal_twirptest_importer_local.Msg) (*twirp_internal_twirptest_importer_local.Msg, error)
+	Send(context.Context, *Msg) (*Msg, error)
 }
 
 // ===================
@@ -64,11 +64,11 @@ func NewSvcProtobufClient(addr string, client HTTPClient) Svc {
 	}
 }
 
-func (c *svcProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importer_local.Msg) (*twirp_internal_twirptest_importer_local.Msg, error) {
+func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer_local")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
-	out := new(twirp_internal_twirptest_importer_local.Msg)
+	out := new(Msg)
 	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
@@ -104,11 +104,11 @@ func NewSvcJSONClient(addr string, client HTTPClient) Svc {
 	}
 }
 
-func (c *svcJSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importer_local.Msg) (*twirp_internal_twirptest_importer_local.Msg, error) {
+func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer_local")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
-	out := new(twirp_internal_twirptest_importer_local.Msg)
+	out := new(Msg)
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
 	if err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 		return
 	}
 
-	reqContent := new(twirp_internal_twirptest_importer_local.Msg)
+	reqContent := new(Msg)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
@@ -210,7 +210,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 	}
 
 	// Call service method
-	var respContent *twirp_internal_twirptest_importer_local.Msg
+	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Svc.Send(ctx, reqContent)
@@ -221,7 +221,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importer_local.Msg and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Msg and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 
@@ -262,14 +262,14 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
-	reqContent := new(twirp_internal_twirptest_importer_local.Msg)
+	reqContent := new(Msg)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
 		return
 	}
 
 	// Call service method
-	var respContent *twirp_internal_twirptest_importer_local.Msg
+	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = s.Svc.Send(ctx, reqContent)
@@ -280,7 +280,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *twirp_internal_twirptest_importer_local.Msg and nil error while calling Send. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Msg and nil error while calling Send. nil responses are not supported"))
 		return
 	}
 

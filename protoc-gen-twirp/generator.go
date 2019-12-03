@@ -114,22 +114,42 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	}
 	t.genPkgName = genPkgName
 
+	// We also need to figure out the fully import path of the package we're
+	// generating. It's possible to import proto definitions from different .proto
+	// files which will be generated into the same Go package, which we need to
+	// detect (and can only detect if files use fully-specified go_package
+	// options).
+	genPkgImportPath, _, _ := goPackageOption(t.genFiles[0])
+
 	// Next, we need to pick names for all the files that are dependencies.
 	for _, f := range in.ProtoFile {
+		// Is this is a file we are generating? If yes, it gets the shared package name.
 		if fileDescSliceContains(t.genFiles, f) {
-			// This is a file we are generating. It gets the shared package name.
 			t.fileToGoPackageName[f] = t.genPkgName
-		} else {
-			// This is a dependency. Use its package name.
-			name := f.GetPackage()
-			if name == "" {
-				name = stringutils.BaseName(f.GetName())
-			}
-			name = stringutils.CleanIdentifier(name)
-			alias := t.registerPackageName(name)
-			t.fileToGoPackageName[f] = alias
+			continue
 		}
+
+		// Is this is an imported .proto file which has the same fully-specified
+		// go_package as the targeted file for generation? If yes, it gets the
+		// shared package name too.
+		if genPkgImportPath != "" {
+			importPath, _, _ := goPackageOption(f)
+			if importPath == genPkgImportPath {
+				t.fileToGoPackageName[f] = t.genPkgName
+				continue
+			}
+		}
+
+		// This is a dependency from a different go_package. Use its package name.
+		name := f.GetPackage()
+		if name == "" {
+			name = stringutils.BaseName(f.GetName())
+		}
+		name = stringutils.CleanIdentifier(name)
+		alias := t.registerPackageName(name)
+		t.fileToGoPackageName[f] = alias
 	}
+
 	// Showtime! Generate the response.
 	resp := new(plugin.CodeGeneratorResponse)
 	for _, f := range t.genFiles {

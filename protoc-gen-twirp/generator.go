@@ -329,8 +329,9 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				}
 				importPath = t.importPrefix + importPath
 				pkg := t.goPackageName(def.File)
-				deps[pkg] = strconv.Quote(importPath)
-
+				if pkg != t.genPkgName {
+					deps[pkg] = strconv.Quote(importPath)
+				}
 			}
 		}
 	}

@@ -80,17 +80,17 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }
@@ -134,17 +134,17 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }

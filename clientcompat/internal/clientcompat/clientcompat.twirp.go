@@ -78,17 +78,17 @@ func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Res
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(Resp)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }
@@ -98,17 +98,17 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	out := new(Empty)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks(), c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }
@@ -153,17 +153,17 @@ func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, e
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(Resp)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }
@@ -173,17 +173,17 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	out := new(Empty)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks(), c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }

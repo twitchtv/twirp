@@ -22,7 +22,7 @@ type ClientOption func(*ClientOptions)
 
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
-	Hooks *ClientHooks
+	hooks *ClientHooks
 }
 
 // ClientHooks is a container for callbacks that can instrument a
@@ -61,8 +61,12 @@ type ClientHooks struct {
 // processing by later hooks.
 func WithClientHooks(hooks ...*ClientHooks) ClientOption {
 	return func(o *ClientOptions) {
-		o.Hooks = chainClientHooks(hooks...)
+		o.hooks = chainClientHooks(hooks...)
 	}
+}
+
+func (o *ClientOptions) Hooks() *ClientHooks {
+	return o.hooks
 }
 
 func chainClientHooks(hooks ...*ClientHooks) *ClientHooks {

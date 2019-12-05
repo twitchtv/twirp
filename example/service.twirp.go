@@ -77,17 +77,17 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }
@@ -131,17 +131,17 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }

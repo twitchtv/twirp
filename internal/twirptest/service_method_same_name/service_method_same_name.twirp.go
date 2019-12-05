@@ -75,17 +75,17 @@ func (c *echoProtobufClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Echo")
 	ctx = ctxsetters.WithMethodName(ctx, "Echo")
 	out := new(Msg)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }
@@ -129,17 +129,17 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Echo")
 	ctx = ctxsetters.WithMethodName(ctx, "Echo")
 	out := new(Msg)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks, twerr)
+		callClientError(ctx, c.opts.Hooks(), twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks)
+	callClientResponseReceived(ctx, c.opts.Hooks())
 
 	return out, nil
 }

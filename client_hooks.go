@@ -75,9 +75,9 @@ func ChainClientHooks(hooks ...*ClientHooks) *ClientHooks {
 	}
 	return &ClientHooks{
 		RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
-			var err error
 			for _, h := range hooks {
 				if h != nil && h.RequestPrepared != nil {
+					var err error
 					ctx, err = h.RequestPrepared(ctx, req)
 					if err != nil {
 						return ctx, err

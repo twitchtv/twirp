@@ -288,7 +288,7 @@ func ServerHTTPStatusFromErrorCode(code ErrorCode) int {
 
 // IsValidErrorCode returns true if is one of the valid predefined constants.
 func IsValidErrorCode(code ErrorCode) bool {
-	return ServerHTTPStatusFromErrorCode(code) != 0
+	return ServerHTTPStatusFromErrorCode(code) >= 400
 }
 
 // twirp.Error implementation

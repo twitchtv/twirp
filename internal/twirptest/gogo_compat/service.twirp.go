@@ -79,17 +79,17 @@ func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks(), twerr)
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks())
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }
@@ -133,17 +133,17 @@ func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks(), c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
 			twerr = twirp.InternalErrorWith(err)
 		}
-		callClientError(ctx, c.opts.Hooks(), twerr)
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
 
-	callClientResponseReceived(ctx, c.opts.Hooks())
+	callClientResponseReceived(ctx, c.opts.Hooks)
 
 	return out, nil
 }

@@ -52,7 +52,7 @@ func TestChainClientHooks(t *testing.T) {
 		errorCalled = append(errorCalled, "hook2")
 	}
 
-	chain := chainClientHooks(hook1, hook2, hook3)
+	chain := ChainClientHooks(hook1, hook2, hook3)
 
 	ctx := context.Background()
 

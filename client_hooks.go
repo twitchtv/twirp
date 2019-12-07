@@ -53,19 +53,20 @@ type ClientHooks struct {
 	Error func(context.Context, Error)
 }
 
-// WithClientHooks sets the *ClientHooks for a Twirp client which chains the
-// callbacks in each of the constituent hooks passed in. Each hook function will
-// be called in the order of the ClientHooks values passed in.
-
-// For the erroring hook, RequestPrepared, any returned errors prevent
-// processing by later hooks.
-func WithClientHooks(hooks ...*ClientHooks) ClientOption {
+// WithClientHooks defines the hooks for a Twirp client.
+func WithClientHooks(hooks *ClientHooks) ClientOption {
 	return func(o *ClientOptions) {
-		o.Hooks = chainClientHooks(hooks...)
+		o.Hooks = hooks
 	}
 }
 
-func chainClientHooks(hooks ...*ClientHooks) *ClientHooks {
+// ChainClientHooks creates a new *ClientHooks which chains the callbacks in
+// each of the constituent hooks passed in. Each hook function will be
+// called in the order of the ClientHooks values passed in.
+//
+// For the erroring hook, RequestPrepared, any returned
+// errors prevent processing by later hooks.
+func ChainClientHooks(hooks ...*ClientHooks) *ClientHooks {
 	if len(hooks) == 0 {
 		return nil
 	}

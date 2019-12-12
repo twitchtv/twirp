@@ -355,12 +355,12 @@ func (e *wrappedErr) Cause() error { return e.cause }
 // WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).
 // Useful outside of the Twirp server (e.g. http middleware).
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
-func WriteError(resp http.ResponseWriter, err error) {
-	writeError(resp, err)
+func WriteError(resp http.ResponseWriter, err error) error {
+	return writeError(resp, err)
 }
 
 // writeError writes Twirp errors in the response.
-func writeError(resp http.ResponseWriter, err error) {
+func writeError(resp http.ResponseWriter, err error) error {
 	// Non-twirp errors are wrapped as Internal (default)
 	twerr, ok := err.(Error)
 	if !ok {
@@ -376,17 +376,9 @@ func writeError(resp http.ResponseWriter, err error) {
 
 	_, writeErr := resp.Write(respBody)
 	if writeErr != nil {
-		// We have two options here. We could log the error, or just silently
-		// ignore the error.
-		//
-		// Logging is unacceptable because we don't have a user-controlled
-		// logger; writing out to stderr without permission is too rude.
-		//
-		// Silently ignoring the error is our least-bad option. It's highly
-		// likely that the connection is broken and the original 'err' says
-		// so anyway.
-		_ = writeErr
+		return writeErr
 	}
+	return nil
 }
 
 // JSON serialization for errors

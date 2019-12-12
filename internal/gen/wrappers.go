@@ -414,8 +414,8 @@ func wrapServices(file *descriptor.FileDescriptorProto) (sl []*ServiceDescriptor
 		sd := &ServiceDescriptor{
 			common:                 common{file},
 			ServiceDescriptorProto: svc,
-			Index: i,
-			Path:  fmt.Sprintf("%d,%d", servicePath, i),
+			Index:                  i,
+			Path:                   fmt.Sprintf("%d,%d", servicePath, i),
 		}
 		for j, method := range svc.Method {
 			md := &MethodDescriptor{

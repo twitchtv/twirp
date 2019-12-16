@@ -316,7 +316,13 @@ func TestClientWithHooks(t *testing.T) {
 			protoCli := NewHaberdasherProtobufClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
 			ctx := context.Background()
 
-			_, _ = protoCli.MakeHat(ctx, tt.in)
+			_, err := protoCli.MakeHat(ctx, tt.in)
+			if tt.wantErrorCalled && err == nil {
+				t.Error("unexpected nil error")
+			}
+			if !tt.wantErrorCalled && err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
 
 			if tt.wantRequestPreparedCalled != requestPreparedCalled {
 				t.Errorf("unexpected value for requestPreparedCalled: got %t, want %t", requestPreparedCalled, tt.wantRequestPreparedCalled)
@@ -335,7 +341,13 @@ func TestClientWithHooks(t *testing.T) {
 			errorCalled = false
 
 			jsonCli := NewHaberdasherJSONClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
-			_, _ = jsonCli.MakeHat(ctx, tt.in)
+			_, err = jsonCli.MakeHat(ctx, tt.in)
+			if tt.wantErrorCalled && err == nil {
+				t.Error("unexpected nil error")
+			}
+			if !tt.wantErrorCalled && err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
 
 			if tt.wantRequestPreparedCalled != requestPreparedCalled {
 				t.Errorf("unexpected value for requestPreparedCalled: got %t, want %t", requestPreparedCalled, tt.wantRequestPreparedCalled)

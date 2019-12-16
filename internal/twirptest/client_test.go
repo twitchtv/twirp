@@ -201,7 +201,7 @@ func TestClientSetsAcceptHeader(t *testing.T) {
 
 // If a server returns a 3xx response, give a clear error message
 func TestClientRedirectError(t *testing.T) {
-	testcase := func(code int, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
+	testcase := func(code int, clientMaker func(string, HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that redirects all requests
 			redirecter := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -257,8 +257,103 @@ func TestClientRedirectError(t *testing.T) {
 	})
 }
 
+func TestClientWithHooks(t *testing.T) {
+	tests := []struct {
+		desc                       string
+		in                         *Size
+		requestPreparedError       error
+		wantRequestPreparedCalled  bool
+		wantResponseReceivedCalled bool
+		wantErrorCalled            bool
+	}{
+		{
+			desc:                       "calls ResponseReceived and RequestPrepared hooks but not Error for successful calls",
+			in:                         &Size{Inches: 1},
+			wantRequestPreparedCalled:  true,
+			wantResponseReceivedCalled: true,
+			wantErrorCalled:            false,
+		},
+		{
+			desc:                       "calls RequestPrepared and Error hooks for errored calls",
+			in:                         &Size{Inches: 666},
+			wantRequestPreparedCalled:  true,
+			wantResponseReceivedCalled: false,
+			wantErrorCalled:            true,
+		},
+		{
+			desc:                       "calls RequestPrepared and Error hooks for error in hook",
+			in:                         &Size{Inches: 1},
+			wantRequestPreparedCalled:  true,
+			requestPreparedError:       errors.New("test"),
+			wantResponseReceivedCalled: false,
+			wantErrorCalled:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		h := PickyHatmaker(1)
+		s := httptest.NewServer(NewHaberdasherServer(h, nil))
+		defer s.Close()
+		t.Run(tt.desc, func(t *testing.T) {
+			requestPreparedCalled := false
+			responseReceivedCalled := false
+			errorCalled := false
+
+			hooks := &twirp.ClientHooks{
+				RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
+					requestPreparedCalled = true
+					return ctx, tt.requestPreparedError
+				},
+				ResponseReceived: func(ctx context.Context) {
+					responseReceivedCalled = true
+				},
+				Error: func(ctx context.Context, err twirp.Error) {
+					errorCalled = true
+				},
+			}
+
+			// Clients
+			protoCli := NewHaberdasherProtobufClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
+			ctx := context.Background()
+
+			_, _ = protoCli.MakeHat(ctx, tt.in)
+
+			if tt.wantRequestPreparedCalled != requestPreparedCalled {
+				t.Errorf("unexpected value for requestPreparedCalled: got %t, want %t", requestPreparedCalled, tt.wantRequestPreparedCalled)
+			}
+
+			if tt.wantResponseReceivedCalled != responseReceivedCalled {
+				t.Errorf("unexpected value for responseReceivedCalled: got %t, want %t", responseReceivedCalled, tt.wantResponseReceivedCalled)
+			}
+
+			if tt.wantErrorCalled != errorCalled {
+				t.Errorf("unexpected value for errorCalled: got %t, want %t", errorCalled, tt.wantErrorCalled)
+			}
+
+			requestPreparedCalled = false
+			responseReceivedCalled = false
+			errorCalled = false
+
+			jsonCli := NewHaberdasherJSONClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
+			_, _ = jsonCli.MakeHat(ctx, tt.in)
+
+			if tt.wantRequestPreparedCalled != requestPreparedCalled {
+				t.Errorf("unexpected value for requestPreparedCalled: got %t, want %t", requestPreparedCalled, tt.wantRequestPreparedCalled)
+			}
+
+			if tt.wantResponseReceivedCalled != responseReceivedCalled {
+				t.Errorf("unexpected value for responseReceivedCalled: got %t, want %t", responseReceivedCalled, tt.wantResponseReceivedCalled)
+			}
+
+			if tt.wantErrorCalled != errorCalled {
+				t.Errorf("unexpected value for errorCalled: got %t, want %t", errorCalled, tt.wantErrorCalled)
+			}
+		})
+	}
+}
+
 func TestClientIntermediaryErrors(t *testing.T) {
-	testcase := func(body string, code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient) Haberdasher) func(*testing.T) {
+	testcase := func(body string, code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {
 			// Make a server that returns invalid twirp error responses,
 			// simulating a network intermediary.
@@ -328,7 +423,7 @@ func TestClientIntermediaryErrors(t *testing.T) {
 		"invalidjson": `{"message":"Signature expired: 19700101T000000Z is now earlier than 20190612T110154Z (20190612T110654Z - 5 min.)"}`,
 	}
 
-	clients := map[string]func(string, HTTPClient) Haberdasher{
+	clients := map[string]func(string, HTTPClient, ...twirp.ClientOption) Haberdasher{
 		"json_client":  NewHaberdasherJSONClient,
 		"proto_client": NewHaberdasherProtobufClient,
 	}

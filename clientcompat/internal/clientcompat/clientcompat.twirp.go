@@ -45,25 +45,31 @@ type CompatService interface {
 type compatServiceProtobufClient struct {
 	client HTTPClient
 	urls   [2]string
+	opts   twirp.ClientOptions
 }
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewCompatServiceProtobufClient(addr string, client HTTPClient) CompatService {
+func NewCompatServiceProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) CompatService {
+	if c, ok := client.(*http.Client); ok {
+		client = withoutRedirects(c)
+	}
+
+	clientOpts := twirp.ClientOptions{}
+	for _, o := range opts {
+		o(&clientOpts)
+	}
+
 	prefix := urlBase(addr) + CompatServicePathPrefix
 	urls := [2]string{
 		prefix + "Method",
 		prefix + "NoopMethod",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &compatServiceProtobufClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &compatServiceProtobufClient{
 		client: client,
 		urls:   urls,
+		opts:   clientOpts,
 	}
 }
 
@@ -72,10 +78,18 @@ func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Res
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(Resp)
-	err := doProtobufRequest(ctx, c.client, c.urls[0], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -84,10 +98,18 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	out := new(Empty)
-	err := doProtobufRequest(ctx, c.client, c.urls[1], in, out)
+	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -98,25 +120,31 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 type compatServiceJSONClient struct {
 	client HTTPClient
 	urls   [2]string
+	opts   twirp.ClientOptions
 }
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewCompatServiceJSONClient(addr string, client HTTPClient) CompatService {
+func NewCompatServiceJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) CompatService {
+	if c, ok := client.(*http.Client); ok {
+		client = withoutRedirects(c)
+	}
+
+	clientOpts := twirp.ClientOptions{}
+	for _, o := range opts {
+		o(&clientOpts)
+	}
+
 	prefix := urlBase(addr) + CompatServicePathPrefix
 	urls := [2]string{
 		prefix + "Method",
 		prefix + "NoopMethod",
 	}
-	if httpClient, ok := client.(*http.Client); ok {
-		return &compatServiceJSONClient{
-			client: withoutRedirects(httpClient),
-			urls:   urls,
-		}
-	}
+
 	return &compatServiceJSONClient{
 		client: client,
 		urls:   urls,
+		opts:   clientOpts,
 	}
 }
 
@@ -125,10 +153,18 @@ func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, e
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(Resp)
-	err := doJSONRequest(ctx, c.client, c.urls[0], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -137,10 +173,18 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	out := new(Empty)
-	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
+	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
 		return nil, err
 	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
 	return out, nil
 }
 
@@ -822,7 +866,7 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtobufRequest makes a Protobuf request to the remote Twirp service.
-func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
+func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (err error) {
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
 		return wrapInternal(err, "failed to marshal proto request")
@@ -836,6 +880,12 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 	if err != nil {
 		return wrapInternal(err, "could not build request")
 	}
+	ctx, err = callClientRequestPrepared(ctx, hooks, req)
+	if err != nil {
+		return err
+	}
+
+	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return wrapInternal(err, "failed to do request")
@@ -871,7 +921,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, url string, in, o
 }
 
 // doJSONRequest makes a JSON request to the remote Twirp service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out proto.Message) (err error) {
+func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (err error) {
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(reqBody, in); err != nil {
@@ -885,6 +935,12 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out p
 	if err != nil {
 		return wrapInternal(err, "could not build request")
 	}
+	ctx, err = callClientRequestPrepared(ctx, hooks, req)
+	if err != nil {
+		return err
+	}
+
+	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return wrapInternal(err, "failed to do request")
@@ -953,6 +1009,27 @@ func callError(ctx context.Context, h *twirp.ServerHooks, err twirp.Error) conte
 		return ctx
 	}
 	return h.Error(ctx, err)
+}
+
+func callClientResponseReceived(ctx context.Context, h *twirp.ClientHooks) {
+	if h == nil || h.ResponseReceived == nil {
+		return
+	}
+	h.ResponseReceived(ctx)
+}
+
+func callClientRequestPrepared(ctx context.Context, h *twirp.ClientHooks, req *http.Request) (context.Context, error) {
+	if h == nil || h.RequestPrepared == nil {
+		return ctx, nil
+	}
+	return h.RequestPrepared(ctx, req)
+}
+
+func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error) {
+	if h == nil || h.Error == nil {
+		return
+	}
+	h.Error(ctx, err)
 }
 
 var twirpFileDescriptor0 = []byte{

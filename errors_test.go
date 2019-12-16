@@ -14,7 +14,9 @@
 package twirp
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http/httptest"
 	"sync"
 	"testing"
 
@@ -47,5 +49,54 @@ func TestErrorCause(t *testing.T) {
 	cause := errors.Cause(twerr)
 	if cause != rootCause {
 		t.Errorf("got wrong cause for err. have=%q, want=%q", cause, rootCause)
+	}
+}
+
+type errorResponeWriter struct {
+	*httptest.ResponseRecorder
+}
+
+func (errorResponeWriter) Write([]byte) (int, error) {
+	return 0, fmt.Errorf("this is only a test")
+}
+
+func TestWriteError(t *testing.T) {
+	resp := httptest.NewRecorder()
+	twerr := NewError(Internal, "test middleware error")
+	err := WriteError(resp, twerr)
+	if err != nil {
+		t.Errorf("got an error from WriteError when not expecting one: %s", err)
+		return
+	}
+
+	twerrCode := ServerHTTPStatusFromErrorCode(twerr.Code())
+	if resp.Code != twerrCode {
+		t.Errorf("got wrong status. have=%d, want=%d", resp.Code, twerrCode)
+		return
+	}
+
+	var gotTwerrJSON twerrJSON
+	err = json.NewDecoder(resp.Body).Decode(&gotTwerrJSON)
+	if err != nil {
+		t.Errorf("got an error decoding response body: %s", err)
+		return
+	}
+
+	if ErrorCode(gotTwerrJSON.Code) != twerr.Code() {
+		t.Errorf("got wrong error code. have=%s, want=%s", gotTwerrJSON.Code, twerr.Code())
+		return
+	}
+
+	if gotTwerrJSON.Msg != twerr.Msg() {
+		t.Errorf("got wrong error message. have=%s, want=%s", gotTwerrJSON.Msg, twerr.Msg())
+		return
+	}
+
+	errResp := &errorResponeWriter{ResponseRecorder: resp}
+
+	// Writing again should error out as headers are being rewritten
+	err = WriteError(errResp, twerr)
+	if err == nil {
+		t.Errorf("did not get error on write. have=nil, want=some error")
 	}
 }

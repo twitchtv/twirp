@@ -188,7 +188,7 @@ should use instead:
  * Make sure to document (with comments) possible validation errors on the
    specific message fields. For example `int32 amount = 1; // must be positive`
    implies that the server implementation will return a
-   `twirp.InvalidArgument("amount", "must be positive")` error if the condition
+   `twirp.InvalidArgumentError("amount", "must be positive")` error if the condition
    is not met.
  * Required fields are also validation errors. For example, if a given string
    field cannot be empty, you should add a "required" comment in the proto file,

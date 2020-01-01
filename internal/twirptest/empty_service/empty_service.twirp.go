@@ -631,6 +631,22 @@ func callRequestRouted(ctx context.Context, h *twirp.ServerHooks) (context.Conte
 	return h.RequestRouted(ctx)
 }
 
+// Call twirp.ServerHooks.RequestDeserialized if the hook is available
+func callRequestDeserialized(ctx context.Context, h *twirp.ServerHooks, req interface{}) (context.Context, error) {
+	if h == nil || h.RequestDeserialized == nil {
+		return ctx, nil
+	}
+	return h.RequestDeserialized(ctx, req)
+}
+
+// Call twirp.ServerHooks.ResponseReady if the hook is available
+func callResponseReady(ctx context.Context, h *twirp.ServerHooks, resp interface{}) context.Context {
+	if h == nil || h.ResponseReady == nil {
+		return ctx
+	}
+	return h.ResponseReady(ctx, resp)
+}
+
 // Call twirp.ServerHooks.ResponsePrepared if the hook is available
 func callResponsePrepared(ctx context.Context, h *twirp.ServerHooks) context.Context {
 	if h == nil || h.ResponsePrepared == nil {

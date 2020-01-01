@@ -239,6 +239,12 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 		return
 	}
 
+	ctx, err = callRequestDeserialized(ctx, s.hooks, reqContent)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *no_package_name.Msg
 	func() {
@@ -250,6 +256,9 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 		s.writeError(ctx, resp, err)
 		return
 	}
+
+	ctx = callResponseReady(ctx, s.hooks, respContent)
+
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *no_package_name.Msg and nil error while calling Method. nil responses are not supported"))
 		return
@@ -811,6 +820,22 @@ func callRequestRouted(ctx context.Context, h *twirp.ServerHooks) (context.Conte
 		return ctx, nil
 	}
 	return h.RequestRouted(ctx)
+}
+
+// Call twirp.ServerHooks.RequestDeserialized if the hook is available
+func callRequestDeserialized(ctx context.Context, h *twirp.ServerHooks, req interface{}) (context.Context, error) {
+	if h == nil || h.RequestDeserialized == nil {
+		return ctx, nil
+	}
+	return h.RequestDeserialized(ctx, req)
+}
+
+// Call twirp.ServerHooks.ResponseReady if the hook is available
+func callResponseReady(ctx context.Context, h *twirp.ServerHooks, resp interface{}) context.Context {
+	if h == nil || h.ResponseReady == nil {
+		return ctx
+	}
+	return h.ResponseReady(ctx, resp)
 }
 
 // Call twirp.ServerHooks.ResponsePrepared if the hook is available

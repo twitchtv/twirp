@@ -272,6 +272,12 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	ctx, err = callRequestDeserialized(ctx, s.hooks, reqContent)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg2
 	func() {
@@ -283,6 +289,9 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		s.writeError(ctx, resp, err)
 		return
 	}
+
+	ctx = callResponseReady(ctx, s.hooks, respContent)
+
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *Msg2 and nil error while calling Send. nil responses are not supported"))
 		return
@@ -401,6 +410,12 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
+	ctx, err = callRequestDeserialized(ctx, s.hooks, reqContent)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
 	// Call service method
 	var respContent *Msg1
 	func() {
@@ -412,6 +427,9 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		s.writeError(ctx, resp, err)
 		return
 	}
+
+	ctx = callResponseReady(ctx, s.hooks, respContent)
+
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *Msg1 and nil error while calling SamePackageProtoImport. nil responses are not supported"))
 		return

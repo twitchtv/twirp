@@ -48,6 +48,13 @@ func TestChainHooks(t *testing.T) {
 		return context.WithValue(ctx, key, []string{"hook2"})
 	}
 
+	hook3.RequestDeserialized = func(ctx context.Context, i interface{}) (context.Context, error) {
+		return context.WithValue(ctx, "Request", i), nil
+	}
+	hook3.ResponseReady = func(ctx context.Context, i interface{}) context.Context {
+		return context.WithValue(ctx, "Response", i)
+	}
+
 	chain := ChainHooks(hook1, hook2, hook3)
 
 	ctx := context.Background()
@@ -81,6 +88,18 @@ func TestChainHooks(t *testing.T) {
 	have = chain.ResponsePrepared(ctx).Value(key)
 	if !reflect.DeepEqual(want, have) {
 		t.Errorf("RequestRouted chain has unexpected ctx, have=%v, want=%v", have, want)
+	}
+
+	// Check the request deserialization handling
+	haveCtx, err = chain.RequestDeserialized(ctx, "test1")
+	if err != nil || haveCtx.Value("Request") != "test1" {
+		t.Fatalf("RequestDeserialized failed")
+	}
+
+	// Check the response pre-serialization handling
+	haveCtx = chain.ResponseReady(ctx, "test2")
+	if haveCtx.Value("Response") != "test2" {
+		t.Fatalf("ResponseReady failed")
 	}
 
 	// When none of the chained hooks has a handler there should be no panic.

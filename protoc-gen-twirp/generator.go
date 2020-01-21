@@ -615,7 +615,7 @@ func (t *twirp) generateUtils() {
 	t.P(`		// Actually write the error`)
 	t.P(`		writeError(ctx, resp, twerr, hooks)`)
 	t.P(`		// If possible, flush the error to the wire.`)
-	t.P(`		f, ok := resp.(http.Flusher)`)
+	t.P(`		f, ok := resp.(`, t.pkgs["http"], `.Flusher)`)
 	t.P(`		if ok {`)
 	t.P(`			f.Flush()`)
 	t.P(`		}`)

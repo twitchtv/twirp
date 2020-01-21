@@ -979,7 +979,7 @@ func (t *twirp) generateClientHooks() {
 	t.P(`  h.ResponseReceived(ctx)`)
 	t.P(`}`)
 	t.P()
-	t.P(`func callClientRequestPrepared(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks, req *http.Request) (`, t.pkgs["context"], `.Context, error) {`)
+	t.P(`func callClientRequestPrepared(ctx `, t.pkgs["context"], `.Context, h *`, t.pkgs["twirp"], `.ClientHooks, req *`, t.pkgs["http"], `.Request) (`, t.pkgs["context"], `.Context, error) {`)
 	t.P(`  if h == nil || h.RequestPrepared == nil {`)
 	t.P(`    return ctx, nil`)
 	t.P(`  }`)

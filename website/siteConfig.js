@@ -16,6 +16,10 @@ const users = [
 ];
 
 const siteConfig = {
+    algolia: {
+        apiKey: 'a2da0312a57f35d6e937107b5f0ec698',
+        indexName: 'twitchtv_twirp',
+    },
     title: 'Twirp' /* title for your website */,
     tagline: 'Simple RPC framework powered by protobuf',
     url: 'https://twitchtv.github.io' /* your website url */,

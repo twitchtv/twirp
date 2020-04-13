@@ -105,6 +105,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	t.registerPackageName("twirp")
 	t.registerPackageName("url")
 	t.registerPackageName("fmt")
+	t.registerPackageName("gzip")
 
 	// Time to figure out package names of objects defined in protobuf. First,
 	// we'll figure out the name for the package we're generating.
@@ -203,6 +204,8 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 		t.generateUtilImports()
 	}
 
+	t.generateConst()
+
 	// For each service, generate client stubs and server
 	for i, service := range file.Service {
 		t.generateService(file, service, i)
@@ -221,6 +224,13 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 
 	t.filesHandled++
 	return resp
+}
+
+func (t *twirp) generateConst(){
+	t.P()
+	t.P("// A response is compressed with gzip when the response size exceeds this threshold.")
+	t.P("const CompressThreshold = 10000")
+	t.P()
 }
 
 func (t *twirp) generateFileHeader(file *descriptor.FileDescriptorProto) {
@@ -274,6 +284,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
 	t.P(`import `, t.pkgs["http"], ` "net/http"`)
 	t.P(`import `, t.pkgs["strconv"], ` "strconv"`)
+	t.P(`import `, t.pkgs["gzip"], ` "compress/gzip"`)
 	t.P()
 	t.P(`import `, t.pkgs["jsonpb"], ` "github.com/golang/protobuf/jsonpb"`)
 	t.P(`import `, t.pkgs["proto"], ` "github.com/golang/protobuf/proto"`)
@@ -468,6 +479,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  }`)
 	t.P(`  req.Header.Set("Accept", contentType)`)
 	t.P(`  req.Header.Set("Content-Type", contentType)`)
+	t.P(`  req.Header.Set("Accept-Encoding", "gzip")`)
 	t.P(`  req.Header.Set("Twirp-Version", "`, gen.Version, `")`)
 	t.P(`  return req, nil`)
 	t.P(`}`)
@@ -727,7 +739,15 @@ func (t *twirp) generateUtils() {
 	t.P(`    return errorFromResponse(resp)`)
 	t.P(`  }`)
 	t.P()
-	t.P(`  respBodyBytes, err := `, t.pkgs["ioutil"], `.ReadAll(resp.Body)`)
+	t.P(`  r := resp.Body`)
+	t.P(`  if resp.Header.Get("Content-Encoding") == "gzip" {`)
+	t.P(`    r, err = `, t.pkgs["gzip"], `.NewReader(r)`)
+	t.P(`    if err != nil {`)
+	t.P(`      return wrapInternal(err, "invalid gzip")`)
+	t.P(`    }`)
+	t.P(`  }`)
+	t.P()
+	t.P(`  respBodyBytes, err := `, t.pkgs["ioutil"], `.ReadAll(r)`)
 	t.P(`  if err != nil {`)
 	t.P(`    return wrapInternal(err, "failed to read response body")`)
 	t.P(`  }`)
@@ -832,6 +852,36 @@ func (t *twirp) generateUtils() {
 	t.P(`    return ctx`)
 	t.P(`  }`)
 	t.P(`  return h.Error(ctx, err)`)
+	t.P(`}`)
+	t.P()
+	t.P(`// compressWithGzip compresses the data with gzip`)
+	t.P(`func compressWithGzip(data []byte) ([]byte, error) {`)
+	t.P(`  var b bytes.Buffer`)
+	t.P(`  gz := gzip.NewWriter(&b)`)
+	t.P(`  defer gz.Close()`)
+	t.P()
+	t.P(`  if _, err := gz.Write(data); err != nil {`)
+	t.P(`    return nil, err`)
+	t.P(`  }`)
+	t.P()
+	t.P(`  if err := gz.Flush(); err != nil {`)
+	t.P(`    return nil, err`)
+	t.P(`  }`)
+	t.P()
+	t.P(`  if err := gz.Close(); err != nil {`)
+	t.P(`    return nil, err`)
+	t.P(`  }`)
+	t.P()
+	t.P(`  return b.Bytes(), nil`)
+	t.P(`}`)
+	t.P()
+	t.P(`func isGZipAcceptable(request *http.Request) bool {`)
+	t.P(`  for _, encoding := range request.Header["Accept-Encoding"] {`)
+	t.P(`    if encoding == "gzip" {`)
+	t.P(`      return true`)
+	t.P(`    }`)
+	t.P(`  }`)
+	t.P(`  return false`)
 	t.P(`}`)
 	t.P()
 
@@ -1227,6 +1277,16 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`  if err != nil {`)
 	t.P(`    s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))`)
 	t.P(`    return`)
+	t.P(`  }`)
+	t.P()
+	t.P(`  // Compress the response if the size exceeds the threshold`)
+	t.P(`  if len(respBytes) > CompressThreshold && isGZipAcceptable(req) {`)
+	t.P(`    respBytes, err = compressWithGzip(respBytes)`)
+	t.P(`    if err != nil {`)
+	t.P(`      s.writeError(ctx, resp, wrapInternal(err, "failed to compress response"))`)
+	t.P(`      return`)
+	t.P(`    }`)
+	t.P(`    resp.Header().Set("Content-Encoding", "gzip")`)
 	t.P(`  }`)
 	t.P()
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)

@@ -1020,11 +1020,11 @@ func TestCustomResponseHeaders(t *testing.T) {
 			t.Fatalf(errMsg + err.Error())
 		}
 
-		err = twirp.SetHTTPResponseHeader(ctx, "key2", "before_override")
+		err = twirp.SetHTTPResponseHeader(ctx, "key2", "before_append")
 		if err != nil {
 			t.Fatalf(errMsg + err.Error())
 		}
-		err = twirp.SetHTTPResponseHeader(ctx, "key2", "val2") // should override
+		err = twirp.SetHTTPResponseHeader(ctx, "key2", "val2") // should append
 		if err != nil {
 			t.Fatalf(errMsg + err.Error())
 		}
@@ -1055,8 +1055,8 @@ func TestCustomResponseHeaders(t *testing.T) {
 		if w.Header().Get("key1") != "val1" {
 			t.Errorf("expected 'key1' header to be 'val1', but found %q", w.Header().Get("key1"))
 		}
-		if w.Header().Get("key2") != "val2" {
-			t.Errorf("expected 'key2' header to be 'val2', but found %q", w.Header().Get("key2"))
+		if w.Header().Get("key2") != "before_append" {
+			t.Errorf("expected 'key2' header to be 'before_append', but found %q", w.Header().Get("key2"))
 		}
 		if w.Header().Get("key3") != "val3" {
 			t.Errorf("expected 'key3' header to be 'val3', but found %q", w.Header().Get("key3"))

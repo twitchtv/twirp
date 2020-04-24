@@ -72,6 +72,25 @@ type Error interface {
 	Error() string
 }
 
+// WrapError allows wrapping another error. It adds the underlying error's type
+// as metadata with a key of "cause", which can be useful for debugging.
+//
+// The returned error also has both Cause() and Unwrap() methods which will
+// return the original error. This can be used with the github.com/pkg/errors
+// package, or the standard `errors` package from Go 1.13 onward, to extract
+// the root cause of an error. Information about the root cause of an error is
+// lost when it is serialized, so this doesn't let a client know the exact root
+// cause of a server's error.
+func WrapError(code ErrorCode, err error) Error {
+	msg := err.Error()
+	twerr := NewError(code, msg)
+	twerr = twerr.WithMeta("cause", fmt.Sprintf("%T", err)) // to easily tell apart wrapped internal errors from explicit ones
+	return &wrappedErr{
+		wrapper: twerr,
+		cause:   err,
+	}
+}
+
 // NewError is the generic constructor for a twirp.Error. The ErrorCode must be
 // one of the valid predefined constants, otherwise it will be converted to an
 // error {type: Internal, msg: "invalid error type {{code}}"}. If you need to
@@ -116,25 +135,14 @@ func InternalError(msg string) Error {
 	return NewError(Internal, msg)
 }
 
-// InternalErrorWith is an easy way to wrap another error. It adds the
-// underlying error's type as metadata with a key of "cause", which can be
-// useful for debugging. Should be used in the common case of an unexpected
-// error returned from another API, but sometimes it is better to build a more
-// specific error (like with NewError(Unknown, err.Error()), for example).
+// InternalErrorWith is an easy way to wrap another error. It should be used in
+// the common case of an unexpected error returned from another API, but
+// sometimes it is better to build a more specific error (like with
+// NewError(Unknown, err.Error() or WrapError(Unknown err)), for example).
 //
-// The returned error also has a Cause() method which will return the original
-// error, if it is known. This can be used with the github.com/pkg/errors
-// package to extract the root cause of an error. Information about the root
-// cause of an error is lost when it is serialized, so this doesn't let a client
-// know the exact root cause of a server's error.
+// See WrapError for additional details on the returned type.
 func InternalErrorWith(err error) Error {
-	msg := err.Error()
-	twerr := NewError(Internal, msg)
-	twerr = twerr.WithMeta("cause", fmt.Sprintf("%T", err)) // to easily tell apart wrapped internal errors from explicit ones
-	return &wrappedErr{
-		wrapper: twerr,
-		cause:   err,
-	}
+	return WrapError(Internal, err)
 }
 
 // ErrorCode represents a Twirp error type.

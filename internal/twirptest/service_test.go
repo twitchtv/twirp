@@ -1020,11 +1020,11 @@ func TestCustomResponseHeaders(t *testing.T) {
 			t.Fatalf(errMsg + err.Error())
 		}
 
-		err = twirp.SetHTTPResponseHeader(ctx, "key2", "before_append")
+		err = twirp.SetHTTPResponseHeader(ctx, "key2", "before_override")
 		if err != nil {
 			t.Fatalf(errMsg + err.Error())
 		}
-		err = twirp.SetHTTPResponseHeader(ctx, "key2", "val2") // should append
+		err = twirp.SetHTTPResponseHeader(ctx, "key2", "val2") // should override
 		if err != nil {
 			t.Fatalf(errMsg + err.Error())
 		}
@@ -1036,6 +1036,15 @@ func TestCustomResponseHeaders(t *testing.T) {
 		}
 
 		err = twirp.SetHTTPResponseHeader(context.Background(), "key4", "should_be_ignored")
+		if err != nil {
+			t.Fatalf(errMsg + err.Error())
+		}
+
+		err = twirp.AddHTTPResponseHeader(ctx, "key5", "val5", "val6")
+		if err != nil {
+			t.Fatalf(errMsg + err.Error())
+		}
+		err = twirp.AddHTTPResponseHeader(ctx, "key5", "val7") // should append
 		if err != nil {
 			t.Fatalf(errMsg + err.Error())
 		}
@@ -1055,14 +1064,17 @@ func TestCustomResponseHeaders(t *testing.T) {
 		if w.Header().Get("key1") != "val1" {
 			t.Errorf("expected 'key1' header to be 'val1', but found %q", w.Header().Get("key1"))
 		}
-		if w.Header().Get("key2") != "before_append" {
-			t.Errorf("expected 'key2' header to be 'before_append', but found %q", w.Header().Get("key2"))
+		if w.Header().Get("key2") != "val2" {
+			t.Errorf("expected 'key2' header to be 'val2', but found %q", w.Header().Get("key2"))
 		}
 		if w.Header().Get("key3") != "val3" {
 			t.Errorf("expected 'key3' header to be 'val3', but found %q", w.Header().Get("key3"))
 		}
 		if w.Header().Get("key4") == "should_be_ignored" {
 			t.Error("expected 'key4' header to be empty, it should be ignored if the context is not coming from the handler")
+		}
+		if w.Header().Get("key5") != "val5" {
+			t.Errorf("expected 'key5' header to be 'val5', but found %q", w.Header().Get("key5"))
 		}
 	})
 

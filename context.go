@@ -111,7 +111,36 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 //
 // SetHTTPResponseHeader returns an error if the provided header key
 // would overwrite a header that is needed by Twirp, like "Content-Type".
-func SetHTTPResponseHeader(ctx context.Context, key string, values ...string) error {
+func SetHTTPResponseHeader(ctx context.Context, key, value string) error {
+	if key == "Content-Type" {
+		return errors.New("header key can not be Content-Type")
+	}
+
+	responseWriter, ok := ctx.Value(contextkeys.ResponseWriterKey).(http.ResponseWriter)
+	if ok {
+		responseWriter.Header().Set(key, value)
+	} // invalid context is ignored, not an error, this is to allow easy unit testing with mock servers
+
+	return nil
+}
+
+// AddHTTPResponseHeader adds an HTTP header key-value pair using a context
+// provided by a twirp-generated server, or a child of that context.
+// The server will include the header in its response for that request context.
+//
+// This can be used to respond with custom HTTP headers like "Cache-Control".
+// But note that HTTP headers are a Twirp implementation detail,
+// only visible by middleware, not by the clients or their responses.
+//
+// The header will be ignored (noop) if the context is invalid (i.e. using a new
+// context.Background() instead of passing the context from the handler).
+//
+// If called multiple times with the same key, it appends to any existing values
+// associated with that key.
+//
+// AddHTTPResponseHeader returns an error if the provided header key
+// would overwrite a header that is needed by Twirp, like "Content-Type".
+func AddHTTPResponseHeader(ctx context.Context, key string, values ...string) error {
 	if key == "Content-Type" {
 		return errors.New("header key can not be Content-Type")
 	}

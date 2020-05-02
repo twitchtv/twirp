@@ -1,21 +1,43 @@
-RETOOL=$(CURDIR)/_tools/bin/retool
 PATH := ${PWD}/bin:${PWD}/ENV/bin:${PATH}
-DOCKER_RELEASE_IMAGE := golang:1.12.0-stretch
+DOCKER_RELEASE_IMAGE := golang:1.14.0-stretch
 .DEFAULT_GOAL := all
 
-all: setup test_all
+TOOLS_BIN ?= $(CURDIR)/_tools/bin
+PROTOC_PATH ?= $(CURDIR)/_tools
 
-.PHONY: test test_all test_core test_clients test_go_client test_python_client generate release_gen
+PROTOBUF_VERSION ?= 3.11.0
+
+ifeq ($(UNAME_S),Darwin)
+	PROTOC_URL = https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOBUF_VERSION)/protoc-$(PROTOBUF_VERSION)-osx-x86_64.zip
+else
+	PROTOC_URL = https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOBUF_VERSION)/protoc-$(PROTOBUF_VERSION)-linux-x86_64.zip
+endif
+
+all: protoc setup test_all
+
+.PHONY: protoc test test_all test_core test_clients test_go_client test_python_client generate release_gen
+
+protoc:
+	@if [ ! -d $(PROTOC_PATH) ]; then\
+		mkdir -p $(PROTOC_PATH)/bin;\
+	fi
+
+	@if [ ! -f $(PROTOC_PATH)/bin/protoc ]; then\
+		echo "Installing $(PROTOC_URL) to $(PROTOC_PATH)";\
+		curl -o protoc.zip -sSL $(PROTOC_URL);\
+		unzip -u protoc.zip -d $(PROTOC_PATH);\
+		rm -rf protoc.zip;\
+	fi
 
 # Phony commands:
 generate:
-	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-...
-	$(RETOOL) do go generate ./...
+	GOBIN="${PWD}/bin" go install -v ./protoc-gen-...
+	PATH=$(TOOLS_BIN):$(PATH) go generate ./...
 
 test_all: setup test_core test_clients
 
 test_core: generate
-	$(RETOOL) do errcheck -blank ./internal/twirptest
+	GOBIN=$(TOOLS_BIN) errcheck -blank ./internal/twirptest
 	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /_tools/)
 
 test_clients: test_go_client test_python_client
@@ -27,9 +49,9 @@ test_python_client: generate build/clientcompat build/pycompat
 	./build/clientcompat -client ./build/pycompat
 
 setup:
-	./install_proto.bash
-	GOPATH=$(CURDIR)/_tools go install github.com/twitchtv/retool/...
-	$(RETOOL) build
+	GOBIN=$(TOOLS_BIN) go install github.com/golang/protobuf/protoc-gen-go
+	GOBIN=$(TOOLS_BIN) go install github.com/kisielk/errcheck
+	GOBIN=$(TOOLS_BIN) go install github.com/gogo/protobuf/protoc-gen-gofast
 
 release_gen:
 	git clean -xdf

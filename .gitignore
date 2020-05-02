@@ -9,3 +9,5 @@ build
 npm-debug.log
 
 /release
+.idea
+_tools

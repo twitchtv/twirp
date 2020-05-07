@@ -1040,7 +1040,7 @@ func TestCustomResponseHeaders(t *testing.T) {
 			t.Fatalf(errMsg + err.Error())
 		}
 
-		err = twirp.AddHTTPResponseHeader(ctx, "key5", "val5", "val6")
+		err = twirp.AddHTTPResponseHeader(ctx, "key5", "val5")
 		if err != nil {
 			t.Fatalf(errMsg + err.Error())
 		}

@@ -140,16 +140,14 @@ func SetHTTPResponseHeader(ctx context.Context, key, value string) error {
 //
 // AddHTTPResponseHeader returns an error if the provided header key
 // would overwrite a header that is needed by Twirp, like "Content-Type".
-func AddHTTPResponseHeader(ctx context.Context, key string, values ...string) error {
+func AddHTTPResponseHeader(ctx context.Context, key, value string) error {
 	if key == "Content-Type" {
 		return errors.New("header key can not be Content-Type")
 	}
 
 	responseWriter, ok := ctx.Value(contextkeys.ResponseWriterKey).(http.ResponseWriter)
 	if ok {
-		for _, v := range values {
-			responseWriter.Header().Add(key, v)
-		}
+		responseWriter.Header().Add(key, value)
 	} // invalid context is ignored, not an error, this is to allow easy unit testing with mock servers
 
 	return nil

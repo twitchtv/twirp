@@ -124,22 +124,10 @@ func SetHTTPResponseHeader(ctx context.Context, key, value string) error {
 	return nil
 }
 
-// AddHTTPResponseHeader adds an HTTP header key-value pair using a context
-// provided by a twirp-generated server, or a child of that context.
-// The server will include the header in its response for that request context.
+// AddHTTPResponseHeader behaves like SetHTTPResponseHeader,
+// but it appends the key-value pair to the header (instead of replacing it).
 //
-// This can be used to respond with custom HTTP headers like "Cache-Control".
-// But note that HTTP headers are a Twirp implementation detail,
-// only visible by middleware, not by the clients or their responses.
-//
-// The header will be ignored (noop) if the context is invalid (i.e. using a new
-// context.Background() instead of passing the context from the handler).
-//
-// If called multiple times with the same key, it appends to any existing values
-// associated with that key.
-//
-// AddHTTPResponseHeader returns an error if the provided header key
-// would overwrite a header that is needed by Twirp, like "Content-Type".
+// AddHTTPResponseHeader returns an error if the key is "Content-Type".
 func AddHTTPResponseHeader(ctx context.Context, key, value string) error {
 	if key == "Content-Type" {
 		return errors.New("header key can not be Content-Type")

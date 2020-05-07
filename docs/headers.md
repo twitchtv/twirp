@@ -69,6 +69,7 @@ func (h *myServer) MyRPC(ctx context.Context, req *pb.Req) (*pb.Resp, error) {
   return &pb.Resp{}, nil
 }
 ```
+You can also use `twirp.AddHTTPResponseHeader` to add values to the key that is already exists.
 
 ### Read HTTP Headers from requests
 

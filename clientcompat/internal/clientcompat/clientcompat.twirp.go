@@ -722,7 +722,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 	errorCode := twirp.ErrorCode(tj.Code)
 	if !twirp.IsValidErrorCode(errorCode) {
 		msg := "invalid type returned from server error response: " + tj.Code
-		return twirp.InternalError(msg)
+		return twirp.InternalError(msg).WithMeta("body", string(respBodyBytes))
 	}
 
 	twerr := twirp.NewError(errorCode, tj.Msg)

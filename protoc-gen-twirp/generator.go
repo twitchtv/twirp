@@ -538,7 +538,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  errorCode := `, t.pkgs["twirp"], `.ErrorCode(tj.Code)`)
 	t.P(`  if !`, t.pkgs["twirp"], `.IsValidErrorCode(errorCode) {`)
 	t.P(`    msg := "invalid type returned from server error response: "+tj.Code`)
-	t.P(`    return `, t.pkgs["twirp"], `.InternalError(msg)`)
+	t.P(`    return `, t.pkgs["twirp"], `.InternalError(msg).WithMeta("body", string(respBodyBytes))`)
 	t.P(`  }`)
 	t.P(``)
 	t.P(`  twerr := `, t.pkgs["twirp"], `.NewError(errorCode, tj.Msg)`)

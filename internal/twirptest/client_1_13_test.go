@@ -34,7 +34,7 @@ func TestClientContextCanceled(t *testing.T) {
 	protoCli := NewHaberdasherProtobufClient("", &http.Client{})
 	_, err := protoCli.MakeHat(ctx, &Size{})
 
-	// returns a twirp internal error
+	// The failure is a twirp internal error
 	twerr, ok := err.(twirp.Error)
 	if !ok {
 		t.Fatalf("expected twirp.Error, have=%T", err)
@@ -43,7 +43,7 @@ func TestClientContextCanceled(t *testing.T) {
 		t.Fatalf("expected twirp.Error Code to be internal, have=%q", twerr.Code())
 	}
 
-	// The context.Canceled error can be identified with errors.Is
+	// But the context.Canceled error can be identified easily with errors.Is
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected errors.Is(err, context.Canceled) to match, but it didn't")
 	}

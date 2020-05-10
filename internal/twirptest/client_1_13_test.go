@@ -33,9 +33,8 @@ func TestClientContextCanceled(t *testing.T) {
 	// Make request, should immediately fail because the context is canceled.
 	protoCli := NewHaberdasherProtobufClient("", &http.Client{})
 	_, err := protoCli.MakeHat(ctx, &Size{})
-	if err == nil {
-		t.Fatalf("request expected to fail with context canceled, but there is no error")
-	}
+
+	// returns a twirp internal error
 	twerr, ok := err.(twirp.Error)
 	if !ok {
 		t.Fatalf("expected twirp.Error, have=%T", err)
@@ -44,12 +43,9 @@ func TestClientContextCanceled(t *testing.T) {
 		t.Fatalf("expected twirp.Error Code to be internal, have=%q", twerr.Code())
 	}
 
-	// Check that the context.Canceled error can be unwraped
+	// The context.Canceled error can be identified with errors.Is
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected errors.Is(err, context.Canceled) to match, but it didn't")
-	}
-	if !errors.Is(twerr, context.Canceled) {
-		t.Fatalf("expected errors.Is(twerr, context.Canceled) to match, but it didn't")
 	}
 }
 

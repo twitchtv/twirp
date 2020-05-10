@@ -426,8 +426,9 @@ type wrappedError struct {
 	cause  error
 }
 
-func (e *wrappedError) Cause() error  { return e.cause }
 func (e *wrappedError) Error() string { return e.prefix + ": " + e.cause.Error() }
+func (e *wrappedError) Unwrap() error { return e.cause } // for go1.13 + errors.Is/As
+func (e *wrappedError) Cause() error  { return e.cause } // for github.com/pkg/errors
 
 // ensurePanicResponses makes sure that rpc methods causing a panic still result in a Twirp Internal
 // error response (status 500), and error hooks are properly called with the panic wrapped as an error.
@@ -458,14 +459,16 @@ func errFromPanic(p interface{}) error {
 	return fmt.Errorf("panic: %v", p)
 }
 
-// internalWithCause is a Twirp Internal error wrapping an original error cause, accessible
-// by github.com/pkg/errors.Cause, but the original error message is not exposed on Msg().
+// internalWithCause is a Twirp Internal error wrapping an original error cause,
+// but the original error message is not exposed on Msg(). The original error
+// can be checked with go1.13+ errors.Is/As, and also by (github.com/pkg/errors).Unwrap
 type internalWithCause struct {
 	msg   string
 	cause error
 }
 
-func (e *internalWithCause) Cause() error                                { return e.cause }
+func (e *internalWithCause) Unwrap() error                               { return e.cause } // for go1.13 + errors.Is/As
+func (e *internalWithCause) Cause() error                                { return e.cause } // for github.com/pkg/errors
 func (e *internalWithCause) Error() string                               { return e.msg + ": " + e.cause.Error() }
 func (e *internalWithCause) Code() twirp.ErrorCode                       { return twirp.Internal }
 func (e *internalWithCause) Msg() string                                 { return e.msg }

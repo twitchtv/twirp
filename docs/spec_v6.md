@@ -29,17 +29,17 @@ that required a protocol update:
 
 Issue: https://github.com/twitchtv/twirp/issues/70
 
-Streams require assumptions about how connection state is
+Handle streams out of the box. Not implemented because
+streams require assumptions about how the connection state is
 managed, they are complex and not required by the majority of
-Twirp users. Because of that, Twirp decided to keep streams out
-of the API. Websockets or gRPC are better alternatives for that.
+Twirp users. Websockets or gRPC may be good alternatives.
 
 ### Removed /twirp prefix from HTTP routes
 
 Issue: https://github.com/twitchtv/twirp/issues/55
 
-Twirp routes were going to change remove the mandatory `/twirp`
-prefix. The prefix was clearly not a good idea, but too much time
-has passed since Twirp was released and now there are too many
-services that depend on this prefix. Instead of updating how Twirp
-works, the proposed solution is to manage it from middleware.
+Twirp routes have a `/twirp` prefix that is inconvenient in some
+cases. There was a proposal to allow different route prefixes, but
+too much time has passed since the proposal, and too many services
+depend on this prefix. Instead of updating how Twirp works,
+the proposed solution is to manage it from middleware.

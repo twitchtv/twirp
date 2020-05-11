@@ -189,9 +189,9 @@ Example with metadata:
 ### Error Codes
 
 Twirp errors always include an error code. This code is represented
-as a string and must be one of a fixed set of codes, listed in the
-table below. Each code has an associated HTTP Status Code. When a
-server responds with the given error code, it must set the
+as a string and must be one of a fixed set of codes, listed in the 
+table below. Each code has an associated HTTP Status Code. When a 
+server responds with the given error code, it must set the 
 corresponding HTTP Status Code for the response.
 
 | Twirp Error Code    | HTTP Status | Description

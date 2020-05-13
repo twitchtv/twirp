@@ -37,7 +37,7 @@ go get github.com/twitchtv/twirp/protoc-gen-twirp
 ```
 
 You will also need:
- - [protoc](https://github.com/golang/protobuf), the protobuf compiler. You need
+ - [protoc](https://github.com/protocolbuffers/protobuf), the protobuf compiler. You need
    version 3+.
  - [github.com/golang/protobuf/protoc-gen-go](https://github.com/golang/protobuf/),
    the Go protobuf generator plugin. Get this with `go get`.

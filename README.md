@@ -57,6 +57,9 @@ For other languages, there are third-party generators available:
 
 |    Language    | Clients | Servers | Repository |
 |----------------|---------|---------|------------|
+| **Go**         |    ✓    |    ✓    | Official support
+| **Python**     |    ✓    |         | Official support [(partial)](https://github.com/twitchtv/twirp/issues/185)
+| **Python3**    |    ✓    |    ✓    | [github.com/verloop/twirpy](https://github.com/verloop/twirpy)
 | **Java**       |    ✓    |    ✓    | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
 | **Java**       |         |    ✓    | [https://github.com/devork/flit](https://github.com/devork/flit)
 | **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)

@@ -44,7 +44,7 @@ func TestWithMetaRaces(t *testing.T) {
 }
 
 func TestErrorCause(t *testing.T) {
-	rootCause := fmt.Errorf("this is only a test")
+	rootCause := errors.New("this is only a test")
 	twerr := InternalErrorWith(rootCause)
 	cause := errors.Cause(twerr)
 	if cause != rootCause {
@@ -57,7 +57,7 @@ type errorResponeWriter struct {
 }
 
 func (errorResponeWriter) Write([]byte) (int, error) {
-	return 0, fmt.Errorf("this is only a test")
+	return 0, errors.New("this is only a test")
 }
 
 func TestWriteError(t *testing.T) {

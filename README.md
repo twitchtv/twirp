@@ -52,13 +52,13 @@ is generated from that folder using [Docusaurus](https://docusaurus.io/).
 
 ### Implementations in other languages
 
-This repo only has the official generators, which write out Go and Python code.
+This repo only has the official generators, which write out Go and
+Python (partial, see [#185](https://github.com/twitchtv/twirp/issues/185) and [#220](https://github.com/twitchtv/twirp/issues/220)) code.
+
 For other languages, there are third-party generators available:
 
 |    Language    | Clients | Servers | Repository |
 |----------------|---------|---------|------------|
-| **Go**         |    ✓    |    ✓    | Official support
-| **Python**     |    ✓    |         | Official support [(partial)](https://github.com/twitchtv/twirp/issues/185)
 | **Python3**    |    ✓    |    ✓    | [github.com/verloop/twirpy](https://github.com/verloop/twirpy)
 | **Java**       |    ✓    |    ✓    | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
 | **Java**       |         |    ✓    | [https://github.com/devork/flit](https://github.com/devork/flit)

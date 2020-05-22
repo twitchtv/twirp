@@ -4,32 +4,26 @@ Thanks for helping make Twirp better! This is great!
 
 ## Twirp Principles
 
-Your contribution will go more smoothly if it aligns well with the project priorities. Twirp has been developed by twitch.tv and it has been in production for years. As many internal systems, teams and processes depend on Twirp, keeping backwards compatibility is taken very seriously.
+Contributions to Twirp should align with the project’s design principles. 
 
 Design principles:
 
+ * Maintain backwards compatibility. Twirp has been in production at Twitch since 2016 and released to the public in January 2018. It has gained popularity and is currently used by many companies and individuals across different services possibly written in different stacks. There must be a compelling use-case and solid reasoning behind a major version upgrade.
+ * Small api and interface. Fewer things in the core means less things to break, easier to handle updates and easier to maintain implementations in other languages.
  * Simplicity. Keep serialization and routing simple and intuitive.
- * Small api and interface. Reduce future support burden.
- * Prevent user errors. Avoid surprising behavior.
- * Pragmatism over being bleeding edge.
- * Hooks are for observability instead of control flow, so it is easier to debug Twirp systems.
- * No flags/options for code generation, so generated code is predictable across versions and platforms.
- * As few dependencies as possible, so it is easier to integrate and upgrade.
- * Prefer generated code over shared libraries between services and clients, so it is easier to implement changes without breaking compatibility.
+ * Avoid surprising behavior. For example: hooks are for observability instead of control flow, so it is easier to debug your service's flow control.
+ * Prefer pragmatism over bleeding-edge.
+ * Keep configuration to a minimum. For example: we avoid adding flags to code generation commands, so that generated code is predictable across versions and platforms.
+ * Prefer generated code over shared libraries between services and clients, so that it is easier to implement changes without forcing a lock-step upgrade across the ecosystem.
+ * Limit dependencies where possible, so that it is easier to integrate and upgrade.
 
-Contributions that are welcome:
+Examples of contributions that have high priority:
 
  * Security updates.
  * Performance improvements.
- * Supporting new versions of Golang and Protobug.
+ * Supporting new versions of key dependencies such as Go and Protobuf.
  * Documentation.
- * Making Twirp easier to integrate with other useful tools.
-
-In the other hand, contributions that contradict the following priorities will be more difficult:
-
- * Backwards compatibility is very important. Changes that break compatibility will see resistance, even when they only break a small use case. There must be a good reason behind a major version update.
- * Complex and involved features should be avoided. Twirp was designed to be easy to use and easy to maintain. See the streaming proposal as an example of a complex feature that was not able to make it into a major release: https://github.com/twitchtv/twirp/issues/3.
- * Features that could be implemented in a separate library should go in a separate library. Twirp allows easy integrtion with 3rd party code.
+ * Making Twirp easier to integrate with other tools.
 
 
 ## Report an Issue

@@ -329,11 +329,9 @@ func (e *twerr) Error() string {
 	return fmt.Sprintf("twirp error %s: %s", e.code, e.msg)
 }
 
-// wrappedErr fulfills the twirp.Error interface and the
-// github.com/pkg/errors.Causer interface. It exposes all the twirp error
-// methods, but root cause of an error can be retrieved with
-// (*wrappedErr).Cause. This is expected to be used with the InternalErrorWith
-// function.
+// wrappedErr is the error returned by twirp.InternalErrorWith(err), which is used by clients.
+// Implements Unwrap() to allow go 1.13+ errors.Is/As checks,
+// and Cause() to allow (github.com/pkg/errors).Unwrap.
 type wrappedErr struct {
 	wrapper Error
 	cause   error
@@ -350,7 +348,8 @@ func (e *wrappedErr) WithMeta(key string, val string) Error {
 		cause:   e.cause,
 	}
 }
-func (e *wrappedErr) Cause() error { return e.cause }
+func (e *wrappedErr) Unwrap() error { return e.cause } // for go1.13 + errors.Is/As
+func (e *wrappedErr) Cause() error  { return e.cause } // for github.com/pkg/errors
 
 // WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).
 // Useful outside of the Twirp server (e.g. http middleware).

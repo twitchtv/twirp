@@ -123,3 +123,20 @@ func SetHTTPResponseHeader(ctx context.Context, key, value string) error {
 
 	return nil
 }
+
+// AddHTTPResponseHeader behaves like SetHTTPResponseHeader,
+// but it appends the key-value pair to the header (instead of replacing it).
+//
+// AddHTTPResponseHeader returns an error if the key is "Content-Type".
+func AddHTTPResponseHeader(ctx context.Context, key, value string) error {
+	if key == "Content-Type" {
+		return errors.New("header key can not be Content-Type")
+	}
+
+	responseWriter, ok := ctx.Value(contextkeys.ResponseWriterKey).(http.ResponseWriter)
+	if ok {
+		responseWriter.Header().Add(key, value)
+	} // invalid context is ignored, not an error, this is to allow easy unit testing with mock servers
+
+	return nil
+}

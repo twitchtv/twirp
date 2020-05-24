@@ -69,6 +69,7 @@ func (h *myServer) MyRPC(ctx context.Context, req *pb.Req) (*pb.Resp, error) {
   return &pb.Resp{}, nil
 }
 ```
+`twirp.AddHTTPResponseHeader` can be used to append values to a header.
 
 ### Read HTTP Headers from requests
 

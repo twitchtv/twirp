@@ -1040,6 +1040,15 @@ func TestCustomResponseHeaders(t *testing.T) {
 			t.Fatalf(errMsg + err.Error())
 		}
 
+		err = twirp.AddHTTPResponseHeader(ctx, "key5", "val5")
+		if err != nil {
+			t.Fatalf(errMsg + err.Error())
+		}
+		err = twirp.AddHTTPResponseHeader(ctx, "key5", "val7") // should append
+		if err != nil {
+			t.Fatalf(errMsg + err.Error())
+		}
+
 		err = twirp.SetHTTPResponseHeader(context.Background(), "Content-Type", "should_return_error")
 		if err == nil {
 			t.Fatalf("SetHTTPResponseHeader expected to return an error on Content-Type header, found nil")
@@ -1063,6 +1072,9 @@ func TestCustomResponseHeaders(t *testing.T) {
 		}
 		if w.Header().Get("key4") == "should_be_ignored" {
 			t.Error("expected 'key4' header to be empty, it should be ignored if the context is not coming from the handler")
+		}
+		if w.Header().Get("key5") != "val5" {
+			t.Errorf("expected 'key5' header to be 'val5', but found %q", w.Header().Get("key5"))
 		}
 	})
 

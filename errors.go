@@ -72,19 +72,10 @@ type Error interface {
 	Error() string
 }
 
-// WrapError allows wrapping another error. It adds the underlying error's type
-// as metadata with a key of "cause", which can be useful for debugging.
-//
-// The returned error also has both Cause() and Unwrap() methods which will
-// return the original error. This can be used with the github.com/pkg/errors
-// package, or the standard `errors` package from Go 1.13 onward, to extract
-// the root cause of an error. Information about the root cause of an error is
-// lost when it is serialized, so this doesn't let a client know the exact root
-// cause of a server's error.
-func WrapError(code ErrorCode, err error) Error {
-	msg := err.Error()
-	twerr := NewError(code, msg)
-	twerr = twerr.WithMeta("cause", fmt.Sprintf("%T", err)) // to easily tell apart wrapped internal errors from explicit ones
+// WrapError allows Twirp errors to wrap other errors.
+// The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
+// or errors.Is from the standard errors package on Go 1.13+.
+func WrapError(twerr Error, err error) Error {
 	return &wrappedErr{
 		wrapper: twerr,
 		cause:   err,
@@ -135,14 +126,15 @@ func InternalError(msg string) Error {
 	return NewError(Internal, msg)
 }
 
-// InternalErrorWith is an easy way to wrap another error. It should be used in
-// the common case of an unexpected error returned from another API, but
-// sometimes it is better to build a more specific error (like with
-// NewError(Unknown, err.Error() or WrapError(Unknown err)), for example).
-//
-// See WrapError for additional details on the returned type.
+// InternalErrorWith makes an internal error, wrapping the original error and using it
+// for the error message, and with metadata "cause" with the original error type.
+// This function is used by Twirp services to wrap non-Twirp errors as internal errors.
+// The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
+// or errors.Is from the standard errors package on Go 1.13+.
 func InternalErrorWith(err error) Error {
-	return WrapError(Internal, err)
+	twerr := NewError(Internal, err.Error())
+	twerr = twerr.WithMeta("cause", fmt.Sprintf("%T", err)) // to easily tell apart wrapped internal errors from explicit ones
+	return WrapError(twerr, err)
 }
 
 // ErrorCode represents a Twirp error type.

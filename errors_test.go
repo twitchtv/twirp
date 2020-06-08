@@ -100,3 +100,17 @@ func TestWriteError(t *testing.T) {
 		t.Errorf("did not get error on write. have=nil, want=some error")
 	}
 }
+
+func TestWrapError(t *testing.T) {
+	rootCause := errors.New("cause")
+	twerr := NewError(NotFound, "it ain't there")
+	err := WrapError(twerr, rootCause)
+	cause := errors.Cause(err)
+	if cause != rootCause {
+		t.Errorf("got wrong cause. got=%q, want=%q", cause, rootCause)
+	}
+	wantMsg := "twirp error not_found: it ain't there"
+	if gotMsg := err.Error(); gotMsg != wantMsg {
+		t.Errorf("got wrong error text. got=%q, want=%q", gotMsg, wantMsg)
+	}
+}

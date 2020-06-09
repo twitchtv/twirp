@@ -1,38 +1,54 @@
-# Contributing #
+# Contributing
 
 Thanks for helping make Twirp better! This is great!
 
-First, if you have run into a bug, please file an issue. We try to get back to
-issue reporters within a day or two. We might be able to help you right away.
+## Twirp Design Principles
 
-If you'd rather not publicly discuss the issue, please email spencer@twitch.tv
-and/or security@twitch.tv.
+Contributions to Twirp should align with the project’s design principles:
 
-Issues are also a good place to present experience reports or requests for new
-features.
+ * Maintain backwards compatibility. Twirp has been in production at Twitch since 2016 and released to the public in January 2018. It is currently used by many companies and individuals with a variety of needs. There must be a compelling use-case and solid reasoning behind a major version upgrade.
+ * Simple wire protocol and minimal public API. Fewer things in the core means fewer things to break. In addition, it ensures lower friction updates and easier to maintain implementations in other languages.
+ * Avoid surprising behavior. For instance, mechanisms that can alter a program’s control flow in a surprising way (such as middleware or observability hooks) should be treated with caution.
+ * Prefer pragmatism over bleeding-edge. Users should be able to deploy and accept updates to Twirp even if they are conservative on updating its dependencies. This includes Go, the protobuf compiler and runtime libraries, and the HTTP protocol.
+ * Keep configuration to a minimum. For example: avoid adding flags to code generation commands, so that generated code is predictable across versions and platforms.
+ * Limit dependencies where possible, so that they are easier to integrate and upgrade.
+ * Prefer generated code over shared libraries between services and clients, so that it is easier to implement changes without forcing a lock-step upgrade across the ecosystem.
 
-If you'd like to make changes to Twirp, read on:
+Examples of contributions that should be addressed with high priority:
 
-## Setup Requirements ##
+ * Security updates.
+ * Performance improvements.
+ * Supporting new versions of key dependencies such as Go and Protobuf.
+ * Documentation.
+ * Making Twirp easier to integrate with other tools.
 
-You will need git, Go 1.9+, and Python 2.7 installed and on your system's path.
-Install them however you feel.
+## Report an Issue
 
-## Developer Loop ##
+If you have run into a bug or want to discuss a new feature, please [file an issue](https://github.com/twitchtv/twirp/issues). If you'd rather not publicly discuss the issue, please email security@twitch.tv.
+
+## Contributing Code with Pull Requests
+
+Twirp uses github pull requests. Fork, hack away at your changes and submit. Most pull requests will go through a few iterations before they get merged. Different contributors will sometimes have different opinions, and often patches will need to be revised before they can get merged.
+
+### Requirements
+
+ * Twirp officially supports the last 3 releases of Go.
+ * Protobuf version 3.x.x to generate code with the protoc command.
+ * The Python implementation uses Python 2.7. As such, it is not suitable for production use in its current form.
+ * For linters and other tools, we use [retool](https://github.com/twitchtv/retool). If `make setup` is not able to install it, you can install it in your path with `go get github.com/twitchtv/retool` and then install tools with `retool build`.
+
+### Running tests
 
 Generally you want to make changes and run `make`, which will install all
 dependencies we know about, build the core, and run all of the tests that we
-have against all of the languages we support.
+have against Go and Python code. A few notes:
 
-Most tests of the Go server are in `internal/twirptest/service_test.go`. Tests
-of cross-language clients are in the [clientcompat](./clientcompat) directory.
+ * Make sure to clone the repo on `$GOPATH/src/github.com/twitchtv/twirp`
+ * Run Go unit tests with `make test_core`, or just the tests with `go test -race ./...`.
+ * Most tests of the Go server are in `internal/twirptest/service_test.go`.
+ * Integration tests running the full stack in both Go and Python auto-generated clients are in the [clientcompat](./clientcompat) directory.
 
-## Contributing Code ##
-
-Twirp uses github pull requests. Fork, hack away at your changes, run the test
-suite with `make`, and submit a PR.
-
-## Contributing Documentation ##
+## Contributing Documentation
 
 Twirp's docs are generated with [Docusaurus](https://docusaurus.io/). You can
 safely edit anything inside the [docs](./docs) directory, adding new pages or
@@ -46,44 +62,32 @@ Then, to render your changes, run docusaurus's local server. To do this:
  3. `npm start`
  4. Navigate to http://localhost:3000/.
 
-## Releasing Versions ##
+## Making a New Release
 
 Releasing versions is the responsibility of the core maintainers. Most people
-don't need to know this stuff.
-
-Twirp uses [Semantic versioning](http://semver.org/): `v<major>.<minor>.<patch>`.
-
- * Increment major if you're making a backwards-incompatible change.
- * Increment minor if you're adding a feature that's backwards-compatible.
- * Increment patch if you're making a bugfix.
-
-To make a release, remember to update the version number in
-[internal/gen/version.go](./internal/gen/version.go).
+can skip this section.
 
 Twirp uses Github releases. To make a new release:
- 1. Merge all changes that should be included in the release into the master
-    branch.
- 2. Update the version constant in `internal/gen/version.go`.
- 3. Add a new commit to master with a message like "Version vX.X.X release".
- 4. Tag the commit you just made: `git tag <version number>` and `git push
-    origin --tags`
- 5. Run `make release_gen` to generate release assets in the `release`
-    directory. This requires Docker to be installed.
- 6. Go to Github https://github.com/twitchtv/twirp/releases and
-    "Draft a new release".
- 7. Make sure to document changes, specially when upgrade instructions are
-    needed.
- 8. Upload all files in the `release` directory as part of the release.
+
+ 1. Merge all changes that should be included in the release into the master branch.
+ 2. Update the version constant in `internal/gen/version.go`. Please respect [semantic versioning](http://semver.org/): `v<major>.<minor>.<patch>`.
+ 3. Run `make generate` and run tests. Check that generated test files include a header comment with the new version.
+ 4. Add a new commit to master with a message like "Version vX.X.X release" and push.
+ 5. Tag the commit you just made: `git tag vX.X.X` and `git push origin --tags`.
+ 6. Go to Github https://github.com/twitchtv/twirp/releases and "Draft a new release".
+ 7. Make sure to document changes, upgrade instructions are very important.
+ 8. Run `make release_gen` to generate release assets in the `release` directory. This requires Docker to be installed. Then Upload all files in the `release` directory as part of the release.
 
 
 ## Code of Conduct
+
 This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct).
 For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq) or contact
 opensource-codeofconduct@amazon.com with any additional questions or comments.
-
 
 ## Licensing
 
 See the [LICENSE](https://github.com/twitchtv/twirp/blob/master/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
+

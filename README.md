@@ -67,6 +67,7 @@ For other languages, there are third-party generators available:
 | **Typescript** |    ✓    |         | [github.com/larrymyers/protoc-gen-twirp_typescript](https://github.com/larrymyers/protoc-gen-twirp_typescript)
 | **Ruby**       |    ✓    |    ✓    | [github.com/twitchtv/twirp-ruby](https://github.com/twitchtv/twirp-ruby)
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
+| **Scala**      |    ✓    |    ✓    | [github.com/soundcloud/twinagle](https://github.com/soundcloud/twinagle)
 | **Swagger**    |    ✓    |    ✓    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
 | **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)

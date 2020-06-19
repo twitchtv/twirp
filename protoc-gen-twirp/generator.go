@@ -953,7 +953,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
-		t.P(`    	prefix + "`, methodName(method), `",`)
+		t.P(`    	prefix + `, strconv.Quote(method.GetName()), `,`)
 	}
 	t.P(`  }`)
 	t.P()
@@ -1067,7 +1067,18 @@ func pathPrefix(file *descriptor.FileDescriptorProto, service *descriptor.Servic
 // pathFor returns the complete path for requests to a particular method on a
 // particular service.
 func pathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
-	return pathPrefix(file, service) + stringutils.CamelCase(method.GetName())
+	return pathPrefix(file, service) + method.GetName()
+}
+
+// pathForCamelOld returns the old CamelCase complete path for requests to a
+// particular method on a particular service.
+// This method is here to ensure compatibility with older clients.
+func pathForCamelOld(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
+	name := stringutils.CamelCase(service.GetName())
+	if pkg := pkgName(file); pkg != "" {
+		name = pkg + "." + name
+	}
+	return fmt.Sprintf("/twirp/%s/%s", name, stringutils.CamelCase(method.GetName()))
 }
 
 func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
@@ -1104,8 +1115,13 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	t.P(`  switch req.URL.Path {`)
 	for _, method := range service.Method {
 		path := pathFor(file, service, method)
+		pathCamel := pathForCamelOld(file, service, method)
 		methName := "serve" + stringutils.CamelCase(method.GetName())
-		t.P(`  case `, strconv.Quote(path), `:`)
+		caseCondition := strconv.Quote(path)
+		if path != pathCamel {
+			caseCondition += `, ` + strconv.Quote(pathCamel)
+		}
+		t.P(`  case `, caseCondition, `:`)
 		t.P(`    s.`, methName, `(ctx, resp, req)`)
 		t.P(`    return`)
 	}
@@ -1403,7 +1419,7 @@ func (t *twirp) formattedOutput() string {
 func unexported(s string) string { return strings.ToLower(s[:1]) + s[1:] }
 
 func fullServiceName(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	name := stringutils.CamelCase(service.GetName())
+	name := service.GetName()
 	if pkg := pkgName(file); pkg != "" {
 		name = pkg + "." + name
 	}

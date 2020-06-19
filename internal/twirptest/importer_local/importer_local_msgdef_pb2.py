@@ -18,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='twirp.internal.twirptest.importer_local',
   syntax='proto3',
   serialized_options=b'Z;github.com/twitchtv/twirp/internal/twirptest/importer_local',
+  create_key=_descriptor._internal_create_key,
   serialized_pb=b'\n\x1bimporter_local_msgdef.proto\x12\'twirp.internal.twirptest.importer_local\"\x05\n\x03MsgB=Z;github.com/twitchtv/twirp/internal/twirptest/importer_localb\x06proto3'
 )
 
@@ -30,6 +31,7 @@ _MSG = _descriptor.Descriptor(
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
+  create_key=_descriptor._internal_create_key,
   fields=[
   ],
   extensions=[

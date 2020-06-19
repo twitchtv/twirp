@@ -38,13 +38,13 @@ class TwirpException(httplib.HTTPException):
             meta = {}
         return cls(code, msg, meta)
 
-class HaberdasherClient(object):
+class HaberdasherV1Client(object):
     """
     A Haberdasher makes hats for clients.
     """
 
     def __init__(self, server_address):
-        """Creates a new client for the Haberdasher service.
+        """Creates a new client for the HaberdasherV1 service.
 
         Args:
             server_address: The address of the server to send requests to, in
@@ -54,7 +54,7 @@ class HaberdasherClient(object):
             self.__target = server_address
         else:
             self.__target = server_address.encode('ascii')
-        self.__service_name = "twirp.internal.twirptest.snake_case_names.Haberdasher"
+        self.__service_name = "twirp.internal.twirptest.snake_case_names.HaberdasherV1"
 
     def __make_request(self, body, full_method):
         req = Request(

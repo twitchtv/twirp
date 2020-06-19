@@ -1060,14 +1060,25 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 // pathPrefix returns the base path for all methods handled by a particular
 // service. It includes a trailing slash. (for example
 // "/twirp/twitch.example.Haberdasher/").
-func pathPrefix(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	return fmt.Sprintf("/twirp/%s/", fullServiceName(file, service))
+func pathPrefix(file *descriptor.FileDescriptorProto, serviceName string) string {
+	return fmt.Sprintf("/twirp/%s/", fullServiceName(file, serviceName))
 }
 
-// pathFor returns the complete path for requests to a particular method on a
-// particular service.
-func pathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
-	return pathPrefix(file, service) + stringutils.CamelCase(method.GetName())
+// literalPathFor returns the complete path as defined in the Proto file.
+// For example, with package "foo.bar", service "MyService_v2", and
+// method "MyMethod_v2", it returns "foo.bar.MyService_v2/MyMethod_v2"
+func literalPathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
+	return pathPrefix(file, service.GetName()) + method.GetName()
+}
+
+// camelCasedPathFor returns the complete path but CamelCasing service
+// and method names. This is needed for backwards compatibility with Go clients.
+// For example, with package "foo.bar", service "MyService_v2", and
+// method "MyMethod_v2", it returns "foo.bar.MyServiceV2/MyMethodV2"
+// To learn more, check: https://twitchtv.github.io/twirp/docs/routing.html#http-routes
+func camelCasedPathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
+	return pathPrefix(file, stringutils.CamelCase(service.GetName())) + stringutils.CamelCase(method.GetName())
+
 }
 
 func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
@@ -1078,7 +1089,7 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	t.P(`// `, pathPrefixConst, ` is used for all URL paths on a twirp `, servName, ` server.`)
 	t.P(`// Requests are always: POST `, pathPrefixConst, `/method`)
 	t.P(`// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.`)
-	t.P(`const `, pathPrefixConst, ` = `, strconv.Quote(pathPrefix(file, service)))
+	t.P(`const `, pathPrefixConst, ` = `, strconv.Quote(pathPrefix(file, stringutils.CamelCase(service.GetName()))))
 	t.P()
 
 	t.P(`func (s *`, servStruct, `) ServeHTTP(resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
@@ -1103,9 +1114,14 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	t.P()
 	t.P(`  switch req.URL.Path {`)
 	for _, method := range service.Method {
-		path := pathFor(file, service, method)
 		methName := "serve" + stringutils.CamelCase(method.GetName())
-		t.P(`  case `, strconv.Quote(path), `:`)
+		path := literalPathFor(file, service, method)      // spec compliant
+		pathCc := camelCasedPathFor(file, service, method) // go clients
+		if path == pathCc {
+			t.P(`  case `, strconv.Quote(path), `:`)
+		} else {
+			t.P(`  case `, strconv.Quote(path), `, `, strconv.Quote(pathCc), `:`)
+		}
 		t.P(`    s.`, methName, `(ctx, resp, req)`)
 		t.P(`    return`)
 	}
@@ -1402,8 +1418,7 @@ func (t *twirp) formattedOutput() string {
 
 func unexported(s string) string { return strings.ToLower(s[:1]) + s[1:] }
 
-func fullServiceName(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	name := stringutils.CamelCase(service.GetName())
+func fullServiceName(file *descriptor.FileDescriptorProto, name string) string {
 	if pkg := pkgName(file); pkg != "" {
 		name = pkg + "." + name
 	}

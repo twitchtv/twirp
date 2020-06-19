@@ -18,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=b'Z\030service_method_same_name',
+  create_key=_descriptor._internal_create_key,
   serialized_pb=b'\n\x1eservice_method_same_name.proto\"\x05\n\x03Msg2\x1c\n\x04\x45\x63ho\x12\x14\n\x04\x45\x63ho\x12\x04.Msg\x1a\x04.Msg\"\x00\x42\x1aZ\x18service_method_same_nameb\x06proto3'
 )
 
@@ -30,6 +31,7 @@ _MSG = _descriptor.Descriptor(
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
+  create_key=_descriptor._internal_create_key,
   fields=[
   ],
   extensions=[
@@ -66,6 +68,7 @@ _ECHO = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
+  create_key=_descriptor._internal_create_key,
   serialized_start=41,
   serialized_end=69,
   methods=[
@@ -77,6 +80,7 @@ _ECHO = _descriptor.ServiceDescriptor(
     input_type=_MSG,
     output_type=_MSG,
     serialized_options=None,
+    create_key=_descriptor._internal_create_key,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_ECHO)

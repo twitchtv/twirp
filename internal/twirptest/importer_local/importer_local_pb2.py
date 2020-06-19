@@ -19,6 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='twirp.internal.twirptest.importer_local',
   syntax='proto3',
   serialized_options=b'Z;github.com/twitchtv/twirp/internal/twirptest/importer_local',
+  create_key=_descriptor._internal_create_key,
   serialized_pb=b'\n\x14importer_local.proto\x12\'twirp.internal.twirptest.importer_local\x1a\x1bimporter_local_msgdef.proto2i\n\x03Svc\x12\x62\n\x04Send\x12,.twirp.internal.twirptest.importer_local.Msg\x1a,.twirp.internal.twirptest.importer_local.MsgB=Z;github.com/twitchtv/twirp/internal/twirptest/importer_localb\x06proto3'
   ,
   dependencies=[importer__local__msgdef__pb2.DESCRIPTOR,])
@@ -36,6 +37,7 @@ _SVC = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
+  create_key=_descriptor._internal_create_key,
   serialized_start=94,
   serialized_end=199,
   methods=[
@@ -47,6 +49,7 @@ _SVC = _descriptor.ServiceDescriptor(
     input_type=importer__local__msgdef__pb2._MSG,
     output_type=importer__local__msgdef__pb2._MSG,
     serialized_options=None,
+    create_key=_descriptor._internal_create_key,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC)

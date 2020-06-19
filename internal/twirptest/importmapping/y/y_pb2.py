@@ -18,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='twirp.internal.twirptest.importmapping.y',
   syntax='proto3',
   serialized_options=None,
+  create_key=_descriptor._internal_create_key,
   serialized_pb=b'\n\ty/y.proto\x12(twirp.internal.twirptest.importmapping.y\"\x06\n\x04MsgYb\x06proto3'
 )
 
@@ -30,6 +31,7 @@ _MSGY = _descriptor.Descriptor(
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
+  create_key=_descriptor._internal_create_key,
   fields=[
   ],
   extensions=[

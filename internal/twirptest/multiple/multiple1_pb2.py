@@ -18,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='twirp.internal.twirptest.multiple',
   syntax='proto3',
   serialized_options=b'Z\010multiple',
+  create_key=_descriptor._internal_create_key,
   serialized_pb=b'\n\x0fmultiple1.proto\x12!twirp.internal.twirptest.multiple\"\x06\n\x04Msg12`\n\x04Svc1\x12X\n\x04Send\x12\'.twirp.internal.twirptest.multiple.Msg1\x1a\'.twirp.internal.twirptest.multiple.Msg1B\nZ\x08multipleb\x06proto3'
 )
 
@@ -30,6 +31,7 @@ _MSG1 = _descriptor.Descriptor(
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
+  create_key=_descriptor._internal_create_key,
   fields=[
   ],
   extensions=[
@@ -66,6 +68,7 @@ _SVC1 = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
+  create_key=_descriptor._internal_create_key,
   serialized_start=62,
   serialized_end=158,
   methods=[
@@ -77,6 +80,7 @@ _SVC1 = _descriptor.ServiceDescriptor(
     input_type=_MSG1,
     output_type=_MSG1,
     serialized_options=None,
+    create_key=_descriptor._internal_create_key,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC1)

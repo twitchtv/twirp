@@ -18,6 +18,6 @@ message MakeHatArgs_v1 {
 }
 
 // A Haberdasher makes hats for clients.
-service Haberdasher {
+service Haberdasher_v1 {
   rpc MakeHat_v1 (MakeHatArgs_v1.Size_v1) returns (MakeHatArgs_v1.Hat_v1);
 }

@@ -19,6 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=b'Z\030no_package_name_importer',
+  create_key=_descriptor._internal_create_key,
   serialized_pb=b'\n\x1eno_package_name_importer.proto\x1aRgithub.com/twitchtv/twirp/internal/twirptest/no_package_name/no_package_name.proto2\x1c\n\x04Svc2\x12\x14\n\x06Method\x12\x04.Msg\x1a\x04.MsgB\x1aZ\x18no_package_name_importerb\x06proto3'
   ,
   dependencies=[github_dot_com_dot_twitchtv_dot_twirp_dot_internal_dot_twirptest_dot_no__package__name_dot_no__package__name__pb2.DESCRIPTOR,])
@@ -36,6 +37,7 @@ _SVC2 = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
+  create_key=_descriptor._internal_create_key,
   serialized_start=118,
   serialized_end=146,
   methods=[
@@ -47,6 +49,7 @@ _SVC2 = _descriptor.ServiceDescriptor(
     input_type=github_dot_com_dot_twitchtv_dot_twirp_dot_internal_dot_twirptest_dot_no__package__name_dot_no__package__name__pb2._MSG,
     output_type=github_dot_com_dot_twitchtv_dot_twirp_dot_internal_dot_twirptest_dot_no__package__name_dot_no__package__name__pb2._MSG,
     serialized_options=None,
+    create_key=_descriptor._internal_create_key,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_SVC2)

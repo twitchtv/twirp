@@ -1415,7 +1415,7 @@ func (t *twirp) formattedOutput() string {
 func unexported(s string) string { return strings.ToLower(s[:1]) + s[1:] }
 
 func fullServiceName(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	name := serviceName(service)
+	name := stringutils.CamelCase(service.GetName())
 	if pkg := pkgName(file); pkg != "" {
 		name = pkg + "." + name
 	}

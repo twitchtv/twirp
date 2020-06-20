@@ -211,7 +211,7 @@ func clientName(service *descriptor.ServiceDescriptorProto) string {
 }
 
 func fullServiceName(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	name := service.GetName()
+	name := serviceName(service)
 	if pkg := file.GetPackage(); pkg != "" {
 		name = pkg + "." + name
 	}

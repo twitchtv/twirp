@@ -1074,11 +1074,7 @@ func pathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDe
 // particular method on a particular service.
 // This method is here to ensure compatibility with older clients.
 func pathForCamelOld(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
-	name := stringutils.CamelCase(service.GetName())
-	if pkg := pkgName(file); pkg != "" {
-		name = pkg + "." + name
-	}
-	return fmt.Sprintf("/twirp/%s/%s", name, stringutils.CamelCase(method.GetName()))
+	return pathPrefix(file, service) + stringutils.CamelCase(method.GetName())
 }
 
 func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
@@ -1419,7 +1415,7 @@ func (t *twirp) formattedOutput() string {
 func unexported(s string) string { return strings.ToLower(s[:1]) + s[1:] }
 
 func fullServiceName(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	name := service.GetName()
+	name := serviceName(service)
 	if pkg := pkgName(file); pkg != "" {
 		name = pkg + "." + name
 	}

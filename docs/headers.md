@@ -2,7 +2,6 @@
 id: "headers"
 title: "Using custom HTTP Headers"
 sidebar_label: "Custom HTTP Headers"
-
 ---
 Sometimes, you need to send custom HTTP headers.
 

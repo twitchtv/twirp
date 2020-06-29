@@ -60,7 +60,9 @@ Then, to render your changes, run docusaurus's local server. To do this:
  1. [Install docusaurus on your machine](https://docusaurus.io/docs/en/installation.html).
  2. `cd website`
  3. `npm start`
- 4. Navigate to http://localhost:3000/.
+ 4. Navigate to http://localhost:3000/twirp.
+
+Follow [this guide](https://docusaurus.io/docs/en/tutorial-publish-site) to publish changes to the `gh-pages` branch.
 
 ## Making a New Release
 

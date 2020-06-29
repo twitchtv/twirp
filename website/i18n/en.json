@@ -4,41 +4,77 @@
     "next": "Next",
     "previous": "Previous",
     "tagline": "Simple RPC framework powered by protobuf",
-    "best_practices": "Best Practices",
-    "Best Practices": "Best Practices",
-    "command_line": "Command line parameters",
-    "Command line parameters": "Command line parameters",
-    "curl": "cURL",
-    "cURL": "cURL",
-    "errors": "Errors",
-    "Errors": "Errors",
-    "example": "Usage Example: Haberdasher",
-    "Usage Example": "Usage Example",
-    "headers": "Using custom HTTP Headers",
-    "Custom HTTP Headers": "Custom HTTP Headers",
-    "hooks": "Server Hooks",
-    "Server Hooks": "Server Hooks",
-    "install": "Installing Twirp",
-    "Installation": "Installation",
-    "intro": "Meet Twirp!",
-    "Overview": "Overview",
-    "mux": "Muxing Twirp services",
-    "Muxing Twirp with other HTTP services": "Muxing Twirp with other HTTP services",
-    "proto_and_json": "Twirp's Serialization Schemes",
-    "Protobuf and JSON": "Protobuf and JSON",
-    "routing": "HTTP Routing and Serialization",
-    "How Twirp routes requests": "How Twirp routes requests",
-    "spec_changelog": "Twirp Wire Protocol Changelog",
-    "Changelog": "Changelog",
-    "spec_v5": "Twirp Wire Protocol",
-    "Version 5 (Latest)": "Version 5 (Latest)",
-    "spec_v6": "Twirp Wire Protocol",
-    "Version 6 (Proposed Draft)": "Version 6 (Proposed Draft)",
-    "Docs": "Docs",
-    "Spec": "Spec",
-    "Getting started": "Getting started",
-    "Beyond the basics": "Beyond the basics",
-    "Formal specification": "Formal specification"
+    "docs": {
+      "best_practices": {
+        "title": "Best Practices",
+        "sidebar_label": "Best Practices"
+      },
+      "command_line": {
+        "title": "Command line parameters",
+        "sidebar_label": "Command line parameters"
+      },
+      "curl": {
+        "title": "cURL",
+        "sidebar_label": "cURL"
+      },
+      "errors": {
+        "title": "Errors",
+        "sidebar_label": "Errors"
+      },
+      "example": {
+        "title": "Usage Example: Haberdasher",
+        "sidebar_label": "Usage Example"
+      },
+      "headers": {
+        "title": "Using custom HTTP Headers",
+        "sidebar_label": "Custom HTTP Headers"
+      },
+      "hooks": {
+        "title": "Server Hooks",
+        "sidebar_label": "Server Hooks"
+      },
+      "install": {
+        "title": "Installing Twirp",
+        "sidebar_label": "Installation"
+      },
+      "intro": {
+        "title": "Meet Twirp!",
+        "sidebar_label": "Overview"
+      },
+      "mux": {
+        "title": "Muxing Twirp services",
+        "sidebar_label": "Muxing Twirp with other HTTP services"
+      },
+      "proto_and_json": {
+        "title": "Twirp's Serialization Schemes",
+        "sidebar_label": "Protobuf and JSON"
+      },
+      "routing": {
+        "title": "HTTP Routing and Serialization",
+        "sidebar_label": "How Twirp routes requests"
+      },
+      "spec_changelog": {
+        "title": "Twirp Wire Protocol Changelog",
+        "sidebar_label": "Changelog"
+      },
+      "spec_v5": {
+        "title": "Twirp Wire Protocol",
+        "sidebar_label": "Version 5 (Latest)"
+      },
+      "spec_v6": {
+        "title": "Twirp Wire Protocol",
+        "sidebar_label": "Version 6 (archived)"
+      }
+    },
+    "links": {
+      "Docs": "Docs",
+      "Spec": "Spec"
+    },
+    "categories": {
+      "Getting started": "Getting started",
+      "Beyond the basics": "Beyond the basics",
+      "Formal specification": "Formal specification"
+    }
   },
   "pages-strings": {
     "Help Translate|recruit community translators for your project": "Help Translate",

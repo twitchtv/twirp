@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Twirp Wire Protocol · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;This document is a draft of a new version (&amp;quot;v6&amp;quot;) of the Twirp wire&lt;/p&gt;
-"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Twirp Wire Protocol · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="&lt;p&gt;This document is a draft of a new version (&amp;quot;v6&amp;quot;) of the Twirp wire&lt;/p&gt;
-"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Formal specification</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Command line parameters</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Proposed Draft)</a></li></ul></div></div></section></div><script>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Twirp Wire Protocol · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="This is a historical document for the Twirp wire protocol &quot;v6&quot;, that was never released. At the time of writing, all existing production systems are using the &quot;v5&quot; protocol."/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Twirp Wire Protocol · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="This is a historical document for the Twirp wire protocol &quot;v6&quot;, that was never released. At the time of writing, all existing production systems are using the &quot;v5&quot; protocol."/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v5.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Formal specification</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">How Twirp routes requests</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Command line parameters</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Latest)</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (archived)</a></li></ul></div></div></section></div><script>
             var coll = document.getElementsByClassName('collapsible');
             var checkActiveCategory = true;
             for (var i = 0; i < coll.length; i++) {
@@ -28,10 +26,16 @@
               createToggler('#navToggler', '#docsNav', 'docsSliderActive');
               createToggler('#tocToggler', 'body', 'tocActive');
 
-              const headings = document.querySelector('.toc-headings');
+              var headings = document.querySelector('.toc-headings');
               headings && headings.addEventListener('click', function(event) {
-                if (event.target.tagName === 'A') {
-                  document.body.classList.remove('tocActive');
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
                 }
               }, false);
 
@@ -50,181 +54,16 @@
                 };
               }
             });
-        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Twirp Wire Protocol</h1></header><article><div><span><p>This document is a draft of a new version (&quot;v6&quot;) of the Twirp wire
-protocol over HTTP. This draft is EXPERIMENTAL and subject to change.
-v6 of Twirp is not released or considered stable; instead, this
-document lists planned changes which may be available in prerelease
-distributions.</p>
-<h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
-<p>The Twirp wire protocol is a simple RPC protocol based on HTTP and
-Protocol Buffers (proto). The protocol uses HTTP URLs to specify the
-RPC endpoints, and sends/receives proto messages as HTTP
-request/response bodies.</p>
-<p>To use Twirp, developers first define their APIs using proto files,
-then use Twirp tools to generate the client and the server libraries.
-The generated libraries implement the Twirp wire protocol, using the
-standard HTTP library provided by the programming language runtime or
-the operating system. Once the client and the server are implemented,
-the client can communicate with the server by making RPC calls.</p>
-<p>The Twirp wire protocol supports both binary and JSON encodings of
-proto messages, and works with any HTTP client and any HTTP version.</p>
-<h3><a class="anchor" aria-hidden="true" id="urls"></a><a href="#urls" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>URLs</h3>
-<p>In <a href="https://tools.ietf.org/html/rfc5234">BNF syntax</a>, Twirp's URLs
-have the following format:</p>
-<pre><code class="hljs css language-bnf">URL ::= Base-URL <span class="hljs-string">"/"</span> [ Package <span class="hljs-string">"."</span> ] Service <span class="hljs-string">"/"</span> Method
-</code></pre>
-<p>The Twirp wire protocol uses HTTP URLs to specify the RPC
-endpoints on the server for sending the requests. Such direct mapping
-makes the request routing simple and efficient. The Twirp URLs have
-the following components.</p>
-<ul>
-<li><strong>Base-URL</strong> is the virtual location of a Twirp API server, which is typically
-published via API documentation or service discovery. It should be a RFC 3986
-URL. In the language of
-<a href="https://tools.ietf.org/html/rfc3986?#section-3">RFC 3986 Section 3</a>, it must
-have scheme and authority components. It may have a path component. It must
-not have query or fragment components.</li>
-<li><strong>Package</strong> is the proto <code>package</code> name for an API, which is often
-considered as an API version. For example,
-<code>example.calendar.v1</code>. This component is omitted if the API
-definition doesn't have a package name.</li>
-<li><strong>Service</strong> is the proto <code>service</code> name for an API. For example,
-<code>CalendarService</code>.</li>
-<li><strong>Method</strong> is the proto <code>rpc</code> name for an API method. For example,
-<code>CreateEvent</code>.</li>
-</ul>
-<h3><a class="anchor" aria-hidden="true" id="requests"></a><a href="#requests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Requests</h3>
-<p>Twirp always uses HTTP POST method to send requests, because it
-closely matches the semantics of RPC methods.</p>
-<p>The <strong>Request-Headers</strong> are normal HTTP headers. The Twirp wire
-protocol uses the following headers.</p>
-<ul>
-<li><strong>Content-Type</strong> header indicates the proto message encoding, which
-should be one of &quot;application/protobuf&quot;, &quot;application/json&quot;. The
-server uses this value to decide how to parse the request body,
-and encode the response body.</li>
-</ul>
-<p>The <strong>Request-Body</strong> is the encoded request message, contained in the
-HTTP request body. The encoding is specified by the <code>Content-Type</code>
-header.</p>
-<h3><a class="anchor" aria-hidden="true" id="responses"></a><a href="#responses" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Responses</h3>
-<p>The <strong>Response-Headers</strong> are just normal HTTP response headers. The
-Twirp wire protocol uses the following headers.</p>
-<ul>
-<li><strong>Content-Type</strong> The value should be either &quot;application/protobuf&quot;
-or &quot;application/json&quot; to indicate the encoding of the response
-message. It must match the &quot;Content-Type&quot; header in the request.</li>
-</ul>
-<p>The <strong>Request-Body</strong> is the encoded response message contained in the
-HTTP response body. The encoding is specified by the <code>Content-Type</code>
-header.</p>
-<h3><a class="anchor" aria-hidden="true" id="example"></a><a href="#example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Example</h3>
-<p>The following example shows a simple Echo API definition and its
-corresponding wire payloads.</p>
-<p>The example assumes the server base URL is &quot;<a href="https://example.com/userprefix">https://example.com/userprefix</a>&quot;.</p>
-<pre><code class="hljs css language-proto">syntax = <span class="hljs-string">"proto3"</span>;
-
-package example.echoer;
-<span class="hljs-built_in">
-service </span>Echo {
-  rpc Hello(HelloRequest) returns (HelloResponse);
-}
-
-message HelloRequest {
-  string message = 1;
-}
-
-message HelloResponse {
-  string message = 1;
-}
-</code></pre>
-<p><strong>Proto Request</strong></p>
-<pre><code class="hljs"><span class="hljs-keyword">POST</span> <span class="hljs-string">/userprefix/example.echoer.Echo/Hello</span> HTTP/1.1
-<span class="hljs-attribute">Host</span>: example.com
-<span class="hljs-attribute">Content-Type</span>: application/protobuf
-<span class="hljs-attribute">Content-Length</span>: 15
-
-<span class="apache"><span class="hljs-section">&lt;encoded HelloRequest&gt;</span>
-</span></code></pre>
-<p><strong>JSON Request</strong></p>
-<pre><code class="hljs"><span class="hljs-keyword">POST</span> <span class="hljs-string">/userprefix/example.echoer.Echo/Hello</span> HTTP/1.1
-<span class="hljs-attribute">Host</span>: example.com
-<span class="hljs-attribute">Content-Type</span>: application/json
-<span class="hljs-attribute">Content-Length</span>: 27
-
-<span class="json">{<span class="hljs-attr">"message"</span>:<span class="hljs-string">"Hello, World!"</span>}
-</span></code></pre>
-<p><strong>Proto Response</strong></p>
-<pre><code class="hljs">HTTP/1.1 <span class="hljs-number">200</span> OK
-<span class="hljs-attribute">Content-Type</span>: application/protobuf
-<span class="hljs-attribute">Content-Length</span>: 15
-
-<span class="apache"><span class="hljs-section">&lt;encoded HelloResponse&gt;</span>
-</span></code></pre>
-<p><strong>JSON Response</strong></p>
-<pre><code class="hljs">HTTP/1.1 <span class="hljs-number">200</span> OK
-<span class="hljs-attribute">Content-Type</span>: application/json
-<span class="hljs-attribute">Content-Length</span>: 27
-
-<span class="json">{<span class="hljs-attr">"message"</span>:<span class="hljs-string">"Hello, World!"</span>}
-</span></code></pre>
-<h2><a class="anchor" aria-hidden="true" id="errors"></a><a href="#errors" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Errors</h2>
-<p>Twirp error responses are always JSON-encoded, regardless of
-the request's Content-Type, with a corresponding
-<code>Content-Type: application/json</code> header. This ensures that
-the errors are human-readable in any setting.</p>
-<p>Twirp errors are a JSON object with the keys:</p>
-<ul>
-<li><strong>code</strong>: One of the Twirp error codes as a string.</li>
-<li><strong>msg</strong>: A human-readable message describing the error
-as a string.</li>
-<li><strong>meta</strong>: (optional) An object with string values holding
-arbitrary additional metadata describing the error.</li>
-</ul>
-<p>Example:</p>
-<pre><code class="hljs css language-json">{
-  <span class="hljs-attr">"code"</span>: <span class="hljs-string">"internal"</span>,
-  <span class="hljs-attr">"msg"</span>: <span class="hljs-string">"Something went wrong"</span>
-}
-</code></pre>
-<p>Example with metadata:</p>
-<pre><code class="hljs css language-json">{
-  <span class="hljs-attr">"code"</span>: <span class="hljs-string">"permission_denied"</span>,
-  <span class="hljs-attr">"msg"</span>: <span class="hljs-string">"Thou shall not pass"</span>,
-  <span class="hljs-attr">"meta"</span>: {
-    <span class="hljs-attr">"target"</span>: <span class="hljs-string">"Balrog"</span>,
-    <span class="hljs-attr">"power"</span>: <span class="hljs-string">"999"</span>
-  }
-}
-</code></pre>
-<h3><a class="anchor" aria-hidden="true" id="error-codes"></a><a href="#error-codes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Error Codes</h3>
-<p>Twirp errors always include an error code. This code is represented
-as a string and must be one of a fixed set of codes, listed in the
-table below. Each code has an associated HTTP Status Code. When a
-server responds with the given error code, it must set the
-corresponding HTTP Status Code for the response.</p>
-<table>
-<thead>
-<tr><th>Twirp Error Code</th><th>HTTP Status</th><th>Description</th></tr>
-</thead>
-<tbody>
-<tr><td>canceled</td><td>408</td><td>The operation was canceled.</td></tr>
-<tr><td>unknown</td><td>500</td><td>An unknown error occurred. For example, this can be used when handling errors raised by APIs that do not return any error information.</td></tr>
-<tr><td>invalid_argument</td><td>400</td><td>The client specified an invalid argument. This indicates arguments that are invalid regardless of the state of the system (i.e. a malformed file name, required argument, number out of range, etc.).</td></tr>
-<tr><td>deadline_exceeded</td><td>408</td><td>Operation expired before completion. For operations that change the state of the system, this error may be returned even if the operation has completed successfully (timeout).</td></tr>
-<tr><td>not_found</td><td>404</td><td>Some requested entity was not found.</td></tr>
-<tr><td>bad_route</td><td>404</td><td>The requested URL path wasn't routable to a Twirp service and method. This is returned by generated server code and should not be returned by application code (use &quot;not_found&quot; or &quot;unimplemented&quot; instead).</td></tr>
-<tr><td>already_exists</td><td>409</td><td>An attempt to create an entity failed because one already exists.</td></tr>
-<tr><td>permission_denied</td><td>403</td><td>The caller does not have permission to execute the specified operation. It must not be used if the caller cannot be identified (use &quot;unauthenticated&quot; instead).</td></tr>
-<tr><td>unauthenticated</td><td>401</td><td>The request does not have valid authentication credentials for the operation.</td></tr>
-<tr><td>resource_exhausted</td><td>403</td><td>Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space.</td></tr>
-<tr><td>failed_precondition</td><td>412</td><td>The operation was rejected because the system is not in a state required for the operation's execution. For example, doing an rmdir operation on a directory that is non-empty, or on a non-directory object, or when having conflicting read-modify-write on the same resource.</td></tr>
-<tr><td>aborted</td><td>409</td><td>The operation was aborted, typically due to a concurrency issue like sequencer check failures, transaction aborts, etc.</td></tr>
-<tr><td>out_of_range</td><td>400</td><td>The operation was attempted past the valid range. For example, seeking or reading past end of a paginated collection. Unlike &quot;invalid_argument&quot;, this error indicates a problem that may be fixed if the system state changes (i.e. adding more items to the collection). There is a fair bit of overlap between &quot;failed_precondition&quot; and &quot;out_of_range&quot;. We recommend using &quot;out_of_range&quot; (the more specific error) when it applies so that callers who are iterating through a space can easily look for an &quot;out_of_range&quot; error to detect when they are done.</td></tr>
-<tr><td>unimplemented</td><td>501</td><td>The operation is not implemented or not supported/enabled in this service.</td></tr>
-<tr><td>internal</td><td>500</td><td>When some invariants expected by the underlying system have been broken. In other words, something bad happened in the library or backend service. Twirp specific issues like wire and serialization problems are also reported as &quot;internal&quot; errors.</td></tr>
-<tr><td>unavailable</td><td>503</td><td>The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff.</td></tr>
-<tr><td>dataloss</td><td>500</td><td>The operation resulted in unrecoverable data loss or corruption.</td></tr>
-</tbody>
-</table>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/spec_v5.html"><span class="arrow-prev">← </span><span>Version 5 (Latest)</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2019 Twitch Interactive, Inc.</section></footer></div></body></html>
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Twirp Wire Protocol</h1></header><article><div><span><p>This is a historical document for the Twirp wire protocol &quot;v6&quot;, that was never released. At the time of writing, all existing production systems are using the &quot;v5&quot; protocol.</p>
+<h2><a class="anchor" aria-hidden="true" id="why-is-this-specific-draft-of-the-v6-protocol-not-going-to-be-released"></a><a href="#why-is-this-specific-draft-of-the-v6-protocol-not-going-to-be-released" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Why is this specific draft of the v6 protocol not going to be released?</h2>
+<p>The proposal for the v6 protocol has been standing without progress for too long. The wire protocol is the glue connecting all the systems in production, that are using different implementations across multiple languages. Because of this, it is very difficult to plan a path forward without having a negative impact on the Twirp ecosystem.</p>
+<h2><a class="anchor" aria-hidden="true" id="feature-reference"></a><a href="#feature-reference" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Feature Reference</h2>
+<p>The v6 protocol introduced a change to the URL schema, and added support for streams.</p>
+<h3><a class="anchor" aria-hidden="true" id="streaming-api"></a><a href="#streaming-api" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Streaming API</h3>
+<p>Issue: <a href="https://github.com/twitchtv/twirp/issues/70">https://github.com/twitchtv/twirp/issues/70</a></p>
+<p>Handling streams out of the box. Not implemented because streams require assumptions about how the connection state is managed, they are complex and not required by the majority of Twirp users. Websockets or gRPC may be good alternatives.</p>
+<p>There may still be reasons to implement streams in the future. If that happens, it will be managed separately from this v6 protocol draft.</p>
+<h3><a class="anchor" aria-hidden="true" id="http-routes-without-the-twirp-prefix"></a><a href="#http-routes-without-the-twirp-prefix" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>HTTP Routes without the /twirp prefix</h3>
+<p>Issue: <a href="https://github.com/twitchtv/twirp/issues/55">https://github.com/twitchtv/twirp/issues/55</a></p>
+<p>Twirp routes have a <code>/twirp</code> prefix that is inconvenient in some cases. There was a proposal to allow different route prefixes, but too much time has passed since the proposal, and too many services depend on this prefix. Instead of updating the Twirp protocol, issue comments offer how to manage this issue from middleware.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/spec_v5.html"><span class="arrow-prev">← </span><span>Version 5 (Latest)</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2020 Twitch Interactive, Inc.</section></footer></div></body></html>

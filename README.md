@@ -71,6 +71,7 @@ For other languages, there are third-party generators available:
 | **Swagger**    |    ✓    |    ✓    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger)
 | **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
+| **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
 
 This list isn't an endorsement, it's just a convenience to help you find stuff
 for your language.

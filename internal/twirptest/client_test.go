@@ -364,6 +364,44 @@ func TestClientWithHooks(t *testing.T) {
 	}
 }
 
+func TestClientContextToHook(t *testing.T) {
+	h := PickyHatmaker(1)
+	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+
+	type Key uint
+	const testKey Key = 0
+	requestCalled := false
+	responseCalled := false
+	hooks := &twirp.ClientHooks{
+		RequestPrepared: func(ctx context.Context, req *http.Request) (context.Context, error) {
+			requestCalled = true
+			return context.WithValue(ctx, testKey, "test-value"), nil
+		},
+		ResponseReceived: func(ctx context.Context) {
+			responseCalled = true
+			ctxVal := ctx.Value(testKey)
+			if "test-value" != ctxVal {
+				t.Errorf("context value set in RequestPrepared is not received in ResponseReceived: got %v, want test-value", ctxVal)
+			}
+		},
+		Error: func(ctx context.Context, err twirp.Error) {},
+	}
+
+	protoCli := NewHaberdasherProtobufClient(s.URL, &http.Client{}, twirp.WithClientHooks(hooks))
+	ctx := context.Background()
+	_, err := protoCli.MakeHat(ctx, &Size{Inches: 1})
+	if err != nil {
+		t.Error("unexpected error %w from MakeHat call", err)
+	}
+
+	if !requestCalled {
+		t.Error("misssing RequestPrepared hook call")
+	}
+	if !responseCalled {
+		t.Error("missing ResponseReceived hook call")
+	}
+}
+
 func TestClientIntermediaryErrors(t *testing.T) {
 	testcase := func(body string, code int, expectedErrorCode twirp.ErrorCode, clientMaker func(string, HTTPClient, ...twirp.ClientOption) Haberdasher) func(*testing.T) {
 		return func(t *testing.T) {

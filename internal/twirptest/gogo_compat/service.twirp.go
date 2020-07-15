@@ -79,7 +79,7 @@ func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg)
-	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -133,7 +133,7 @@ func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg)
-	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -697,29 +697,29 @@ func withoutRedirects(in *http.Client) *http.Client {
 }
 
 // doProtobufRequest makes a Protobuf request to the remote Twirp service.
-func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (err error) {
+func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (_ context.Context, err error) {
 	reqBodyBytes, err := proto.Marshal(in)
 	if err != nil {
-		return wrapInternal(err, "failed to marshal proto request")
+		return ctx, wrapInternal(err, "failed to marshal proto request")
 	}
 	reqBody := bytes.NewBuffer(reqBodyBytes)
 	if err = ctx.Err(); err != nil {
-		return wrapInternal(err, "aborted because context was done")
+		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
 	req, err := newRequest(ctx, url, reqBody, "application/protobuf")
 	if err != nil {
-		return wrapInternal(err, "could not build request")
+		return ctx, wrapInternal(err, "could not build request")
 	}
 	ctx, err = callClientRequestPrepared(ctx, hooks, req)
 	if err != nil {
-		return err
+		return ctx, err
 	}
 
 	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
-		return wrapInternal(err, "failed to do request")
+		return ctx, wrapInternal(err, "failed to do request")
 	}
 
 	defer func() {
@@ -730,51 +730,51 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 	}()
 
 	if err = ctx.Err(); err != nil {
-		return wrapInternal(err, "aborted because context was done")
+		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
 	if resp.StatusCode != 200 {
-		return errorFromResponse(resp)
+		return ctx, errorFromResponse(resp)
 	}
 
 	respBodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return wrapInternal(err, "failed to read response body")
+		return ctx, wrapInternal(err, "failed to read response body")
 	}
 	if err = ctx.Err(); err != nil {
-		return wrapInternal(err, "aborted because context was done")
+		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
 	if err = proto.Unmarshal(respBodyBytes, out); err != nil {
-		return wrapInternal(err, "failed to unmarshal proto response")
+		return ctx, wrapInternal(err, "failed to unmarshal proto response")
 	}
-	return nil
+	return ctx, nil
 }
 
 // doJSONRequest makes a JSON request to the remote Twirp service.
-func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (err error) {
+func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (_ context.Context, err error) {
 	reqBody := bytes.NewBuffer(nil)
 	marshaler := &jsonpb.Marshaler{OrigName: true}
 	if err = marshaler.Marshal(reqBody, in); err != nil {
-		return wrapInternal(err, "failed to marshal json request")
+		return ctx, wrapInternal(err, "failed to marshal json request")
 	}
 	if err = ctx.Err(); err != nil {
-		return wrapInternal(err, "aborted because context was done")
+		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
 	req, err := newRequest(ctx, url, reqBody, "application/json")
 	if err != nil {
-		return wrapInternal(err, "could not build request")
+		return ctx, wrapInternal(err, "could not build request")
 	}
 	ctx, err = callClientRequestPrepared(ctx, hooks, req)
 	if err != nil {
-		return err
+		return ctx, err
 	}
 
 	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
-		return wrapInternal(err, "failed to do request")
+		return ctx, wrapInternal(err, "failed to do request")
 	}
 
 	defer func() {
@@ -785,21 +785,21 @@ func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHo
 	}()
 
 	if err = ctx.Err(); err != nil {
-		return wrapInternal(err, "aborted because context was done")
+		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
 	if resp.StatusCode != 200 {
-		return errorFromResponse(resp)
+		return ctx, errorFromResponse(resp)
 	}
 
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
-		return wrapInternal(err, "failed to unmarshal json response")
+		return ctx, wrapInternal(err, "failed to unmarshal json response")
 	}
 	if err = ctx.Err(); err != nil {
-		return wrapInternal(err, "aborted because context was done")
+		return ctx, wrapInternal(err, "aborted because context was done")
 	}
-	return nil
+	return ctx, nil
 }
 
 // Call twirp.ServerHooks.RequestReceived if the hook is available

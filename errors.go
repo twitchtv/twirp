@@ -233,6 +233,9 @@ const (
 	// DataLoss indicates unrecoverable data loss or corruption.
 	DataLoss ErrorCode = "data_loss"
 
+	// TooManyRequests indicates that the client is making too many requests.
+	TooManyRequests ErrorCode = "too_many_requests"
+
 	// NoError is the zero-value, is considered an empty error and should not be
 	// used.
 	NoError ErrorCode = ""
@@ -279,6 +282,8 @@ func ServerHTTPStatusFromErrorCode(code ErrorCode) int {
 		return 503 // Service Unavailable
 	case DataLoss:
 		return 500 // Internal Server Error
+	case TooManyRequests:
+		return 429 // Too Many Requests
 	case NoError:
 		return 200 // OK
 	default:

@@ -60,6 +60,7 @@ Each error code is defined by a constant in the `twirp` package:
 | Internal           | internal            | 500 Internal Server Error
 | Unavailable        | unavailable         | 503 Service Unavailable
 | DataLoss           | dataloss            | 500 Internal Server Error
+| TooManyRequests    | too_many_requests   | 429 Too Many Requests
 
 For more information on each code, see the [Errors Spec](spec_v5.md).
 

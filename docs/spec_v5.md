@@ -214,5 +214,5 @@ corresponding HTTP Status Code for the response.
 | internal            | 500 | When some invariants expected by the underlying system have been broken. In other words, something bad happened in the library or backend service. Twirp specific issues like wire and serialization problems are also reported as "internal" errors.
 | unavailable         | 503 | The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff.
 | dataloss            | 500 | The operation resulted in unrecoverable data loss or corruption.
-
+| too_many_requests   | 429 | The client is making too many requests. They should slow down their rate of requests.
 

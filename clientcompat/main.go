@@ -112,7 +112,7 @@ func testNoop(cc *clientCompat, s *httptest.Server, clientBin string) {
 		twirp.NotFound, twirp.BadRoute, twirp.AlreadyExists, twirp.PermissionDenied,
 		twirp.Unauthenticated, twirp.ResourceExhausted, twirp.FailedPrecondition,
 		twirp.Aborted, twirp.OutOfRange, twirp.Unimplemented, twirp.Internal,
-		twirp.Unavailable, twirp.DataLoss,
+		twirp.Unavailable, twirp.DataLoss, twirp.TooManyRequests,
 	} {
 		testcase(
 			fmt.Sprintf("%q error parsing", code),

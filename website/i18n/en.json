@@ -33,6 +33,10 @@
         "title": "Server Hooks",
         "sidebar_label": "Server Hooks"
       },
+      "inconsistent_url_paths": {
+        "title": "Inconsistent URL Paths",
+        "sidebar_label": "Inconsistent URL Paths"
+      },
       "install": {
         "title": "Installing Twirp",
         "sidebar_label": "Installation"
@@ -73,7 +77,8 @@
     "categories": {
       "Getting started": "Getting started",
       "Beyond the basics": "Beyond the basics",
-      "Formal specification": "Formal specification"
+      "Formal specification": "Formal specification",
+      "Known Issues": "Known Issues"
     }
   },
   "pages-strings": {

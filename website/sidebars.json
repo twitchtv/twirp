@@ -19,6 +19,9 @@
         "Formal specification": [
             "spec_v5",
             "spec_v6"
+        ],
+        "Known Issues": [
+            "inconsistent_url_paths"
         ]
     }
 }

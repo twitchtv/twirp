@@ -440,18 +440,18 @@ func (t *twirp) generateUtils() {
 	t.P(`}`)
 	t.P()
 
-	t.P(`// urlBase helps ensure that addr specifies a scheme. If it is unparsable`)
-	t.P(`// as a URL, it returns addr unchanged.`)
-	t.P(`func urlBase(addr string) string {`)
-	t.P(`  // If the addr specifies a scheme, use it. If not, default to`)
-	t.P(`  // http. If url.Parse fails on it, return it unchanged.`)
-	t.P(`  url, err := `, t.pkgs["url"], `.Parse(addr)`)
+	t.P(`// baseURL sanitizes and joins the addr URL with the pathPrefix.`)
+	t.P(`// If the addr is unparsable as a URL, it returns the addr + pathPrefix unchanged.`)
+	t.P(`// e.g. baseURL("foosvc.com/", "/myprefix/") => "http://foosvc.com/myprefix".`)
+	t.P(`func baseURL(addr, pathPrefix string) string {`)
+	t.P(`  u, err := `, t.pkgs["url"], `.Parse(addr)`)
 	t.P(`  if err != nil {`)
-	t.P(`    return addr`)
+	t.P(`    return addr + pathPrefix // return invalid addr, it will fail when sending requests`)
 	t.P(`  }`)
-	t.P(`  if url.Scheme == "" {`)
-	t.P(`    url.Scheme = "http"`)
+	t.P(`  if u.Scheme == "" {`)
+	t.P(`    u.Scheme = "http"`)
 	t.P(`  }`)
+	t.P(`  u.Path = path.Join(u.Path, pathPrefix) // append prefix`)
 	t.P(`  return url.String()`)
 	t.P(`}`)
 	t.P()
@@ -925,7 +925,6 @@ func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) stri
 // valid names: 'JSON', 'Protobuf'
 func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
 	servName := serviceName(service)
-	pathPrefixConst := servName + "PathPrefix"
 	structName := unexported(servName) + name + "Client"
 	newClientFunc := "New" + servName + name + "Client"
 
@@ -949,11 +948,11 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`  }`)
 	t.P()
 	if len(service.Method) > 0 {
-		t.P(`  prefix := urlBase(addr) + `, pathPrefixConst)
+		t.P(`  serviceURL := baseURL(addr, clientOpts.PathPrefix()) + `, fullServiceName(file, service))
 	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
-		t.P(`    	prefix + "`, methodName(method), `",`)
+		t.P(`    	serviceURL + "`, methodName(method), `",`)
 	}
 	t.P(`  }`)
 	t.P()
@@ -1075,9 +1074,11 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	servName := serviceName(service)
 
 	pathPrefixConst := servName + "PathPrefix"
-	t.P(`// `, pathPrefixConst, ` is used for all URL paths on a twirp `, servName, ` server.`)
-	t.P(`// Requests are always: POST `, pathPrefixConst, `/method`)
-	t.P(`// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.`)
+	t.P(`// `, pathPrefixConst, ` could be used to identify URL paths on a twirp `, servName, ` server.`)
+	t.P(`// Twirp requests are: POST <baseURL>`, pathPrefixConst, `/<Method>`)
+	t.P(`// Note: this constant assumes that the default path prefix "/twirp" is used, if your service is`)
+	t.P(`// mounted on a baseURL with a different prefix, then this constant can not be used to route requests.`)
+	t.P(`// Check the docs on routing for more details: https://twitchtv.github.io/twirp/docs/routing.html`)
 	t.P(`const `, pathPrefixConst, ` = `, strconv.Quote(pathPrefix(file, service)))
 	t.P()
 

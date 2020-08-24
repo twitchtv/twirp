@@ -22,7 +22,15 @@ type ClientOption func(*ClientOptions)
 
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
-	Hooks *ClientHooks
+	Hooks      *ClientHooks
+	pathPrefix *string
+}
+
+func (opts *ClientOptions) PathPrefix() string {
+	if opts.pathPrefix == nil {
+		return "/twirp" // default prefix, was mandatory before version 5.14
+	}
+	return *opts.pathPrefix
 }
 
 // ClientHooks is a container for callbacks that can instrument a
@@ -34,13 +42,13 @@ type ClientOptions struct {
 // returns non-nil error, handling for that request will be stopped at that
 // point. The Error hook will then be triggered.
 //
-// The RequestPrepaared hook will always be called first and will be called for
+// The RequestPrepared hook will always be called first and will be called for
 // each outgoing request from the Twirp client. The last hook to be called
 // will either be Error or ResponseReceived, so be sure to handle both cases in
 // your hooks.
 type ClientHooks struct {
-	// RequestPrepared is called as soon as a request has been created and before it has been sent
-	// to the Twirp server.
+	// RequestPrepared is called as soon as a request has been created and before
+	// it has been sent to the Twirp server.
 	RequestPrepared func(context.Context, *http.Request) (context.Context, error)
 
 	// ResponseReceived is called after a request has finished sending. Since this
@@ -57,6 +65,18 @@ type ClientHooks struct {
 func WithClientHooks(hooks *ClientHooks) ClientOption {
 	return func(o *ClientOptions) {
 		o.Hooks = hooks
+	}
+}
+
+// WithClientPathPrefix appends a different prefix to the baseURL that
+// is provided to the client. If not specified, the "/twirp" prefix is
+// used. The service must be mounted on the same baseURL with the same prefix.
+// Note that Go services are also mounted on the "/twirp" prefix by default.
+// See Twirp routes docs for more details about Twirp/HTTP routing:
+// https://twitchtv.github.io/twirp/docs/routing.html
+func WithClientPathPrefix(prefix string) ClientOption {
+	return func(o *ClientOptions) {
+		o.pathPrefix = &prefix
 	}
 }
 

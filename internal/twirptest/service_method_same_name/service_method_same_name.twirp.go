@@ -10,8 +10,8 @@ It is generated from these files:
 */
 package service_method_same_name
 
-import bytes "bytes"
 import strings "strings"
+import bytes "bytes"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -48,7 +48,7 @@ type echoProtobufClient struct {
 
 // NewEchoProtobufClient creates a Protobuf client that implements the Echo interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewEchoProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Echo {
+func NewEchoProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Echo {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -58,9 +58,15 @@ func NewEchoProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientO
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + EchoPathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "Echo")
+
 	urls := [1]string{
-		prefix + "Echo",
+		serviceURL + "Echo",
 	}
 
 	return &echoProtobufClient{
@@ -102,7 +108,7 @@ type echoJSONClient struct {
 
 // NewEchoJSONClient creates a JSON client that implements the Echo interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewEchoJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Echo {
+func NewEchoJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Echo {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -112,9 +118,15 @@ func NewEchoJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOptio
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + EchoPathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "Echo")
+
 	urls := [1]string{
-		prefix + "Echo",
+		serviceURL + "Echo",
 	}
 
 	return &echoJSONClient{
@@ -166,9 +178,9 @@ func (s *echoServer) writeError(ctx context.Context, resp http.ResponseWriter, e
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// EchoPathPrefix is used for all URL paths on a twirp Echo server.
-// Requests are always: POST EchoPathPrefix/method
-// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+// EchoPathPrefix can be used to identify URL paths on a Twirp Echo server.
+// It can only be used if the Twirp service is mounted on the default "/twirp" prefix,
+// See Twirp docs for more details: https://twitchtv.github.io/twirp/docs/routing.html
 const EchoPathPrefix = "/twirp/Echo/"
 
 func (s *echoServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -431,19 +443,17 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// urlBase helps ensure that addr specifies a scheme. If it is unparsable
-// as a URL, it returns addr unchanged.
-func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
-	url, err := url.Parse(addr)
+// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
+// If the URL is unparsable, the baseURL is returned unchaged.
+func sanitizeBaseURL(baseURL string) string {
+	u, err := url.Parse(baseURL)
 	if err != nil {
-		return addr
+		return baseURL // invalid URL will fail later when making requests
 	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
-	return url.String()
+	return u.String()
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

@@ -14,8 +14,8 @@ It is generated from these files:
 */
 package snake_case_names
 
-import bytes "bytes"
 import strings "strings"
+import bytes "bytes"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -53,7 +53,7 @@ type haberdasherProtobufClient struct {
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewHaberdasherProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Haberdasher {
+func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Haberdasher {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -63,9 +63,15 @@ func NewHaberdasherProtobufClient(addr string, client HTTPClient, opts ...twirp.
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + HaberdasherPathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.internal.twirptest.snake_case_names.Haberdasher")
+
 	urls := [1]string{
-		prefix + "MakeHatV1",
+		serviceURL + "MakeHatV1",
 	}
 
 	return &haberdasherProtobufClient{
@@ -107,7 +113,7 @@ type haberdasherJSONClient struct {
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewHaberdasherJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Haberdasher {
+func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Haberdasher {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -117,9 +123,15 @@ func NewHaberdasherJSONClient(addr string, client HTTPClient, opts ...twirp.Clie
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + HaberdasherPathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.internal.twirptest.snake_case_names.Haberdasher")
+
 	urls := [1]string{
-		prefix + "MakeHatV1",
+		serviceURL + "MakeHatV1",
 	}
 
 	return &haberdasherJSONClient{
@@ -171,9 +183,9 @@ func (s *haberdasherServer) writeError(ctx context.Context, resp http.ResponseWr
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// HaberdasherPathPrefix is used for all URL paths on a twirp Haberdasher server.
-// Requests are always: POST HaberdasherPathPrefix/method
-// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+// HaberdasherPathPrefix can be used to identify URL paths on a Twirp Haberdasher server.
+// It can only be used if the Twirp service is mounted on the default "/twirp" prefix,
+// See Twirp docs for more details: https://twitchtv.github.io/twirp/docs/routing.html
 const HaberdasherPathPrefix = "/twirp/twirp.internal.twirptest.snake_case_names.Haberdasher/"
 
 func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -436,19 +448,17 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// urlBase helps ensure that addr specifies a scheme. If it is unparsable
-// as a URL, it returns addr unchanged.
-func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
-	url, err := url.Parse(addr)
+// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
+// If the URL is unparsable, the baseURL is returned unchaged.
+func sanitizeBaseURL(baseURL string) string {
+	u, err := url.Parse(baseURL)
 	if err != nil {
-		return addr
+		return baseURL // invalid URL will fail later when making requests
 	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
-	return url.String()
+	return u.String()
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

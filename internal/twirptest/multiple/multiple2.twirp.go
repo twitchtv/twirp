@@ -3,8 +3,8 @@
 
 package multiple
 
-import bytes "bytes"
 import strings "strings"
+import bytes "bytes"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -38,7 +38,7 @@ type svc2ProtobufClient struct {
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewSvc2ProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Svc2 {
+func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Svc2 {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -48,10 +48,16 @@ func NewSvc2ProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientO
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + Svc2PathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.internal.twirptest.multiple.Svc2")
+
 	urls := [2]string{
-		prefix + "Send",
-		prefix + "SamePackageProtoImport",
+		serviceURL + "Send",
+		serviceURL + "SamePackageProtoImport",
 	}
 
 	return &svc2ProtobufClient{
@@ -113,7 +119,7 @@ type svc2JSONClient struct {
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewSvc2JSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Svc2 {
+func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Svc2 {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -123,10 +129,16 @@ func NewSvc2JSONClient(addr string, client HTTPClient, opts ...twirp.ClientOptio
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + Svc2PathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.internal.twirptest.multiple.Svc2")
+
 	urls := [2]string{
-		prefix + "Send",
-		prefix + "SamePackageProtoImport",
+		serviceURL + "Send",
+		serviceURL + "SamePackageProtoImport",
 	}
 
 	return &svc2JSONClient{
@@ -198,9 +210,9 @@ func (s *svc2Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// Svc2PathPrefix is used for all URL paths on a twirp Svc2 server.
-// Requests are always: POST Svc2PathPrefix/method
-// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+// Svc2PathPrefix can be used to identify URL paths on a Twirp Svc2 server.
+// It can only be used if the Twirp service is mounted on the default "/twirp" prefix,
+// See Twirp docs for more details: https://twitchtv.github.io/twirp/docs/routing.html
 const Svc2PathPrefix = "/twirp/twirp.internal.twirptest.multiple.Svc2/"
 
 func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {

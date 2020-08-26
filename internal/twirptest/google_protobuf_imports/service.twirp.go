@@ -10,8 +10,8 @@ It is generated from these files:
 */
 package google_protobuf_imports
 
-import bytes "bytes"
 import strings "strings"
+import bytes "bytes"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -51,7 +51,7 @@ type svcProtobufClient struct {
 
 // NewSvcProtobufClient creates a Protobuf client that implements the Svc interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewSvcProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Svc {
+func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Svc {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -61,9 +61,15 @@ func NewSvcProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOp
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + SvcPathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.internal.twirptest.use_empty.Svc")
+
 	urls := [1]string{
-		prefix + "Send",
+		serviceURL + "Send",
 	}
 
 	return &svcProtobufClient{
@@ -105,7 +111,7 @@ type svcJSONClient struct {
 
 // NewSvcJSONClient creates a JSON client that implements the Svc interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewSvcJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Svc {
+func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Svc {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -115,9 +121,15 @@ func NewSvcJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + SvcPathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.internal.twirptest.use_empty.Svc")
+
 	urls := [1]string{
-		prefix + "Send",
+		serviceURL + "Send",
 	}
 
 	return &svcJSONClient{
@@ -169,9 +181,9 @@ func (s *svcServer) writeError(ctx context.Context, resp http.ResponseWriter, er
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// SvcPathPrefix is used for all URL paths on a twirp Svc server.
-// Requests are always: POST SvcPathPrefix/method
-// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+// SvcPathPrefix can be used to identify URL paths on a Twirp Svc server.
+// It can only be used if the Twirp service is mounted on the default "/twirp" prefix,
+// See Twirp docs for more details: https://twitchtv.github.io/twirp/docs/routing.html
 const SvcPathPrefix = "/twirp/twirp.internal.twirptest.use_empty.Svc/"
 
 func (s *svcServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -434,19 +446,17 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// urlBase helps ensure that addr specifies a scheme. If it is unparsable
-// as a URL, it returns addr unchanged.
-func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
-	url, err := url.Parse(addr)
+// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
+// If the URL is unparsable, the baseURL is returned unchaged.
+func sanitizeBaseURL(baseURL string) string {
+	u, err := url.Parse(baseURL)
 	if err != nil {
-		return addr
+		return baseURL // invalid URL will fail later when making requests
 	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
-	return url.String()
+	return u.String()
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

@@ -10,8 +10,8 @@ It is generated from these files:
 */
 package clientcompat
 
-import bytes "bytes"
 import strings "strings"
+import bytes "bytes"
 import context "context"
 import fmt "fmt"
 import ioutil "io/ioutil"
@@ -50,7 +50,7 @@ type compatServiceProtobufClient struct {
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewCompatServiceProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) CompatService {
+func NewCompatServiceProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) CompatService {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -60,10 +60,16 @@ func NewCompatServiceProtobufClient(addr string, client HTTPClient, opts ...twir
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + CompatServicePathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.clientcompat.CompatService")
+
 	urls := [2]string{
-		prefix + "Method",
-		prefix + "NoopMethod",
+		serviceURL + "Method",
+		serviceURL + "NoopMethod",
 	}
 
 	return &compatServiceProtobufClient{
@@ -125,7 +131,7 @@ type compatServiceJSONClient struct {
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewCompatServiceJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) CompatService {
+func NewCompatServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) CompatService {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -135,10 +141,16 @@ func NewCompatServiceJSONClient(addr string, client HTTPClient, opts ...twirp.Cl
 		o(&clientOpts)
 	}
 
-	prefix := urlBase(addr) + CompatServicePathPrefix
+	baseURL = sanitizeBaseURL(baseURL)
+	prefix := "/twirp"
+	if clientOpts.SkipPathPrefix {
+		prefix = ""
+	}
+	serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "twirp.clientcompat.CompatService")
+
 	urls := [2]string{
-		prefix + "Method",
-		prefix + "NoopMethod",
+		serviceURL + "Method",
+		serviceURL + "NoopMethod",
 	}
 
 	return &compatServiceJSONClient{
@@ -210,9 +222,9 @@ func (s *compatServiceServer) writeError(ctx context.Context, resp http.Response
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// CompatServicePathPrefix is used for all URL paths on a twirp CompatService server.
-// Requests are always: POST CompatServicePathPrefix/method
-// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+// CompatServicePathPrefix can be used to identify URL paths on a Twirp CompatService server.
+// It can only be used if the Twirp service is mounted on the default "/twirp" prefix,
+// See Twirp docs for more details: https://twitchtv.github.io/twirp/docs/routing.html
 const CompatServicePathPrefix = "/twirp/twirp.clientcompat.CompatService/"
 
 func (s *compatServiceServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -607,19 +619,17 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// urlBase helps ensure that addr specifies a scheme. If it is unparsable
-// as a URL, it returns addr unchanged.
-func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
-	url, err := url.Parse(addr)
+// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
+// If the URL is unparsable, the baseURL is returned unchaged.
+func sanitizeBaseURL(baseURL string) string {
+	u, err := url.Parse(baseURL)
 	if err != nil {
-		return addr
+		return baseURL // invalid URL will fail later when making requests
 	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
-	return url.String()
+	return u.String()
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

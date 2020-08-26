@@ -284,17 +284,19 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 		}
 	}
 
-	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
-	// strings package is only used in generated method code.
+	// imports only used in generated service code.
 	if !allServicesEmpty {
 		t.P(`import `, t.pkgs["strings"], ` "strings"`)
 	}
+	// stdlib imports
+	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
 	t.P(`import `, t.pkgs["context"], ` "context"`)
 	t.P(`import `, t.pkgs["fmt"], ` "fmt"`)
 	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
 	t.P(`import `, t.pkgs["http"], ` "net/http"`)
 	t.P(`import `, t.pkgs["strconv"], ` "strconv"`)
 	t.P()
+	// dependency imports
 	t.P(`import `, t.pkgs["jsonpb"], ` "github.com/golang/protobuf/jsonpb"`)
 	t.P(`import `, t.pkgs["proto"], ` "github.com/golang/protobuf/proto"`)
 	t.P(`import `, t.pkgs["twirp"], ` "github.com/twitchtv/twirp"`)
@@ -444,6 +446,7 @@ func (t *twirp) generateUtils() {
 	t.P(`// If the URL is unparsable, the baseURL is returned unchaged.`)
 	t.P(`func sanitizeBaseURL(baseURL string) string {`)
 	t.P(`  u, err := `, t.pkgs["url"], `.Parse(baseURL)`)
+	t.P(`  if err != nil {`)
 	t.P(`    return baseURL // invalid URL will fail later when making requests`)
 	t.P(`  }`)
 	t.P(`  if u.Scheme == "" {`)
@@ -950,15 +953,15 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		t.P(`  if clientOpts.SkipPathPrefix {`)
 		t.P(`    prefix = ""`)
 		t.P(`  }`)
-		t.P(`  serviceURL := fmt.Sprintf("%s%s/%s", baseURL, prefix, "`, fullServiceName(file, service), `") `)
-		t.P()
-		t.P(`  urls := [`, methCnt, `]string{`)
-		for _, method := range service.Method {
-			t.P(`    serviceURL + "/`, methodName(method), `",`)
-		}
-		t.P(`  }`)
+		t.P(`  serviceURL := fmt.Sprintf("%s%s/%s/", baseURL, prefix, "`, fullServiceName(file, service), `")`)
 		t.P()
 	}
+	t.P(`  urls := [`, methCnt, `]string{`)
+	for _, method := range service.Method {
+		t.P(`    serviceURL + "`, methodName(method), `",`)
+	}
+	t.P(`  }`)
+	t.P()
 	t.P(`  return &`, structName, `{`)
 	t.P(`    client: client,`)
 	t.P(`    urls:   urls,`)

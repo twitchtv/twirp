@@ -44,7 +44,7 @@ dependencies we know about, build the core, and run all of the tests that we
 have against Go and Python code. A few notes:
 
  * Make sure to clone the repo on `$GOPATH/src/github.com/twitchtv/twirp`
- * Run Go unit tests with `make test_core`, or just the tests with `go test -race ./...`.
+ * Run Go unit tests with `make test_core`, or just the tests with `go test -race ./...` (make sure to re-generate code with `make generate` before running unit tests).
  * Most tests of the Go server are in `internal/twirptest/service_test.go`.
  * Integration tests running the full stack in both Go and Python auto-generated clients are in the [clientcompat](./clientcompat) directory.
 

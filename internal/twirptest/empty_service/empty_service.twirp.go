@@ -46,7 +46,7 @@ type emptyProtobufClient struct {
 
 // NewEmptyProtobufClient creates a Protobuf client that implements the Empty interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewEmptyProtobufClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Empty {
+func NewEmptyProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Empty {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -77,7 +77,7 @@ type emptyJSONClient struct {
 
 // NewEmptyJSONClient creates a JSON client that implements the Empty interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewEmptyJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOption) Empty {
+func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Empty {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -118,9 +118,9 @@ func (s *emptyServer) writeError(ctx context.Context, resp http.ResponseWriter, 
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// EmptyPathPrefix is used for all URL paths on a twirp Empty server.
-// Requests are always: POST EmptyPathPrefix/method
-// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.
+// EmptyPathPrefix can be used to identify URL paths on a Twirp Empty server.
+// It can only be used if the Twirp service is mounted on the default "/twirp" prefix,
+// See Twirp docs for more details: https://twitchtv.github.io/twirp/docs/routing.html
 const EmptyPathPrefix = "/twirp/twirp.internal.twirptest.emptyservice.Empty/"
 
 func (s *emptyServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -251,19 +251,17 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// urlBase helps ensure that addr specifies a scheme. If it is unparsable
-// as a URL, it returns addr unchanged.
-func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
-	url, err := url.Parse(addr)
+// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
+// If the URL is unparsable, the baseURL is returned unchaged.
+func sanitizeBaseURL(baseURL string) string {
+	u, err := url.Parse(baseURL)
 	if err != nil {
-		return addr
+		return baseURL // invalid URL will fail later when making requests
 	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
-	return url.String()
+	return u.String()
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

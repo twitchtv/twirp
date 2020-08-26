@@ -92,23 +92,15 @@ func TestChainClientHooks(t *testing.T) {
 	}
 }
 
-func TestWithClientPathPrefix(t *testing.T) {
+func TestSkipClientPathPrefix(t *testing.T) {
 	opts := &ClientOptions{}
 
-	// Default value
-	if have, want := opts.PathPrefix(), "/twirp"; have != want {
-		t.Errorf("unexpected default PathPrefix() on ClientOptions, have: %q, want: %q", have, want)
+	if have, want := opts.SkipPathPrefix, false; have != want {
+		t.Errorf("unexpected opts.SkipPathPrefix, have: %v, want: %v", have, want)
 	}
 
-	// Set a different prefix
-	WithClientPathPrefix("/newprfx/foobar")(opts)
-	if have, want := opts.PathPrefix(), "/newprfx/foobar"; have != want {
-		t.Errorf("unexpected value after WithClientPathPrefix, have: %q, want: %q", have, want)
-	}
-
-	// Use empty value for no-prefix
-	WithClientPathPrefix("")(opts)
-	if have, want := opts.PathPrefix(), ""; have != want {
-		t.Errorf("unexpected value after WithClientPathPrefix, have: %q, want: %q", have, want)
+	SkipClientPathPrefix()(opts)
+	if have, want := opts.SkipPathPrefix, true; have != want {
+		t.Errorf("unexpected opts.SkipPathPrefix, have: %v, want: %v", have, want)
 	}
 }

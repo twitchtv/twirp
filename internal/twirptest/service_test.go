@@ -712,6 +712,106 @@ func TestConnectTLS(t *testing.T) {
 	}
 }
 
+// Twirp routes URLs like: <baseURL>/<package>.<Service>/<Method>
+// where <baseURL> can have arbitrary path prefixes.
+func TestRoutingPathPrefixes(t *testing.T) {
+	ctx := context.Background()
+	r := &Size{Inches: 1}
+
+	h := PickyHatmaker(1)
+	server := NewHaberdasherServer(h, nil)
+
+	var lastPath string
+	pathTracker := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lastPath = r.URL.Path
+		server.ServeHTTP(w, r)
+	})
+
+	// Server without a mux can handle requests with and without path prefixes.
+	s := httptest.NewServer(pathTracker)
+	defer s.Close()
+
+	// Default baseURL with /twirp prefix
+	c1 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	if _, err := c1.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+	if have, want := lastPath, "/twirp/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+
+	// No /twirp prefix
+	c2 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.SkipClientPathPrefix())
+	if _, err := c2.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+	if have, want := lastPath, "/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+
+	// Arbitrary prefix on the baseURL
+	c3 := NewHaberdasherJSONClient(s.URL+"/my/custom/prefix", http.DefaultClient, twirp.SkipClientPathPrefix())
+	if _, err := c3.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+	if have, want := lastPath, "/my/custom/prefix/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+
+	// Arbitrary prefix on the baseURL and also the extra default /twirp prefix
+	c4 := NewHaberdasherProtobufClient(s.URL+"/my/custom/prefix", http.DefaultClient)
+	if _, err := c4.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+	if have, want := lastPath, "/my/custom/prefix/twirp/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+}
+
+// Twirp routes URLs like: <baseURL>/<package>.<Service>/<Method>
+// and can use a mux to do exact matches on <baseURL> prefixes
+func TestMuxingRoutingPathPrefixes(t *testing.T) {
+	ctx := context.Background()
+
+	mux := http.NewServeMux()
+	mux.Handle("/pickyone/", NewHaberdasherServer(PickyHatmaker(1), nil))       // only hats of size 1
+	mux.Handle("/pickyninenine/", NewHaberdasherServer(PickyHatmaker(99), nil)) // only hats of size 99
+	mux.Handle("/", NewHaberdasherServer(ErroringHatmaker(errors.New("bad route")), nil))
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	// Client with default baseURL and /twirp prefix is not able to hit any service
+	c1 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	if _, err := c1.MakeHat(ctx, &Size{Inches: 1}); err == nil {
+		t.Fatalf("Expected routing error, got nil")
+	}
+
+	// Client with custom prefix hits one server, but not the other
+	c2 := NewHaberdasherProtobufClient(s.URL+"/pickyone", http.DefaultClient, twirp.SkipClientPathPrefix())
+	if _, err := c2.MakeHat(ctx, &Size{Inches: 1}); err != nil {
+		t.Fatalf("Unexpected err: %v", err)
+	}
+	if _, err := c2.MakeHat(ctx, &Size{Inches: 99}); err == nil { // should hit PickyHatmaker(1)
+		t.Fatalf("Expected picky hat size error, got nil")
+	}
+
+	// Client needs the other server path prefix to access it
+	c3 := NewHaberdasherJSONClient(s.URL+"/pickyninenine", http.DefaultClient, twirp.SkipClientPathPrefix())
+	if _, err := c3.MakeHat(ctx, &Size{Inches: 99}); err != nil {
+		t.Fatalf("Unexpected err: %v", err)
+	}
+	if _, err := c3.MakeHat(ctx, &Size{Inches: 1}); err == nil { // should hit PickyHatmaker(99)
+		t.Fatalf("Expected picky hat size error, got nil")
+	}
+
+	// Any arbitrary prefix will still work as long as it matches the mux routing rules
+	// (Note for review: maybe we don't want this behavior? The alternative would be to use a server option for the exact path prefix)
+	c4 := NewHaberdasherProtobufClient(s.URL+"/pickyone/foobar/cool", http.DefaultClient) // also adds the default /twirp prefix
+	if _, err := c4.MakeHat(ctx, &Size{Inches: 1}); err != nil {
+		t.Fatalf("Unexpected err: %v", err)
+	}
+}
+
 // It should be possible to serve twirp alongside non-twirp handlers
 func TestMuxingTwirpServerConst(t *testing.T) {
 	// Create a twirp endpoint.

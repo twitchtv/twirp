@@ -155,13 +155,32 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 
 type haberdasherServer struct {
 	Haberdasher
-	hooks *twirp.ServerHooks
+	hooks      *twirp.ServerHooks
+	pathPrefix string // prefix for routing
 }
 
-func NewHaberdasherServer(svc Haberdasher, hooks *twirp.ServerHooks) TwirpServer {
+// NewHaberdasherServer builds a TwirpServer that can be used as an http.Handler to handle
+// HTTP requests that are routed to the right method in the provided svc implementation.
+// The opts are twirp.ServerOption modifiers, for example twirp.WithServerHooks(hooks).
+func NewHaberdasherServer(svc Haberdasher, opts ...interface{}) TwirpServer {
+	serverOpts := twirp.ServerOptions{}
+	for _, opt := range opts {
+		switch o := opt.(type) {
+		case twirp.ServerOption:
+			o(&serverOpts)
+		case *twirp.ServerHooks: // backwards compatibility, allow to specify hooks as an argument
+			twirp.WithServerHooks(o)(&serverOpts)
+		case nil: // backwards compatibility, allow nil value for the argument
+			continue
+		default:
+			panic(fmt.Sprintf("Invalid option type %T on NewHaberdasherServer", o))
+		}
+	}
+
 	return &haberdasherServer{
 		Haberdasher: svc,
-		hooks:       hooks,
+		pathPrefix:  serverOpts.PathPrefix(),
+		hooks:       serverOpts.Hooks,
 	}
 }
 
@@ -197,15 +216,19 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 	}
 
 	// Verify path format: [<prefix>]/<package>.<Service>/<Method>
-	parts := strings.Split(req.URL.Path, "/")
-	if len(parts) < 2 || parts[len(parts)-2] != "twitch.twirp.example.Haberdasher" {
+	prefix, pkgService, method := parseTwirpPath(req.URL.Path)
+	if pkgService != "twitch.twirp.example.Haberdasher" {
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
 		s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))
 		return
 	}
+	if prefix != s.pathPrefix {
+		msg := fmt.Sprintf("invalid path prefix %q, expected %q, on path %q", prefix, s.pathPrefix, req.URL.Path)
+		s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))
+		return
+	}
 
-	// Route by <Method>
-	switch parts[len(parts)-1] {
+	switch method {
 	case "MakeHat":
 		s.serveMakeHat(ctx, resp, req)
 		return
@@ -466,6 +489,20 @@ func baseServiceURL(baseURL, prefix, pkg, service string) string {
 	}
 	u.Path = path.Join(u.Path, prefix, fullServiceName)
 	return u.String() + "/"
+}
+
+// parseTwirpPath extracts path components form a valid Twirp route.
+// Expected format: "[<prefix>]/<package>.<Service>/<Method>"
+// e.g.: prefix, pkgService, method := parseTwirpPath("/twirp/pkg.Svc/MakeHat")
+func parseTwirpPath(path string) (string, string, string) {
+	parts := strings.Split(path, "/")
+	if len(parts) < 2 {
+		return "", "", ""
+	}
+	method := parts[len(parts)-1]
+	pkgService := parts[len(parts)-2]
+	prefix := strings.Join(parts[0:len(parts)-2], "/")
+	return prefix, pkgService, method
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

@@ -184,13 +184,32 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 
 type svc2Server struct {
 	Svc2
-	hooks *twirp.ServerHooks
+	hooks      *twirp.ServerHooks
+	pathPrefix string // prefix for routing
 }
 
-func NewSvc2Server(svc Svc2, hooks *twirp.ServerHooks) TwirpServer {
+// NewSvc2Server builds a TwirpServer that can be used as an http.Handler to handle
+// HTTP requests that are routed to the right method in the provided svc implementation.
+// The opts are twirp.ServerOption modifiers, for example twirp.WithServerHooks(hooks).
+func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
+	serverOpts := twirp.ServerOptions{}
+	for _, opt := range opts {
+		switch o := opt.(type) {
+		case twirp.ServerOption:
+			o(&serverOpts)
+		case *twirp.ServerHooks: // backwards compatibility, allow to specify hooks as an argument
+			twirp.WithServerHooks(o)(&serverOpts)
+		case nil: // backwards compatibility, allow nil value for the argument
+			continue
+		default:
+			panic(fmt.Sprintf("Invalid option type %T on NewSvc2Server", o))
+		}
+	}
+
 	return &svc2Server{
-		Svc2:  svc,
-		hooks: hooks,
+		Svc2:       svc,
+		pathPrefix: serverOpts.PathPrefix(),
+		hooks:      serverOpts.Hooks,
 	}
 }
 
@@ -226,15 +245,19 @@ func (s *svc2Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// Verify path format: [<prefix>]/<package>.<Service>/<Method>
-	parts := strings.Split(req.URL.Path, "/")
-	if len(parts) < 2 || parts[len(parts)-2] != "twirp.internal.twirptest.multiple.Svc2" {
+	prefix, pkgService, method := parseTwirpPath(req.URL.Path)
+	if pkgService != "twirp.internal.twirptest.multiple.Svc2" {
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
 		s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))
 		return
 	}
+	if prefix != s.pathPrefix {
+		msg := fmt.Sprintf("invalid path prefix %q, expected %q, on path %q", prefix, s.pathPrefix, req.URL.Path)
+		s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))
+		return
+	}
 
-	// Route by <Method>
-	switch parts[len(parts)-1] {
+	switch method {
 	case "Send":
 		s.serveSend(ctx, resp, req)
 		return

@@ -23,7 +23,7 @@ type ClientOption func(*ClientOptions)
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
 	Hooks      *ClientHooks
-	pathPrefix *string // default "/twirp", prefix appended to the baseURL when making requests
+	pathPrefix *string
 }
 
 func (opts *ClientOptions) PathPrefix() string {
@@ -31,6 +31,13 @@ func (opts *ClientOptions) PathPrefix() string {
 		return "/twirp" // default prefix
 	}
 	return *opts.pathPrefix
+}
+
+// WithClientHooks defines the hooks for a Twirp client.
+func WithClientHooks(hooks *ClientHooks) ClientOption {
+	return func(o *ClientOptions) {
+		o.Hooks = hooks
+	}
 }
 
 // ClientHooks is a container for callbacks that can instrument a
@@ -59,24 +66,6 @@ type ClientHooks struct {
 	// Error hook is called whenever an error occurs during the sending of a
 	// request. The Error is passed as an argument to the hook.
 	Error func(context.Context, Error)
-}
-
-// WithClientHooks defines the hooks for a Twirp client.
-func WithClientHooks(hooks *ClientHooks) ClientOption {
-	return func(o *ClientOptions) {
-		o.Hooks = hooks
-	}
-}
-
-// WithClientPathPrefix appends a different prefix to the baseURL.
-// If not specified, the "/twirp" prefix is used by default.
-// The service must be configured to serve on the same prefix.
-// URL format: "<baseURL>[<prefix>]/<package>.<Service>/<Method>"
-// More info on Twirp docs: https://twitchtv.github.io/twirp/docs/routing.html
-func WithClientPathPrefix(prefix string) ClientOption {
-	return func(o *ClientOptions) {
-		o.pathPrefix = &prefix
-	}
 }
 
 // ChainClientHooks creates a new *ClientHooks which chains the callbacks in
@@ -119,5 +108,17 @@ func ChainClientHooks(hooks ...*ClientHooks) *ClientHooks {
 				}
 			}
 		},
+	}
+}
+
+// WithClientPathPrefix specifies a different prefix to use for routing.
+// If not specified, the "/twirp" prefix is used by default.
+// The service must be configured to serve on the same prefix.
+// An empty value "" can be speficied to use no prefix.
+// URL format: "<baseURL>[<prefix>]/<package>.<Service>/<Method>"
+// More info on Twirp docs: https://twitchtv.github.io/twirp/docs/routing.html
+func WithClientPathPrefix(prefix string) ClientOption {
+	return func(o *ClientOptions) {
+		o.pathPrefix = &prefix
 	}
 }

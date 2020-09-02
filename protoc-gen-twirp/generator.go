@@ -92,6 +92,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	// Register names of packages that we import.
 	t.registerPackageName("bytes")
 	t.registerPackageName("strings")
+	t.registerPackageName("path")
 	t.registerPackageName("ctxsetters")
 	t.registerPackageName("context")
 	t.registerPackageName("http")
@@ -338,6 +339,7 @@ func (t *twirp) generateUtilImports() {
 	t.P("// Imports only used by utility functions:")
 	t.P(`import `, t.pkgs["io"], ` "io"`)
 	t.P(`import `, t.pkgs["json"], ` "encoding/json"`)
+	t.P(`import `, t.pkgs["path"], ` "path"`)
 	t.P(`import `, t.pkgs["url"], ` "net/url"`)
 }
 
@@ -431,17 +433,28 @@ func (t *twirp) generateUtils() {
 	t.P(`}`)
 	t.P()
 
-	t.P(`// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.`)
-	t.P(`// If the URL is unparsable, the baseURL is returned unchaged.`)
-	t.P(`func sanitizeBaseURL(baseURL string) string {`)
+	t.P(`// baseServiceURL sanitizes and composes the URL prefix for the service (without <Method>).`)
+	t.P(`// e.g.: baseServiceURL("mysvc.com", "/twirp", "my.pkg", "MyService")`)
+	t.P(`//       returns => "http://mysvc.com/twirp/my.pkg.MyService/"`)
+	t.P(`// e.g.: baseServiceURL("https://mysvc.com", "", "", "MyService")`)
+	t.P(`//       returns => "https://mysvc.com/MyService/"`)
+	t.P(`// If the baseURL doesn't have a scheme, "http" is added by default.`)
+	t.P(`// The returned URL is not guaranteed to be a valid URL. If the baseURL`)
+	t.P(`// is unparsable, it is returned unchaged, which will fail when making requests.`)
+	t.P(`func baseServiceURL(baseURL, prefix, pkg, service string) string {`)
+	t.P(`  fullServiceName := service`)
+	t.P(`  if pkg != "" {`)
+	t.P(`    fullServiceName = pkg + "." + service`)
+	t.P(`  }`)
 	t.P(`  u, err := `, t.pkgs["url"], `.Parse(baseURL)`)
 	t.P(`  if err != nil {`)
-	t.P(`    return baseURL // invalid URL will fail later when making requests`)
+	t.P(`    return baseURL + path.Join("/", prefix, fullServiceName) + "/" // invalid URL`)
 	t.P(`  }`)
 	t.P(`  if u.Scheme == "" {`)
 	t.P(`    u.Scheme = "http"`)
 	t.P(`  }`)
-	t.P(`  return u.String()`)
+	t.P(`  u.Path = path.Join(u.Path, prefix, fullServiceName)`)
+	t.P(`  return u.String() + "/"`)
 	t.P(`}`)
 	t.P()
 
@@ -913,6 +926,7 @@ func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) stri
 
 // valid names: 'JSON', 'Protobuf'
 func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
+	servPkg := pkgName(file)
 	servName := serviceName(service)
 	structName := unexported(servName) + name + "Client"
 	newClientFunc := "New" + servName + name + "Client"
@@ -937,16 +951,12 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`  }`)
 	t.P()
 	if len(service.Method) > 0 {
-		t.P(`  // <baseURL>[/twirp]/<package>.<Service>/<Method>`)
-		t.P(`  serviceURL := sanitizeBaseURL(baseURL)`)
-		t.P(`  if !clientOpts.SkipPathPrefix {`)
-		t.P(`    serviceURL += "/twirp"`)
-		t.P(`  }`)
-		t.P(`  serviceURL += "/`, fullServiceName(file, service), `"`)
+		t.P(`  // Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>`)
+		t.P(`  serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "`, servPkg, `", "`, servName, `")`)
 	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
-		t.P(`    serviceURL + "/`, methodName(method), `",`)
+		t.P(`    serviceURL + "`, methodName(method), `",`)
 	}
 	t.P(`  }`)
 	t.P()

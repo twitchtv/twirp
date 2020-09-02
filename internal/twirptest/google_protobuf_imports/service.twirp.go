@@ -29,6 +29,7 @@ import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 // Imports only used by utility functions:
 import io "io"
 import json "encoding/json"
+import path "path"
 import url "net/url"
 
 // =============
@@ -61,14 +62,10 @@ func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 		o(&clientOpts)
 	}
 
-	// <baseURL>[/twirp]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	if !clientOpts.SkipPathPrefix {
-		serviceURL += "/twirp"
-	}
-	serviceURL += "/twirp.internal.twirptest.use_empty.Svc"
+	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
+	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.use_empty", "Svc")
 	urls := [1]string{
-		serviceURL + "/Send",
+		serviceURL + "Send",
 	}
 
 	return &svcProtobufClient{
@@ -120,14 +117,10 @@ func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOpt
 		o(&clientOpts)
 	}
 
-	// <baseURL>[/twirp]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	if !clientOpts.SkipPathPrefix {
-		serviceURL += "/twirp"
-	}
-	serviceURL += "/twirp.internal.twirptest.use_empty.Svc"
+	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
+	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.use_empty", "Svc")
 	urls := [1]string{
-		serviceURL + "/Send",
+		serviceURL + "Send",
 	}
 
 	return &svcJSONClient{
@@ -452,17 +445,28 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
-// If the URL is unparsable, the baseURL is returned unchaged.
-func sanitizeBaseURL(baseURL string) string {
+// baseServiceURL sanitizes and composes the URL prefix for the service (without <Method>).
+// e.g.: baseServiceURL("mysvc.com", "/twirp", "my.pkg", "MyService")
+//       returns => "http://mysvc.com/twirp/my.pkg.MyService/"
+// e.g.: baseServiceURL("https://mysvc.com", "", "", "MyService")
+//       returns => "https://mysvc.com/MyService/"
+// If the baseURL doesn't have a scheme, "http" is added by default.
+// The returned URL is not guaranteed to be a valid URL. If the baseURL
+// is unparsable, it is returned unchaged, which will fail when making requests.
+func baseServiceURL(baseURL, prefix, pkg, service string) string {
+	fullServiceName := service
+	if pkg != "" {
+		fullServiceName = pkg + "." + service
+	}
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return baseURL // invalid URL will fail later when making requests
+		return baseURL + path.Join("/", prefix, fullServiceName) + "/" // invalid URL
 	}
 	if u.Scheme == "" {
 		u.Scheme = "http"
 	}
-	return u.String()
+	u.Path = path.Join(u.Path, prefix, fullServiceName)
+	return u.String() + "/"
 }
 
 // getCustomHTTPReqHeaders retrieves a copy of any headers that are set in

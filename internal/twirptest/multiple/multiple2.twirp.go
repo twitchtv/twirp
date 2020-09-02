@@ -48,15 +48,11 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 		o(&clientOpts)
 	}
 
-	// <baseURL>[/twirp]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	if !clientOpts.SkipPathPrefix {
-		serviceURL += "/twirp"
-	}
-	serviceURL += "/twirp.internal.twirptest.multiple.Svc2"
+	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
+	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
 	urls := [2]string{
-		serviceURL + "/Send",
-		serviceURL + "/SamePackageProtoImport",
+		serviceURL + "Send",
+		serviceURL + "SamePackageProtoImport",
 	}
 
 	return &svc2ProtobufClient{
@@ -128,15 +124,11 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 		o(&clientOpts)
 	}
 
-	// <baseURL>[/twirp]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	if !clientOpts.SkipPathPrefix {
-		serviceURL += "/twirp"
-	}
-	serviceURL += "/twirp.internal.twirptest.multiple.Svc2"
+	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
+	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
 	urls := [2]string{
-		serviceURL + "/Send",
-		serviceURL + "/SamePackageProtoImport",
+		serviceURL + "Send",
+		serviceURL + "SamePackageProtoImport",
 	}
 
 	return &svc2JSONClient{

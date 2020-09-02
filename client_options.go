@@ -22,8 +22,15 @@ type ClientOption func(*ClientOptions)
 
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
-	Hooks          *ClientHooks
-	SkipPathPrefix bool // if true, skip the default "/twirp" path prefix
+	Hooks      *ClientHooks
+	pathPrefix *string // default "/twirp", prefix appended to the baseURL when making requests
+}
+
+func (opts *ClientOptions) PathPrefix() string {
+	if opts.pathPrefix == nil {
+		return "/twirp" // default prefix
+	}
+	return *opts.pathPrefix
 }
 
 // ClientHooks is a container for callbacks that can instrument a
@@ -61,17 +68,14 @@ func WithClientHooks(hooks *ClientHooks) ClientOption {
 	}
 }
 
-// SkipClientPathPrefix skips the default "/twirp" prefix in request URLs.
-// By default, Twirp routes have the prefix appended to the baseURL:
-//     <baseURL>/twirp/<package>.<Service>/<Method>
-// but with this option, the client makes requests without the prefix:
-//     <baseURL>/<package>.<Service>/<Method>
-// Note: A different path prefix can be set in the baseURL.
-// Note: The service needs to be configured to handle requests on the same baseURL.
+// WithClientPathPrefix appends a different prefix to the baseURL.
+// If not specified, the "/twirp" prefix is used by default.
+// The service must be configured to serve on the same prefix.
+// URL format: "<baseURL>[<prefix>]/<package>.<Service>/<Method>"
 // More info on Twirp docs: https://twitchtv.github.io/twirp/docs/routing.html
-func SkipClientPathPrefix() ClientOption {
+func WithClientPathPrefix(prefix string) ClientOption {
 	return func(o *ClientOptions) {
-		o.SkipPathPrefix = true
+		o.pathPrefix = &prefix
 	}
 }
 

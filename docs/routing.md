@@ -1,7 +1,7 @@
 ---
 id: "routing"
 title: "Routing and Serialization"
-sidebar_label: "How Twirp routes requests"
+sidebar_label: "Routing and Serialization"
 ---
 
 Routing and Serialization is handled by Twirp. All you really need to know is
@@ -13,7 +13,7 @@ debugging and advanced configuration.
 Twirp works over HTTP 1.1; all RPC methods map to routes that follow the format:
 
 ```
-POST <baseURL>[<prefix>]/<package>.<Service>/<Method>
+POST <baseURL>/<prefix>/<package>.<Service>/<Method>
 ```
 
 Where:
@@ -30,7 +30,7 @@ POST https://example.com/twirp/mypackage.MyService/MyMethod
 POST https://example.com/my/custom/prefix/mypackage.MyService/MyMethod
 ```
 
-See more details on the [protocol specification](spec_v5.md).
+More details on the [protocol specification](spec_v5.md).
 
 ### Naming Stype Guide
 

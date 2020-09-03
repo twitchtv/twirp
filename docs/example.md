@@ -131,7 +131,7 @@ To serve our Haberdasher over HTTP, use the auto-generated server constructor
 `New{{Service}}Server`. For Haberdasher, this is:
 
 ```go
-func NewHaberdasherServer(svc Haberdasher, hooks *twirp.ServerHooks) TwirpServer
+func NewHaberdasherServer(svc Haberdasher, opts ...interface{}) TwirpServer
 ```
 
 This constructor wraps your interface implementation as an `TwirpServer`, which
@@ -153,7 +153,7 @@ import (
 
 func main() {
   server := &haberdasherserver.Server{} // implements Haberdasher interface
-  twirpHandler := haberdasher.NewHaberdasherServer(server, nil)
+  twirpHandler := haberdasher.NewHaberdasherServer(server)
 
   http.ListenAndServe(":8080", twirpHandler)
 }

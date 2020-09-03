@@ -30,7 +30,7 @@ In [ABNF syntax](https://tools.ietf.org/html/rfc5234), Twirp's URLs
 have the following format:
 
 ```abnf
-URL ::= Base-URL "/twirp/" [ Package "." ] Service "/" Method
+URL ::= Base-URL [ Prefix ] "/" [ Package "." ] Service "/" Method
 ```
 
 The Twirp wire protocol uses HTTP URLs to specify the RPC
@@ -42,6 +42,8 @@ the following components.
   typically published via API documentation or service discovery.
   Currently, it should only contain URL `scheme` and `authority`. For
   example, "https://example.com".
+* **Prefix** is usually "/twirp", but it could be empty "", or an
+  arbitrary path like "/my/custom/prefix".
 * **Package** is the proto `package` name for an API, which is often
   considered as an API version. For example,
   `example.calendar.v1`. This component is omitted if the API
@@ -189,9 +191,9 @@ Example with metadata:
 ### Error Codes
 
 Twirp errors always include an error code. This code is represented
-as a string and must be one of a fixed set of codes, listed in the 
-table below. Each code has an associated HTTP Status Code. When a 
-server responds with the given error code, it must set the 
+as a string and must be one of a fixed set of codes, listed in the
+table below. Each code has an associated HTTP Status Code. When a
+server responds with the given error code, it must set the
 corresponding HTTP Status Code for the response.
 
 | Twirp Error Code    | HTTP Status | Description

@@ -28,7 +28,8 @@ message HelloResp {
 ```
 
 Assuming a service generated from this definition is running in `http://localhost:8080` with the default
-"/twirp" prefix, you can call it with cURL by following the routing rules.
+"/twirp" prefix, you can call it with cURL by following the routing rules (see
+[Routing](routing.md))
 
 ### JSON
 

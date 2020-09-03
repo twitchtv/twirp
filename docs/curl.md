@@ -4,77 +4,79 @@ title: "cURL"
 sidebar_label: "cURL"
 ---
 
-Twirp allows you to cURL your service with either Protobuf or JSON.
+You can access a Twirp service with cURL, using either JSON or Protobuf.
 
 ## Example
 
-A cURL request to the Haberdasher example `MakeHat` RPC with the following request and reply could be executed as Protobuf or JSON with the snippets further below.:
+With the following HelloWorld service defined in this proto file:
 
-Request proto:
-```
-message Size {
-   int32 inches = 1;
+```proto
+syntax = "proto3";
+package example.helloworld;
+
+service HelloWorld {
+  rpc Hello(HelloReq) returns (HelloResp);
+}
+
+message HelloReq {
+   string subject = 1;
+}
+
+message HelloResp {
+  string text = 1;
 }
 ```
 
-Reply proto:
-
-```
-message Hat {
-  int32 inches = 1;
-  string color = 2;
-  string name = 3;
-}
-```
-
-### Protobuf
-
-```sh
-echo "inches:10" \
-	| protoc --proto_path=$GOPATH/src --encode twirp.example.haberdasher.Size ./rpc/haberdasher/service.proto \
-	| curl -s --request POST \
-                  --header "Content-Type: application/protobuf" \
-                  --data-binary @-
-                  http://localhost:8080/twirp/twirp.example.haberdasher.Haberdasher/MakeHat \
-	| protoc --proto_path=$GOPATH/src --decode twirp.example.haberdasher.Hat ./rpc/haberdasher/service.proto
-```
-
-We signal Twirp that we're sending Protobuf data by setting the `Content-Type` as `application/protobuf`.
-
-The request is:
-
-```
-inches:10
-```
-
-The reply from Twirp would look something like this:
-
-```
-inches:1
-color:"black"
-name:"bowler"
-```
+Assuming a service generated from this definition is running in `http://localhost:8080` with the default
+"/twirp" prefix, you can call it with cURL by following the routing rules.
 
 ### JSON
 
+Use the header `Content-Type: application/json` to signal that the request and response are JSON:
+
 ```sh
 curl --request "POST" \
-     --location "http://localhost:8080/twirp/twirp.example.haberdasher.Haberdasher/MakeHat" \
-     --header "Content-Type:application/json" \
-     --data '{"inches": 10}' \
-     --verbose
+    --header "Content-Type: application/json" \
+    --data '{"subject": "World"}' \
+    http://localhost:8080/twirp/example.helloworld.HelloWorld/Hello
 ```
 
-We signal Twirp that we're sending JSON data by setting the `Content-Type` as `application/json`.
-
-The request is:
+The service should respond with something like this:
 
 ```json
-{"inches": 10}
+{"text": "Hello World"}
 ```
 
-The JSON response from Twirp would look something like this:
+NOTE: Twirp uses [proto3-json mapping](https://developers.google.com/protocol-buffers/docs/proto3#json),
+which means that empty fields are excluded. If you specify an empty request `--data '{}'` it will be
+interpreted as zero-values. Zero-values are also excluded on responses. In this example,
+if the service responded with an empty "text" field, the response you will see is empty `{}`.
+
+### Protobuf
+
+Use the header `Content-Type: application/protobuf` to signal that the request and response are Protobuf.
+Use the `protoc` tool to encode and decode the Protobuf messages into readable key-values:
+
+```sh
+echo 'subject:"World"' \
+	| protoc --encode example.helloworld.HelloReq ./rpc/helloworld/service.proto \
+	| curl -s --request POST \
+      --header "Content-Type: application/protobuf" \
+      --data-binary @- \
+      http://localhost:8080/twirp/example.helloworld.HelloWorld/Hello \
+	| protoc --decode example.helloworld.HelloResp ./rpc/haberdasher/service.proto
+```
+
+The service should respond with something like this:
+
+```
+text:"Hello World"
+```
+
+### Errors
+
+Twirp error responses are always JSON, even if the request is done in Protobuf. A Twirp error response looks like this:
 
 ```json
-{"inches":1, "color":"black", "name":"bowler"}
+{"code": "internal", "msg": "Something went wrong"}
 ```

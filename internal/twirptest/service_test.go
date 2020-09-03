@@ -720,6 +720,10 @@ func TestRoutingPathPrefix(t *testing.T) {
 	h := PickyHatmaker(1)
 	server := NewHaberdasherServer(h, twirp.WithServerPathPrefix(myCustomPrefix))
 
+	if have, want := server.PathPrefix(), "/my/custom/prefix/twirp.internal.twirptest.Haberdasher/"; have != want {
+		t.Fatalf("invalid server.PathPrefix(), have=%q, want=%q", have, want)
+	}
+
 	var lastPath string
 	pathTracker := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		lastPath = r.URL.Path

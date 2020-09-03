@@ -65,7 +65,8 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
 	urls := [1]string{
 		serviceURL + "Send",
 	}
@@ -120,7 +121,8 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
 	urls := [1]string{
 		serviceURL + "Send",
 	}
@@ -379,8 +381,11 @@ func (s *svc2Server) ProtocGenTwirpVersion() string {
 	return "v5.12.1"
 }
 
+// PathPrefix returns the base service path, in the form: "/<prefix>/<package>.<Service>/"
+// that is everything in a Twirp route except for the <Method>. This can be used for routing,
+// for example to identify the requests that are targeted to this service in a mux.
 func (s *svc2Server) PathPrefix() string {
-	return Svc2PathPrefix
+	return baseServicePath(s.pathPrefix, "twirp.internal.twirptest.importer", "Svc2")
 }
 
 // =====
@@ -405,6 +410,7 @@ type HTTPClient interface {
 // Most people can think of TwirpServers as just http.Handlers.
 type TwirpServer interface {
 	http.Handler
+
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
 	// unmarshalled as a
@@ -414,12 +420,15 @@ type TwirpServer interface {
 	// FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a
 	// low-level field, expected to be used for reflection.
 	ServiceDescriptor() ([]byte, int)
+
 	// ProtocGenTwirpVersion is the semantic version string of the version of
 	// twirp used to generate this file.
 	ProtocGenTwirpVersion() string
+
 	// PathPrefix returns the HTTP URL path prefix for all methods handled by this
-	// service. This can be used with an HTTP mux to route twirp requests
-	// alongside non-twirp requests on one HTTP listener.
+	// service. This can be used with an HTTP mux to route Twirp requests.
+	// The path prefix is in the form: "/<prefix>/<package>.<Service>/"
+	// that is, everything in a Twirp route except for the <Method> at the end.
 	PathPrefix() string
 }
 
@@ -470,28 +479,30 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	callResponseSent(ctx, hooks)
 }
 
-// baseServiceURL sanitizes and composes the URL prefix for the service (without <Method>).
-// e.g.: baseServiceURL("mysvc.com", "/twirp", "my.pkg", "MyService")
-//       returns => "http://mysvc.com/twirp/my.pkg.MyService/"
-// e.g.: baseServiceURL("https://mysvc.com", "", "", "MyService")
-//       returns => "https://mysvc.com/MyService/"
-// If the baseURL doesn't have a scheme, "http" is added by default.
-// The returned URL is not guaranteed to be a valid URL. If the baseURL
-// is unparsable, it is returned unchaged, which will fail when making requests.
-func baseServiceURL(baseURL, prefix, pkg, service string) string {
-	fullServiceName := service
-	if pkg != "" {
-		fullServiceName = pkg + "." + service
-	}
+// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
+// If the URL is unparsable, the baseURL is returned unchaged.
+func sanitizeBaseURL(baseURL string) string {
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return baseURL + path.Join("/", prefix, fullServiceName) + "/" // invalid URL
+		return baseURL // invalid URL will fail later when making requests
 	}
 	if u.Scheme == "" {
 		u.Scheme = "http"
 	}
-	u.Path = path.Join(u.Path, prefix, fullServiceName)
-	return u.String() + "/"
+	return u.String()
+}
+
+// baseServicePath composes the path prefix for the service (without <Method>).
+// e.g.: baseServicePath("/twirp", "my.pkg", "MyService")
+//       returns => "/twirp/my.pkg.MyService/"
+// e.g.: baseServicePath("", "", "MyService")
+//       returns => "/MyService/"
+func baseServicePath(prefix, pkg, service string) string {
+	fullServiceName := service
+	if pkg != "" {
+		fullServiceName = pkg + "." + service
+	}
+	return path.Join("/", prefix, fullServiceName) + "/"
 }
 
 // parseTwirpPath extracts path components form a valid Twirp route.

@@ -49,7 +49,8 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
 	urls := [2]string{
 		serviceURL + "Send",
 		serviceURL + "SamePackageProtoImport",
@@ -125,7 +126,8 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
 	urls := [2]string{
 		serviceURL + "Send",
 		serviceURL + "SamePackageProtoImport",
@@ -537,8 +539,11 @@ func (s *svc2Server) ProtocGenTwirpVersion() string {
 	return "v5.12.1"
 }
 
+// PathPrefix returns the base service path, in the form: "/<prefix>/<package>.<Service>/"
+// that is everything in a Twirp route except for the <Method>. This can be used for routing,
+// for example to identify the requests that are targeted to this service in a mux.
 func (s *svc2Server) PathPrefix() string {
-	return Svc2PathPrefix
+	return baseServicePath(s.pathPrefix, "twirp.internal.twirptest.multiple", "Svc2")
 }
 
 var twirpFileDescriptor1 = []byte{

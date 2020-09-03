@@ -365,22 +365,26 @@ func (t *twirp) generateUtils() {
 	t.P(`// Most people can think of TwirpServers as just http.Handlers.`)
 	t.P(`type TwirpServer interface {`)
 	t.P(`  `, t.pkgs["http"], `.Handler`)
-	t.P(`	// ServiceDescriptor returns gzipped bytes describing the .proto file that`)
-	t.P(`	// this service was generated from. Once unzipped, the bytes can be`)
-	t.P(`	// unmarshalled as a`)
-	t.P(`	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.`)
-	t.P(` //`)
-	t.P(`	// The returned integer is the index of this particular service within that`)
-	t.P(`	// FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a`)
-	t.P(`	// low-level field, expected to be used for reflection.`)
-	t.P(`	ServiceDescriptor() ([]byte, int)`)
-	t.P(`	// ProtocGenTwirpVersion is the semantic version string of the version of`)
-	t.P(`	// twirp used to generate this file.`)
-	t.P(`	ProtocGenTwirpVersion() string`)
-	t.P(`// PathPrefix returns the HTTP URL path prefix for all methods handled by this`)
-	t.P(`// service. This can be used with an HTTP mux to route twirp requests`)
-	t.P(`// alongside non-twirp requests on one HTTP listener.`)
-	t.P(`	PathPrefix() string`)
+	t.P()
+	t.P(`  // ServiceDescriptor returns gzipped bytes describing the .proto file that`)
+	t.P(`  // this service was generated from. Once unzipped, the bytes can be`)
+	t.P(`  // unmarshalled as a`)
+	t.P(`  // github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.`)
+	t.P(`  //`)
+	t.P(`  // The returned integer is the index of this particular service within that`)
+	t.P(`  // FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a`)
+	t.P(`  // low-level field, expected to be used for reflection.`)
+	t.P(`  ServiceDescriptor() ([]byte, int)`)
+	t.P()
+	t.P(`  // ProtocGenTwirpVersion is the semantic version string of the version of`)
+	t.P(`  // twirp used to generate this file.`)
+	t.P(`  ProtocGenTwirpVersion() string`)
+	t.P()
+	t.P(`  // PathPrefix returns the HTTP URL path prefix for all methods handled by this`)
+	t.P(`  // service. This can be used with an HTTP mux to route Twirp requests.`)
+	t.P(`  // The path prefix is in the form: "/<prefix>/<package>.<Service>/"`)
+	t.P(`  // that is, everything in a Twirp route except for the <Method> at the end.`)
+	t.P(`  PathPrefix() string`)
 	t.P(`}`)
 	t.P()
 
@@ -433,28 +437,31 @@ func (t *twirp) generateUtils() {
 	t.P(`}`)
 	t.P()
 
-	t.P(`// baseServiceURL sanitizes and composes the URL prefix for the service (without <Method>).`)
-	t.P(`// e.g.: baseServiceURL("mysvc.com", "/twirp", "my.pkg", "MyService")`)
-	t.P(`//       returns => "http://mysvc.com/twirp/my.pkg.MyService/"`)
-	t.P(`// e.g.: baseServiceURL("https://mysvc.com", "", "", "MyService")`)
-	t.P(`//       returns => "https://mysvc.com/MyService/"`)
-	t.P(`// If the baseURL doesn't have a scheme, "http" is added by default.`)
-	t.P(`// The returned URL is not guaranteed to be a valid URL. If the baseURL`)
-	t.P(`// is unparsable, it is returned unchaged, which will fail when making requests.`)
-	t.P(`func baseServiceURL(baseURL, prefix, pkg, service string) string {`)
-	t.P(`  fullServiceName := service`)
-	t.P(`  if pkg != "" {`)
-	t.P(`    fullServiceName = pkg + "." + service`)
-	t.P(`  }`)
+	t.P(`// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.`)
+	t.P(`// If the URL is unparsable, the baseURL is returned unchaged.`)
+	t.P(`func sanitizeBaseURL(baseURL string) string {`)
 	t.P(`  u, err := `, t.pkgs["url"], `.Parse(baseURL)`)
 	t.P(`  if err != nil {`)
-	t.P(`    return baseURL + path.Join("/", prefix, fullServiceName) + "/" // invalid URL`)
+	t.P(`    return baseURL // invalid URL will fail later when making requests`)
 	t.P(`  }`)
 	t.P(`  if u.Scheme == "" {`)
 	t.P(`    u.Scheme = "http"`)
 	t.P(`  }`)
-	t.P(`  u.Path = path.Join(u.Path, prefix, fullServiceName)`)
-	t.P(`  return u.String() + "/"`)
+	t.P(`  return u.String()`)
+	t.P(`}`)
+	t.P()
+
+	t.P(`// baseServicePath composes the path prefix for the service (without <Method>).`)
+	t.P(`// e.g.: baseServicePath("/twirp", "my.pkg", "MyService")`)
+	t.P(`//       returns => "/twirp/my.pkg.MyService/"`)
+	t.P(`// e.g.: baseServicePath("", "", "MyService")`)
+	t.P(`//       returns => "/MyService/"`)
+	t.P(`func baseServicePath(prefix, pkg, service string) string {`)
+	t.P(`  fullServiceName := service`)
+	t.P(`  if pkg != "" {`)
+	t.P(`    fullServiceName = pkg + "." + service`)
+	t.P(`  }`)
+	t.P(`  return path.Join("/", prefix, fullServiceName) + "/"`)
 	t.P(`}`)
 	t.P()
 
@@ -967,7 +974,8 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P()
 	if len(service.Method) > 0 {
 		t.P(`  // Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>`)
-		t.P(`  serviceURL := baseServiceURL(baseURL, clientOpts.PathPrefix(), "`, servPkg, `", "`, servName, `")`)
+		t.P(`  serviceURL := sanitizeBaseURL(baseURL)`)
+		t.P(`  serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servName, `")`)
 	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
@@ -1094,13 +1102,6 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.generateServiceMetadataAccessors(file, service)
 }
 
-// pathPrefix returns the base path for all methods handled by a particular
-// service. It includes a trailing slash. (for example
-// "/twirp/twitch.example.Haberdasher/").
-func pathPrefix(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
-	return fmt.Sprintf("/twirp/%s/", fullServiceName(file, service))
-}
-
 func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
 	pkgName := pkgName(file)
 	servName := serviceName(service)
@@ -1109,7 +1110,7 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	t.P(`// Should be used with caution, it only matches routes generated by Twirp Go clients,`)
 	t.P(`// that add a "/twirp" prefix by default, and use CamelCase service and method names.`)
 	t.P(`// More info: https://twitchtv.github.io/twirp/docs/routing.html`)
-	t.P(`const `, servName, `PathPrefix = `, strconv.Quote(pathPrefix(file, service)))
+	t.P(`const `, servName, `PathPrefix = "/twirp/`, fullServiceName(file, service), `/"`)
 	t.P()
 
 	t.P(`func (s *`, servStruct, `) ServeHTTP(resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
@@ -1323,6 +1324,9 @@ func (t *twirp) serviceMetadataVarName() string {
 
 func (t *twirp) generateServiceMetadataAccessors(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
 	servStruct := serviceStruct(service)
+	servPkg := pkgName(file)
+	servName := serviceName(service)
+
 	index := 0
 	for i, s := range file.Service {
 		if s.GetName() == service.GetName() {
@@ -1337,8 +1341,11 @@ func (t *twirp) generateServiceMetadataAccessors(file *descriptor.FileDescriptor
 	t.P(`  return `, strconv.Quote(gen.Version))
 	t.P(`}`)
 	t.P()
+	t.P(`// PathPrefix returns the base service path, in the form: "/<prefix>/<package>.<Service>/"`)
+	t.P(`// that is everything in a Twirp route except for the <Method>. This can be used for routing,`)
+	t.P(`// for example to identify the requests that are targeted to this service in a mux.`)
 	t.P(`func (s *`, servStruct, `) PathPrefix() (string) {`)
-	t.P(`  return `, serviceName(service), `PathPrefix`)
+	t.P(`  return baseServicePath(s.pathPrefix, "`, servPkg, `", "`, servName, `") `)
 	t.P(`}`)
 }
 

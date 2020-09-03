@@ -761,15 +761,57 @@ func TestRoutingPathPrefix(t *testing.T) {
 	}
 }
 
+func TestRoutingPathPrefixDefault(t *testing.T) {
+	ctx := context.Background()
+	r := &Size{Inches: 1}
+
+	server := NewHaberdasherServer(PickyHatmaker(1))
+	s := httptest.NewServer(server)
+	defer s.Close()
+
+	// Check default value
+	if have, want := server.PathPrefix(), "/twirp/twirp.internal.twirptest.Haberdasher/"; have != want {
+		t.Fatalf("invalid server.PathPrefix(), have=%q, want=%q", have, want)
+	}
+
+	// Clients use the /twirp prefix by default
+	c1 := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
+	if _, err := c1.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+
+	// Clients can specifically set the "/twirp" prefix
+	c2 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/twirp"))
+	if _, err := c2.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+
+	// Clients using a different prefix do not hit the service
+	c3 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/anotherprefix"))
+	if _, err := c3.MakeHat(ctx, r); err == nil {
+		t.Fatalf("Expected bad_route error because service has a different path prefix, got nil")
+	}
+}
+
 // Twirp routes with prefixes: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-// using a mux to do match the same prefix on the server
+// using a mux to match the same prefix on the server
 func TestMuxingRoutingPathPrefixes(t *testing.T) {
 	ctx := context.Background()
 
 	mux := http.NewServeMux()
-	mux.Handle("/pickyone/", NewHaberdasherServer(PickyHatmaker(1), twirp.WithServerPathPrefix("/pickyone")))            // only hats of size 1
-	mux.Handle("/pickyninenine/", NewHaberdasherServer(PickyHatmaker(99), twirp.WithServerPathPrefix("/pickyninenine"))) // only hats of size 99
-	mux.Handle("/", NewHaberdasherServer(PickyHatmaker(0), twirp.WithServerPathPrefix("")))                              // only hats of size zero
+
+	// Handle route prefix, using the same prefix on the server: only hats of size 1
+	server1 := NewHaberdasherServer(PickyHatmaker(1), twirp.WithServerPathPrefix("/pickyone"))
+	mux.Handle("/pickyone/", server1)
+
+	// Handle route prefix, using the .PathPrefix() method on the server: only hats of size 99
+	server99 := NewHaberdasherServer(PickyHatmaker(99), twirp.WithServerPathPrefix("/pickyninenine"))
+	mux.Handle(server99.PathPrefix(), server99)
+
+	// Handle route with no prefix: hats of size zero
+	server0 := NewHaberdasherServer(PickyHatmaker(0), twirp.WithServerPathPrefix(""))
+	mux.Handle("/", server0)
+
 	s := httptest.NewServer(mux)
 	defer s.Close()
 

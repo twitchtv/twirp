@@ -1,7 +1,7 @@
 ---
 id: "spec_v7"
 title: "Twirp Wire Protocol (v7)"
-sidebar_label: "Version 7 (Latest)"
+sidebar_label: "Version 7 (Draft)"
 ---
 
 This document defines the Twirp wire protocol over HTTP. The

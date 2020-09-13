@@ -50,8 +50,8 @@
         "sidebar_label": "Protobuf and JSON"
       },
       "routing": {
-        "title": "HTTP Routing and Serialization",
-        "sidebar_label": "How Twirp routes requests"
+        "title": "Routing and Serialization",
+        "sidebar_label": "Routing and Serialization"
       },
       "spec_changelog": {
         "title": "Twirp Wire Protocol Changelog",

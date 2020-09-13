@@ -62,7 +62,7 @@ func TestServerJSONWithMalformedRequest(t *testing.T) {
 	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
 		return &Hat{}, nil
 	})
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 	// Make JSON request with incorrectly-typed field
 	reqJSON := `{"inches":"should_be_number"}`
@@ -95,7 +95,7 @@ func TestServerJSONWithUnknownFields(t *testing.T) {
 	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
 		return &Hat{Size: s.Inches}, nil
 	})
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 
 	// Make JSON request with unknown fields ("size" should default to zero-value)
@@ -130,7 +130,7 @@ func TestServerProtobufMalformedRequest(t *testing.T) {
 	h := HaberdasherFunc(func(ctx context.Context, s *Size) (*Hat, error) {
 		return &Hat{}, nil
 	})
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 	url := s.URL + HaberdasherPathPrefix + "MakeHat"
 	resp, err := http.Post(url, "application/protobuf", bytes.NewBuffer([]byte{1}))
@@ -158,7 +158,7 @@ func TestServerProtobufMalformedRequest(t *testing.T) {
 
 func TestServeProtobuf(t *testing.T) {
 	h := PickyHatmaker(1)
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 
 	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
@@ -189,7 +189,7 @@ func (c *contentTypeOverriderClient) Do(req *http.Request) (*http.Response, erro
 
 func TestContentTypes(t *testing.T) {
 	h := PickyHatmaker(1)
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 
 	makeClientWithMimeType := func(mime string) Haberdasher {
@@ -681,7 +681,7 @@ func TestNonTwirpErrorWrappedAsInternal(t *testing.T) {
 // Clients should be able to connect over HTTPS
 func TestConnectTLS(t *testing.T) {
 	h := PickyHatmaker(1)
-	s := httptest.NewUnstartedServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewUnstartedServer(NewHaberdasherServer(h))
 	s.TLS = &tls.Config{}
 	s.StartTLS()
 	defer s.Close()
@@ -712,17 +712,166 @@ func TestConnectTLS(t *testing.T) {
 	}
 }
 
+func TestRoutingPathPrefix(t *testing.T) {
+	ctx := context.Background()
+	r := &Size{Inches: 1}
+
+	myCustomPrefix := "/my/custom/prefix"
+	h := PickyHatmaker(1)
+	server := NewHaberdasherServer(h, twirp.WithServerPathPrefix(myCustomPrefix))
+
+	if have, want := server.PathPrefix(), "/my/custom/prefix/twirp.internal.twirptest.Haberdasher/"; have != want {
+		t.Fatalf("invalid server.PathPrefix(), have=%q, want=%q", have, want)
+	}
+
+	var lastPath string
+	pathTracker := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lastPath = r.URL.Path
+		server.ServeHTTP(w, r)
+	})
+
+	s := httptest.NewServer(pathTracker)
+	defer s.Close()
+
+	// Clients need to use the same prefix to hit the service
+	c1 := NewHaberdasherJSONClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix(myCustomPrefix))
+	if _, err := c1.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+	if have, want := lastPath, "/my/custom/prefix/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+
+	// Clients using the deafult "/twirp" prefix should not hit the service
+	c2 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	if _, err := c2.MakeHat(ctx, r); err == nil {
+		t.Fatalf("Expected bad_route error because service has a different path prefix, got nil")
+	}
+	if have, want := lastPath, "/twirp/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+
+	// Clients using no prefix (empty) should not hit the service
+	c3 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix(""))
+	if _, err := c3.MakeHat(ctx, r); err == nil {
+		t.Fatalf("Expected bad_route error because service has a different path prefix, got nil")
+	}
+	if have, want := lastPath, "/twirp.internal.twirptest.Haberdasher/MakeHat"; have != want {
+		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
+	}
+}
+
+func TestRoutingPathPrefixDefault(t *testing.T) {
+	ctx := context.Background()
+	r := &Size{Inches: 1}
+
+	server := NewHaberdasherServer(PickyHatmaker(1))
+	s := httptest.NewServer(server)
+	defer s.Close()
+
+	// Check default value
+	if have, want := server.PathPrefix(), "/twirp/twirp.internal.twirptest.Haberdasher/"; have != want {
+		t.Fatalf("invalid server.PathPrefix(), have=%q, want=%q", have, want)
+	}
+
+	// Clients use the /twirp prefix by default
+	c1 := NewHaberdasherJSONClient(s.URL, http.DefaultClient)
+	if _, err := c1.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+
+	// Clients can specifically set the "/twirp" prefix
+	c2 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/twirp"))
+	if _, err := c2.MakeHat(ctx, r); err != nil {
+		t.Fatalf("Routing err: %v", err)
+	}
+
+	// Clients using a different prefix do not hit the service
+	c3 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/anotherprefix"))
+	if _, err := c3.MakeHat(ctx, r); err == nil {
+		t.Fatalf("Expected bad_route error because service has a different path prefix, got nil")
+	}
+}
+
+// Twirp routes with prefixes: <baseURL>[<prefix>]/<package>.<Service>/<Method>
+// using a mux to match the same prefix on the server
+func TestMuxingRoutingPathPrefixes(t *testing.T) {
+	ctx := context.Background()
+
+	mux := http.NewServeMux()
+
+	// Handle route prefix, using the same prefix on the server: only hats of size 1
+	server1 := NewHaberdasherServer(PickyHatmaker(1), twirp.WithServerPathPrefix("/pickyone"))
+	mux.Handle("/pickyone/", server1)
+
+	// Handle route prefix, using the .PathPrefix() method on the server: only hats of size 99
+	server99 := NewHaberdasherServer(PickyHatmaker(99), twirp.WithServerPathPrefix("/pickyninenine"))
+	mux.Handle(server99.PathPrefix(), server99)
+
+	// Handle route with no prefix: hats of size zero
+	server0 := NewHaberdasherServer(PickyHatmaker(0), twirp.WithServerPathPrefix(""))
+	mux.Handle("/", server0)
+
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	// Client with default baseURL and /twirp prefix is not able to hit any service
+	c1 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	if _, err := c1.MakeHat(ctx, &Size{Inches: 1}); err == nil {
+		t.Fatalf("Expected routing error, got nil")
+	}
+
+	// Client with custom prefix hits one server, but not the others
+	c2 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/pickyone"))
+	if _, err := c2.MakeHat(ctx, &Size{Inches: 1}); err != nil {
+		t.Fatalf("Unexpected err: %v", err)
+	}
+	if _, err := c2.MakeHat(ctx, &Size{Inches: 99}); err == nil { // PickyHatmaker(1) returns an error with size 99
+		t.Fatalf("Expected picky hat size error, got nil")
+	}
+
+	// Client with custom prefix on the picky 99
+	c3 := NewHaberdasherJSONClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/pickyninenine"))
+	if _, err := c3.MakeHat(ctx, &Size{Inches: 99}); err != nil {
+		t.Fatalf("Unexpected err: %v", err)
+	}
+	if _, err := c3.MakeHat(ctx, &Size{Inches: 1}); err == nil { // PickyHatmaker(99) returns an error with size 1
+		t.Fatalf("Expected picky hat size error, got nil")
+	}
+
+	// Client with mepty prefix should hit picky 0
+	c4 := NewHaberdasherJSONClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix(""))
+	if _, err := c4.MakeHat(ctx, &Size{Inches: 0}); err != nil {
+		t.Fatalf("Unexpected err: %v", err)
+	}
+	if _, err := c4.MakeHat(ctx, &Size{Inches: 1}); err == nil { // PickyHatmaker(0) returns an error with size 1
+		t.Fatalf("Expected picky hat size error, got nil")
+	}
+
+	// Nested prefixes should not work, even if they math the mux routing rules.
+	// This is needed to ensure backwards compatibility with the previous mandatory /twirp prefix.
+	c5 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient, twirp.WithClientPathPrefix("/pickyone/but/way/too/nested"))
+	if _, err := c5.MakeHat(ctx, &Size{Inches: 1}); err == nil { // should return bad route error
+		t.Fatalf("Expected bad route error, got nil")
+	} else {
+		twerr, ok := err.(twirp.Error)
+		if !ok || twerr.Code() != twirp.BadRoute {
+			t.Fatalf("Expected bad route error, got %v", err)
+		}
+	}
+}
+
 // It should be possible to serve twirp alongside non-twirp handlers
 func TestMuxingTwirpServerConst(t *testing.T) {
 	// Create a twirp endpoint.
-	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
+	twirpHandler := NewHaberdasherServer(PickyHatmaker(1))
 
 	testMuxingTwirpServer(t, HaberdasherPathPrefix, twirpHandler)
 }
 
 func TestMuxingTwirpServerPrefixMethod(t *testing.T) {
 	// Create a twirp endpoint.
-	twirpHandler := NewHaberdasherServer(PickyHatmaker(1), nil)
+	twirpHandler := NewHaberdasherServer(PickyHatmaker(1))
 
 	testMuxingTwirpServer(t, twirpHandler.PathPrefix(), twirpHandler)
 }
@@ -976,7 +1125,7 @@ func TestCustomRequestHeaders(t *testing.T) {
 	customHeader.Add("multikey", "val1")
 	customHeader.Add("multikey", "val2")
 
-	haberdasher := NewHaberdasherServer(PickyHatmaker(1), nil)
+	haberdasher := NewHaberdasherServer(PickyHatmaker(1))
 	// Make a wrapping handler that checks headers for this test
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// All key-vals in the custom header should appear in the request
@@ -1094,7 +1243,7 @@ func TestCustomResponseHeaders(t *testing.T) {
 // A nil response should cause an 'Internal Error' response, not a
 // panic.
 func TestNilResponse(t *testing.T) {
-	h := NewHaberdasherServer(NilHatmaker(), nil)
+	h := NewHaberdasherServer(NilHatmaker())
 
 	panicChecker := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -1137,7 +1286,7 @@ var expectBadRouteError = func(t *testing.T, client Haberdasher) {
 
 func TestBadRoute(t *testing.T) {
 	h := PickyHatmaker(1)
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 
 	// Create a transport that we can use to force the wrong HTTP method and URL
@@ -1204,7 +1353,7 @@ func (rw *reqRewriter) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func TestReflection(t *testing.T) {
 	h := PickyHatmaker(1)
-	s := NewHaberdasherServer(h, nil)
+	s := NewHaberdasherServer(h)
 
 	t.Run("ServiceDescriptor", func(t *testing.T) {
 		fd, sd, err := descriptors.ServiceDescriptor(s)
@@ -1266,7 +1415,7 @@ func TestContextValues(t *testing.T) {
 		}
 		return &Hat{}, nil
 	})
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewServer(NewHaberdasherServer(h))
 	defer s.Close()
 
 	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
@@ -1279,7 +1428,7 @@ func TestContextValues(t *testing.T) {
 
 func TestPanicFlushing(t *testing.T) {
 	h := PanickyHatmaker("bang!")
-	s := httptest.NewUnstartedServer(NewHaberdasherServer(h, nil))
+	s := httptest.NewUnstartedServer(NewHaberdasherServer(h))
 	defer s.Close()
 	// If the server config's ErrorLog is left nil, then it will log the panic and
 	// a stack trace straight to stderr. Override it to log to test output.

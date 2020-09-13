@@ -86,3 +86,24 @@ func TestChainHooks(t *testing.T) {
 	// When none of the chained hooks has a handler there should be no panic.
 	chain.ResponseSent(ctx)
 }
+
+func TestWithServerPathPrefix(t *testing.T) {
+	opts := &ServerOptions{}
+
+	// Default value
+	if have, want := opts.PathPrefix(), "/twirp"; have != want {
+		t.Errorf("unexpected default PathPrefix() on ServerOptions, have: %q, want: %q", have, want)
+	}
+
+	// Set a different prefix
+	WithServerPathPrefix("/newprfx/foobar")(opts)
+	if have, want := opts.PathPrefix(), "/newprfx/foobar"; have != want {
+		t.Errorf("unexpected value after WithServerPathPrefix, have: %q, want: %q", have, want)
+	}
+
+	// Use empty value for no-prefix
+	WithServerPathPrefix("")(opts)
+	if have, want := opts.PathPrefix(), ""; have != want {
+		t.Errorf("unexpected value after WithServerPathPrefix, have: %q, want: %q", have, want)
+	}
+}

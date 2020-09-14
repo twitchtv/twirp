@@ -264,7 +264,7 @@ func ServerHTTPStatusFromErrorCode(code ErrorCode) int {
 	case Unauthenticated:
 		return 401 // Unauthorized
 	case ResourceExhausted:
-		return 403 // Forbidden
+		return 429 // Too Many Requests
 	case FailedPrecondition:
 		return 412 // Precondition Failed
 	case Aborted:

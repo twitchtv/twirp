@@ -14,7 +14,7 @@ Twirp server implementations can return regular errors too, but those
 will be wrapped with `twirp.InternalErrorWith(err)`, so they are also
 `twirp.Error` values when received by the clients.
 
-Check the [Errors Spec](spec_v5.md) for more information on error
+Check the [Errors Spec](spec_v7.md) for more information on error
 codes and the wire protocol.
 
 Also don't be afraid to open the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go)
@@ -52,7 +52,7 @@ Each error code is defined by a constant in the `twirp` package:
 | AlreadyExists      | already_exists      | 409 Conflict
 | PermissionDenied   | permission_denied   | 403 Forbidden
 | Unauthenticated    | unauthenticated     | 401 Unauthorized
-| ResourceExhausted  | resource_exhausted  | 403 Forbidden
+| ResourceExhausted  | resource_exhausted  | 429 Too Many Requests
 | FailedPrecondition | failed_precondition | 412 Precondition Failed
 | Aborted            | aborted             | 409 Conflict
 | OutOfRange         | out_of_range        | 400 Bad Request
@@ -61,7 +61,7 @@ Each error code is defined by a constant in the `twirp` package:
 | Unavailable        | unavailable         | 503 Service Unavailable
 | DataLoss           | dataloss            | 500 Internal Server Error
 
-For more information on each code, see the [Errors Spec](spec_v5.md).
+For more information on each code, see the [Errors Spec](spec_v7.md).
 
 ### HTTP Errors from Intermediary Proxies
 
@@ -123,8 +123,8 @@ part of the Protobuf messages (add an error field to proto messages).
 
 ### Writing HTTP Errors outside Twirp services
 
-Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses 
-and error codes _outside_ Twirp servers, such as http middlewares, you can call `twirp.WriteError`. 
+Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses
+and error codes _outside_ Twirp servers, such as http middlewares, you can call `twirp.WriteError`.
 
 The error is expected to satisfy a `twirp.Error`, otherwise it is wrapped with `twirp.InternalError`.
 
@@ -134,7 +134,7 @@ Usage:
 rpc.WriteError(w, twirp.NewError(twirp.Unauthenticated, "invalid token"))
 ```
 
-To simplify `twirp.Error` composition, a few constructors are available, such as `NotFoundError` 
+To simplify `twirp.Error` composition, a few constructors are available, such as `NotFoundError`
 and `RequiredArgumentError`. See [docs](https://godoc.org/github.com/twitchtv/twirp#Error).
 
 With constructor:

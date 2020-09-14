@@ -21,8 +21,9 @@ type ServerOption func(*ServerOptions)
 
 // ServerOptions encapsulate the configurable parameters on a Twirp client.
 type ServerOptions struct {
-	Hooks      *ServerHooks
-	pathPrefix *string
+	Hooks            *ServerHooks
+	pathPrefix       *string
+	JSONSkipDefaults bool
 }
 
 func (opts *ServerOptions) PathPrefix() string {
@@ -152,5 +153,18 @@ func ChainHooks(hooks ...*ServerHooks) *ServerHooks {
 func WithServerPathPrefix(prefix string) ServerOption {
 	return func(o *ServerOptions) {
 		o.pathPrefix = &prefix
+	}
+}
+
+// WithServerJSONSkipDefaults configures JSON serialization to skip
+// unpopulated or default values in JSON responses, which results in
+// smaller response sizes. This was the default before v7 and can be
+// enabled for full backwards compatibility if required.
+// This is now disabled by default, because JSON serialization is
+// commonly used for manual debugging, in which case it is useful
+// to see the full shape of the response.
+func WithServerJSONSkipDefaults(skipDefaults bool) ServerOption {
+	return func(o *ServerOptions) {
+		o.JSONSkipDefaults = skipDefaults
 	}
 }

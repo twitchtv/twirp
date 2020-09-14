@@ -199,8 +199,9 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 
 type compatServiceServer struct {
 	CompatService
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewCompatServiceServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -222,9 +223,10 @@ func NewCompatServiceServer(svc CompatService, opts ...interface{}) TwirpServer 
 	}
 
 	return &compatServiceServer{
-		CompatService: svc,
-		pathPrefix:    serverOpts.PathPrefix(),
-		hooks:         serverOpts.Hooks,
+		CompatService:    svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 
@@ -339,7 +341,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
+	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
@@ -468,7 +470,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
+	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return

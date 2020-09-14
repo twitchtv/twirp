@@ -104,8 +104,9 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 
 type emptyServer struct {
 	Empty
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewEmptyServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -127,9 +128,10 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 	}
 
 	return &emptyServer{
-		Empty:      svc,
-		pathPrefix: serverOpts.PathPrefix(),
-		hooks:      serverOpts.Hooks,
+		Empty:            svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 

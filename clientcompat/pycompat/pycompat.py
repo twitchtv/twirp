@@ -25,14 +25,14 @@ def main():
     client = clientcompat_pb2_twirp.CompatServiceClient(req.service_address)
     try:
         resp = do_request(client, req)
-        sys.stdout.write(resp.SerializeToString())
+        sys.stdout.write(resp.SerializeToString().decode(encoding="utf-8"))
     except clientcompat_pb2_twirp.TwirpException as e:
         sys.stderr.write(e.code)
 
 
 def read_request():
     input_str = sys.stdin.read()
-    return clientcompat_pb2.ClientCompatMessage.FromString(input_str)
+    return clientcompat_pb2.ClientCompatMessage.FromString(input_str.encode(encoding="utf-8"))
 
 
 def do_request(client, req):

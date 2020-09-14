@@ -307,7 +307,7 @@ func (s *echoServer) serveEchoJSON(ctx context.Context, resp http.ResponseWriter
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -363,7 +363,7 @@ func (s *echoServer) serveEchoProtobuf(ctx context.Context, resp http.ResponseWr
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }

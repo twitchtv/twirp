@@ -33,28 +33,28 @@ import json "encoding/json"
 import path "path"
 import url "net/url"
 
-// =====================
-// Haberdasher Interface
-// =====================
+// =======================
+// HaberdasherV1 Interface
+// =======================
 
 // A Haberdasher makes hats for clients.
-type Haberdasher interface {
+type HaberdasherV1 interface {
 	MakeHatV1(context.Context, *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error)
 }
 
-// ===========================
-// Haberdasher Protobuf Client
-// ===========================
+// =============================
+// HaberdasherV1 Protobuf Client
+// =============================
 
-type haberdasherProtobufClient struct {
+type haberdasherV1ProtobufClient struct {
 	client HTTPClient
 	urls   [1]string
 	opts   twirp.ClientOptions
 }
 
-// NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
+// NewHaberdasherV1ProtobufClient creates a Protobuf client that implements the HaberdasherV1 interface.
 // It communicates using Protobuf and can be configured with a custom HTTPClient.
-func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Haberdasher {
+func NewHaberdasherV1ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) HaberdasherV1 {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -66,21 +66,21 @@ func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twi
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "Haberdasher")
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
 	urls := [1]string{
 		serviceURL + "MakeHatV1",
 	}
 
-	return &haberdasherProtobufClient{
+	return &haberdasherV1ProtobufClient{
 		client: client,
 		urls:   urls,
 		opts:   clientOpts,
 	}
 }
 
-func (c *haberdasherProtobufClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+func (c *haberdasherV1ProtobufClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
-	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	out := new(MakeHatArgsV1_HatV1)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
@@ -98,19 +98,19 @@ func (c *haberdasherProtobufClient) MakeHatV1(ctx context.Context, in *MakeHatAr
 	return out, nil
 }
 
-// =======================
-// Haberdasher JSON Client
-// =======================
+// =========================
+// HaberdasherV1 JSON Client
+// =========================
 
-type haberdasherJSONClient struct {
+type haberdasherV1JSONClient struct {
 	client HTTPClient
 	urls   [1]string
 	opts   twirp.ClientOptions
 }
 
-// NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
+// NewHaberdasherV1JSONClient creates a JSON client that implements the HaberdasherV1 interface.
 // It communicates using JSON and can be configured with a custom HTTPClient.
-func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) Haberdasher {
+func NewHaberdasherV1JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOption) HaberdasherV1 {
 	if c, ok := client.(*http.Client); ok {
 		client = withoutRedirects(c)
 	}
@@ -122,21 +122,21 @@ func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.C
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "Haberdasher")
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
 	urls := [1]string{
 		serviceURL + "MakeHatV1",
 	}
 
-	return &haberdasherJSONClient{
+	return &haberdasherV1JSONClient{
 		client: client,
 		urls:   urls,
 		opts:   clientOpts,
 	}
 }
 
-func (c *haberdasherJSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
-	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	out := new(MakeHatArgsV1_HatV1)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
@@ -154,20 +154,20 @@ func (c *haberdasherJSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1
 	return out, nil
 }
 
-// ==========================
-// Haberdasher Server Handler
-// ==========================
+// ============================
+// HaberdasherV1 Server Handler
+// ============================
 
-type haberdasherServer struct {
-	Haberdasher
+type haberdasherV1Server struct {
+	HaberdasherV1
 	hooks      *twirp.ServerHooks
 	pathPrefix string // prefix for routing
 }
 
-// NewHaberdasherServer builds a TwirpServer that can be used as an http.Handler to handle
+// NewHaberdasherV1Server builds a TwirpServer that can be used as an http.Handler to handle
 // HTTP requests that are routed to the right method in the provided svc implementation.
 // The opts are twirp.ServerOption modifiers, for example twirp.WithServerHooks(hooks).
-func NewHaberdasherServer(svc Haberdasher, opts ...interface{}) TwirpServer {
+func NewHaberdasherV1Server(svc HaberdasherV1, opts ...interface{}) TwirpServer {
 	serverOpts := twirp.ServerOptions{}
 	for _, opt := range opts {
 		switch o := opt.(type) {
@@ -178,33 +178,33 @@ func NewHaberdasherServer(svc Haberdasher, opts ...interface{}) TwirpServer {
 		case nil: // backwards compatibility, allow nil value for the argument
 			continue
 		default:
-			panic(fmt.Sprintf("Invalid option type %T on NewHaberdasherServer", o))
+			panic(fmt.Sprintf("Invalid option type %T on NewHaberdasherV1Server", o))
 		}
 	}
 
-	return &haberdasherServer{
-		Haberdasher: svc,
-		pathPrefix:  serverOpts.PathPrefix(),
-		hooks:       serverOpts.Hooks,
+	return &haberdasherV1Server{
+		HaberdasherV1: svc,
+		pathPrefix:    serverOpts.PathPrefix(),
+		hooks:         serverOpts.Hooks,
 	}
 }
 
 // writeError writes an HTTP response with a valid Twirp error format, and triggers hooks.
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
-func (s *haberdasherServer) writeError(ctx context.Context, resp http.ResponseWriter, err error) {
+func (s *haberdasherV1Server) writeError(ctx context.Context, resp http.ResponseWriter, err error) {
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// HaberdasherPathPrefix is a convenience constant that could used to identify URL paths.
+// HaberdasherV1PathPrefix is a convenience constant that could used to identify URL paths.
 // Should be used with caution, it only matches routes generated by Twirp Go clients,
 // that add a "/twirp" prefix by default, and use CamelCase service and method names.
 // More info: https://twitchtv.github.io/twirp/docs/routing.html
-const HaberdasherPathPrefix = "/twirp/twirp.internal.twirptest.snake_case_names.Haberdasher/"
+const HaberdasherV1PathPrefix = "/twirp/twirp.internal.twirptest.snake_case_names.HaberdasherV1/"
 
-func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+func (s *haberdasherV1Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
-	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
 	ctx = ctxsetters.WithResponseWriter(ctx, resp)
 
 	var err error
@@ -222,7 +222,7 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 
 	// Verify path format: [<prefix>]/<package>.<Service>/<Method>
 	prefix, pkgService, method := parseTwirpPath(req.URL.Path)
-	if pkgService != "twirp.internal.twirptest.snake_case_names.Haberdasher" {
+	if pkgService != "twirp.internal.twirptest.snake_case_names.Haberdasher_v1" && pkgService != "twirp.internal.twirptest.snake_case_names.HaberdasherV1" {
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
 		s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))
 		return
@@ -234,7 +234,7 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 	}
 
 	switch method {
-	case "MakeHatV1":
+	case "MakeHat_v1", "MakeHatV1":
 		s.serveMakeHatV1(ctx, resp, req)
 		return
 	default:
@@ -244,7 +244,7 @@ func (s *haberdasherServer) ServeHTTP(resp http.ResponseWriter, req *http.Reques
 	}
 }
 
-func (s *haberdasherServer) serveMakeHatV1(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *haberdasherV1Server) serveMakeHatV1(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -262,7 +262,7 @@ func (s *haberdasherServer) serveMakeHatV1(ctx context.Context, resp http.Respon
 	}
 }
 
-func (s *haberdasherServer) serveMakeHatV1JSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *haberdasherV1Server) serveMakeHatV1JSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	ctx, err = callRequestRouted(ctx, s.hooks)
@@ -282,7 +282,7 @@ func (s *haberdasherServer) serveMakeHatV1JSON(ctx context.Context, resp http.Re
 	var respContent *MakeHatArgsV1_HatV1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Haberdasher.MakeHatV1(ctx, reqContent)
+		respContent, err = s.HaberdasherV1.MakeHatV1(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -312,12 +312,12 @@ func (s *haberdasherServer) serveMakeHatV1JSON(ctx context.Context, resp http.Re
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *haberdasherServer) serveMakeHatV1Protobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *haberdasherV1Server) serveMakeHatV1Protobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	ctx, err = callRequestRouted(ctx, s.hooks)
@@ -341,7 +341,7 @@ func (s *haberdasherServer) serveMakeHatV1Protobuf(ctx context.Context, resp htt
 	var respContent *MakeHatArgsV1_HatV1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Haberdasher.MakeHatV1(ctx, reqContent)
+		respContent, err = s.HaberdasherV1.MakeHatV1(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -368,24 +368,24 @@ func (s *haberdasherServer) serveMakeHatV1Protobuf(ctx context.Context, resp htt
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *haberdasherServer) ServiceDescriptor() ([]byte, int) {
+func (s *haberdasherV1Server) ServiceDescriptor() ([]byte, int) {
 	return twirpFileDescriptor0, 0
 }
 
-func (s *haberdasherServer) ProtocGenTwirpVersion() string {
+func (s *haberdasherV1Server) ProtocGenTwirpVersion() string {
 	return "v5.12.1"
 }
 
 // PathPrefix returns the base service path, in the form: "/<prefix>/<package>.<Service>/"
 // that is everything in a Twirp route except for the <Method>. This can be used for routing,
 // for example to identify the requests that are targeted to this service in a mux.
-func (s *haberdasherServer) PathPrefix() string {
-	return baseServicePath(s.pathPrefix, "twirp.internal.twirptest.snake_case_names", "Haberdasher")
+func (s *haberdasherV1Server) PathPrefix() string {
+	return baseServicePath(s.pathPrefix, "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
 }
 
 // =====
@@ -933,7 +933,7 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 224 bytes of a gzipped FileDescriptorProto
+	// 225 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2b, 0xce, 0x4b, 0xcc,
 	0x4e, 0x8d, 0x4f, 0x4e, 0x2c, 0x4e, 0x8d, 0xcf, 0x4b, 0xcc, 0x4d, 0x2d, 0xd6, 0x2b, 0x28, 0xca,
 	0x2f, 0xc9, 0x17, 0xd2, 0x2c, 0x29, 0xcf, 0x2c, 0x2a, 0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca,
@@ -943,9 +943,10 @@ var twirpFileDescriptor0 = []byte{
 	0x4a, 0x30, 0x2a, 0x30, 0x6a, 0xb0, 0x06, 0x81, 0xd9, 0x42, 0x22, 0x5c, 0xac, 0xc9, 0xf9, 0x39,
 	0xf9, 0x45, 0x12, 0x4c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x10, 0x0e, 0x48, 0x25, 0xc8, 0x38, 0x09,
 	0x66, 0xb0, 0x20, 0x98, 0x2d, 0xa5, 0xc8, 0xc5, 0x1e, 0x9c, 0x59, 0x95, 0x0a, 0x32, 0x48, 0x8c,
-	0x8b, 0x2d, 0x33, 0x2f, 0x39, 0x23, 0xb5, 0x18, 0x6a, 0x14, 0x94, 0x67, 0xb4, 0x90, 0x91, 0x8b,
-	0xdb, 0x23, 0x31, 0x29, 0xb5, 0x28, 0x25, 0xb1, 0x38, 0x23, 0xb5, 0x48, 0x68, 0x22, 0x23, 0x17,
-	0x17, 0xd4, 0x35, 0x20, 0x6d, 0x8e, 0x7a, 0x44, 0xfb, 0x43, 0x0f, 0xd5, 0x13, 0x7a, 0x50, 0x9b,
-	0xa5, 0x1c, 0xc8, 0x37, 0x02, 0xe2, 0x08, 0x27, 0xa1, 0x28, 0x01, 0x74, 0x95, 0x49, 0x6c, 0xe0,
-	0x60, 0x36, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xe5, 0x7b, 0xaf, 0xa9, 0x80, 0x01, 0x00, 0x00,
+	0x8b, 0x2d, 0x33, 0x2f, 0x39, 0x23, 0xb5, 0x18, 0x6a, 0x14, 0x94, 0x67, 0xb4, 0x84, 0x91, 0x8b,
+	0xcf, 0x23, 0x31, 0x29, 0xb5, 0x28, 0x25, 0xb1, 0x38, 0x23, 0xb5, 0x08, 0xa4, 0x74, 0x22, 0x23,
+	0x17, 0x17, 0xd4, 0x41, 0x20, 0xae, 0xa3, 0x1e, 0xd1, 0x5e, 0xd1, 0x43, 0xf5, 0x87, 0x1e, 0xd4,
+	0x72, 0x29, 0x07, 0xf2, 0x8d, 0x80, 0x38, 0xc2, 0x49, 0x28, 0x4a, 0x00, 0x5d, 0x65, 0x12, 0x1b,
+	0x38, 0xa4, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x3c, 0xa6, 0x01, 0xae, 0x83, 0x01, 0x00,
+	0x00,
 }

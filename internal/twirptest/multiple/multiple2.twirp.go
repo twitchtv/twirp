@@ -341,7 +341,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -397,7 +397,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -470,7 +470,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }
@@ -526,7 +526,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 	if n, err := resp.Write(respBytes); err != nil {
 		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
 		twerr := twirp.NewError(twirp.Unknown, msg)
-		callError(ctx, s.hooks, twerr)
+		ctx = callError(ctx, s.hooks, twerr)
 	}
 	callResponseSent(ctx, s.hooks)
 }

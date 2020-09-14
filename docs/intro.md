@@ -72,7 +72,7 @@ func (s *HelloWorldServer) Hello(ctx context.Context, req *pb.HelloReq) (*pb.Hel
 
 // Run the implementation in a local server
 func main() {
-	twirpHandler := pb.NewHelloWorldServer(&HelloWorldServer{}, nil)
+	twirpHandler := pb.NewHelloWorldServer(&HelloWorldServer{})
 	// You can use any mux you like - NewHelloWorldServer gives you an http.Handler.
 	mux := http.NewServeMux()
 	// The generated code includes a method, PathPrefix(), which

@@ -35,8 +35,7 @@ import (
 )
 
 type twirp struct {
-	filesHandled   int
-	currentPackage string // Go name of current package we're working on
+	filesHandled int
 
 	reg *typemap.Registry
 
@@ -93,6 +92,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	// Register names of packages that we import.
 	t.registerPackageName("bytes")
 	t.registerPackageName("strings")
+	t.registerPackageName("path")
 	t.registerPackageName("ctxsetters")
 	t.registerPackageName("context")
 	t.registerPackageName("http")
@@ -277,24 +277,16 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 		return
 	}
 
-	allServicesEmpty := true
-	for _, s := range file.Service {
-		if len(s.Method) > 0 {
-			allServicesEmpty = false
-		}
-	}
-
+	// stdlib imports
 	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
-	// strings package is only used in generated method code.
-	if !allServicesEmpty {
-		t.P(`import `, t.pkgs["strings"], ` "strings"`)
-	}
+	t.P(`import `, t.pkgs["strings"], ` "strings"`)
 	t.P(`import `, t.pkgs["context"], ` "context"`)
 	t.P(`import `, t.pkgs["fmt"], ` "fmt"`)
 	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
 	t.P(`import `, t.pkgs["http"], ` "net/http"`)
 	t.P(`import `, t.pkgs["strconv"], ` "strconv"`)
 	t.P()
+	// dependency imports
 	t.P(`import `, t.pkgs["jsonpb"], ` "github.com/golang/protobuf/jsonpb"`)
 	t.P(`import `, t.pkgs["proto"], ` "github.com/golang/protobuf/proto"`)
 	t.P(`import `, t.pkgs["twirp"], ` "github.com/twitchtv/twirp"`)
@@ -347,6 +339,7 @@ func (t *twirp) generateUtilImports() {
 	t.P("// Imports only used by utility functions:")
 	t.P(`import `, t.pkgs["io"], ` "io"`)
 	t.P(`import `, t.pkgs["json"], ` "encoding/json"`)
+	t.P(`import `, t.pkgs["path"], ` "path"`)
 	t.P(`import `, t.pkgs["url"], ` "net/url"`)
 }
 
@@ -372,22 +365,26 @@ func (t *twirp) generateUtils() {
 	t.P(`// Most people can think of TwirpServers as just http.Handlers.`)
 	t.P(`type TwirpServer interface {`)
 	t.P(`  `, t.pkgs["http"], `.Handler`)
-	t.P(`	// ServiceDescriptor returns gzipped bytes describing the .proto file that`)
-	t.P(`	// this service was generated from. Once unzipped, the bytes can be`)
-	t.P(`	// unmarshalled as a`)
-	t.P(`	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.`)
-	t.P(` //`)
-	t.P(`	// The returned integer is the index of this particular service within that`)
-	t.P(`	// FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a`)
-	t.P(`	// low-level field, expected to be used for reflection.`)
-	t.P(`	ServiceDescriptor() ([]byte, int)`)
-	t.P(`	// ProtocGenTwirpVersion is the semantic version string of the version of`)
-	t.P(`	// twirp used to generate this file.`)
-	t.P(`	ProtocGenTwirpVersion() string`)
-	t.P(`// PathPrefix returns the HTTP URL path prefix for all methods handled by this`)
-	t.P(`// service. This can be used with an HTTP mux to route twirp requests`)
-	t.P(`// alongside non-twirp requests on one HTTP listener.`)
-	t.P(`	PathPrefix() string`)
+	t.P()
+	t.P(`  // ServiceDescriptor returns gzipped bytes describing the .proto file that`)
+	t.P(`  // this service was generated from. Once unzipped, the bytes can be`)
+	t.P(`  // unmarshalled as a`)
+	t.P(`  // github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.`)
+	t.P(`  //`)
+	t.P(`  // The returned integer is the index of this particular service within that`)
+	t.P(`  // FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a`)
+	t.P(`  // low-level field, expected to be used for reflection.`)
+	t.P(`  ServiceDescriptor() ([]byte, int)`)
+	t.P()
+	t.P(`  // ProtocGenTwirpVersion is the semantic version string of the version of`)
+	t.P(`  // twirp used to generate this file.`)
+	t.P(`  ProtocGenTwirpVersion() string`)
+	t.P()
+	t.P(`  // PathPrefix returns the HTTP URL path prefix for all methods handled by this`)
+	t.P(`  // service. This can be used with an HTTP mux to route Twirp requests.`)
+	t.P(`  // The path prefix is in the form: "/<prefix>/<package>.<Service>/"`)
+	t.P(`  // that is, everything in a Twirp route except for the <Method> at the end.`)
+	t.P(`  PathPrefix() string`)
 	t.P(`}`)
 	t.P()
 
@@ -440,19 +437,46 @@ func (t *twirp) generateUtils() {
 	t.P(`}`)
 	t.P()
 
-	t.P(`// urlBase helps ensure that addr specifies a scheme. If it is unparsable`)
-	t.P(`// as a URL, it returns addr unchanged.`)
-	t.P(`func urlBase(addr string) string {`)
-	t.P(`  // If the addr specifies a scheme, use it. If not, default to`)
-	t.P(`  // http. If url.Parse fails on it, return it unchanged.`)
-	t.P(`  url, err := `, t.pkgs["url"], `.Parse(addr)`)
+	t.P(`// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.`)
+	t.P(`// If the URL is unparsable, the baseURL is returned unchaged.`)
+	t.P(`func sanitizeBaseURL(baseURL string) string {`)
+	t.P(`  u, err := `, t.pkgs["url"], `.Parse(baseURL)`)
 	t.P(`  if err != nil {`)
-	t.P(`    return addr`)
+	t.P(`    return baseURL // invalid URL will fail later when making requests`)
 	t.P(`  }`)
-	t.P(`  if url.Scheme == "" {`)
-	t.P(`    url.Scheme = "http"`)
+	t.P(`  if u.Scheme == "" {`)
+	t.P(`    u.Scheme = "http"`)
 	t.P(`  }`)
-	t.P(`  return url.String()`)
+	t.P(`  return u.String()`)
+	t.P(`}`)
+	t.P()
+
+	t.P(`// baseServicePath composes the path prefix for the service (without <Method>).`)
+	t.P(`// e.g.: baseServicePath("/twirp", "my.pkg", "MyService")`)
+	t.P(`//       returns => "/twirp/my.pkg.MyService/"`)
+	t.P(`// e.g.: baseServicePath("", "", "MyService")`)
+	t.P(`//       returns => "/MyService/"`)
+	t.P(`func baseServicePath(prefix, pkg, service string) string {`)
+	t.P(`  fullServiceName := service`)
+	t.P(`  if pkg != "" {`)
+	t.P(`    fullServiceName = pkg + "." + service`)
+	t.P(`  }`)
+	t.P(`  return path.Join("/", prefix, fullServiceName) + "/"`)
+	t.P(`}`)
+	t.P()
+
+	t.P(`// parseTwirpPath extracts path components form a valid Twirp route.`)
+	t.P(`// Expected format: "[<prefix>]/<package>.<Service>/<Method>"`)
+	t.P(`// e.g.: prefix, pkgService, method := parseTwirpPath("/twirp/pkg.Svc/MakeHat")`)
+	t.P(`func parseTwirpPath(path string) (string, string, string) {`)
+	t.P(`  parts := `, t.pkgs["strings"], `.Split(path, "/")`)
+	t.P(`  if len(parts) < 2 {`)
+	t.P(`    return "", "", ""`)
+	t.P(`  }`)
+	t.P(`  method := parts[len(parts)-1]`)
+	t.P(`  pkgService := parts[len(parts)-2]`)
+	t.P(`  prefix := `, t.pkgs["strings"], `.Join(parts[0:len(parts)-2], "/")`)
+	t.P(`  return prefix, pkgService, method`)
 	t.P(`}`)
 	t.P()
 
@@ -880,7 +904,7 @@ func (t *twirp) sectionComment(sectionTitle string) {
 }
 
 func (t *twirp) generateService(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, index int) {
-	servName := serviceName(service)
+	servName := serviceNameCamelCased(service)
 
 	t.sectionComment(servName + ` Interface`)
 	t.generateTwirpInterface(file, service)
@@ -897,7 +921,7 @@ func (t *twirp) generateService(file *descriptor.FileDescriptorProto, service *d
 }
 
 func (t *twirp) generateTwirpInterface(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
-	servName := serviceName(service)
+	servName := serviceNameCamelCased(service)
 
 	comments, err := t.reg.ServiceComments(file, service)
 	if err == nil {
@@ -916,7 +940,7 @@ func (t *twirp) generateTwirpInterface(file *descriptor.FileDescriptorProto, ser
 }
 
 func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) string {
-	methName := methodName(method)
+	methName := methodNameCamelCased(method)
 	inputType := t.goTypeName(method.GetInputType())
 	outputType := t.goTypeName(method.GetOutputType())
 	return fmt.Sprintf(`	%s(%s.Context, *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
@@ -924,8 +948,8 @@ func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) stri
 
 // valid names: 'JSON', 'Protobuf'
 func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
-	servName := serviceName(service)
-	pathPrefixConst := servName + "PathPrefix"
+	servPkg := pkgName(file)
+	servName := serviceNameCamelCased(service)
 	structName := unexported(servName) + name + "Client"
 	newClientFunc := "New" + servName + name + "Client"
 
@@ -938,7 +962,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P()
 	t.P(`// `, newClientFunc, ` creates a `, name, ` client that implements the `, servName, ` interface.`)
 	t.P(`// It communicates using `, name, ` and can be configured with a custom HTTPClient.`)
-	t.P(`func `, newClientFunc, `(addr string, client HTTPClient, opts ...`, t.pkgs["twirp"], `.ClientOption) `, servName, ` {`)
+	t.P(`func `, newClientFunc, `(baseURL string, client HTTPClient, opts ...`, t.pkgs["twirp"], `.ClientOption) `, servName, ` {`)
 	t.P(`  if c, ok := client.(*`, t.pkgs["http"], `.Client); ok {`)
 	t.P(`    client = withoutRedirects(c)`)
 	t.P(`  }`)
@@ -949,11 +973,13 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`  }`)
 	t.P()
 	if len(service.Method) > 0 {
-		t.P(`  prefix := urlBase(addr) + `, pathPrefixConst)
+		t.P(`  // Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>`)
+		t.P(`  serviceURL := sanitizeBaseURL(baseURL)`)
+		t.P(`  serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servName, `")`)
 	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
-		t.P(`    	prefix + "`, methodName(method), `",`)
+		t.P(`    serviceURL + "`, methodNameCamelCased(method), `",`)
 	}
 	t.P(`  }`)
 	t.P()
@@ -966,7 +992,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P()
 
 	for i, method := range service.Method {
-		methName := methodName(method)
+		methName := methodNameCamelCased(method)
 		pkgName := pkgName(file)
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
@@ -1019,21 +1045,40 @@ func (t *twirp) generateClientHooks() {
 }
 
 func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
-	servName := serviceName(service)
+	servName := serviceNameCamelCased(service)
 
 	// Server implementation.
 	servStruct := serviceStruct(service)
 	t.P(`type `, servStruct, ` struct {`)
 	t.P(`  `, servName)
 	t.P(`  hooks     *`, t.pkgs["twirp"], `.ServerHooks`)
+	t.P(`  pathPrefix string // prefix for routing`)
 	t.P(`}`)
 	t.P()
 
 	// Constructor for server implementation
-	t.P(`func New`, servName, `Server(svc `, servName, `, hooks *`, t.pkgs["twirp"], `.ServerHooks) TwirpServer {`)
+	t.P(`// New`, servName, `Server builds a TwirpServer that can be used as an http.Handler to handle`)
+	t.P(`// HTTP requests that are routed to the right method in the provided svc implementation.`)
+	t.P(`// The opts are twirp.ServerOption modifiers, for example twirp.WithServerHooks(hooks).`)
+	t.P(`func New`, servName, `Server(svc `, servName, `, opts ...interface{}) TwirpServer {`)
+	t.P(`  serverOpts := `, t.pkgs["twirp"], `.ServerOptions{}`)
+	t.P(`  for _, opt := range opts {`)
+	t.P(`    switch o := opt.(type) {`)
+	t.P(`    case `, t.pkgs["twirp"], `.ServerOption:`)
+	t.P(`      o(&serverOpts)`)
+	t.P(`    case *`, t.pkgs["twirp"], `.ServerHooks: // backwards compatibility, allow to specify hooks as an argument`)
+	t.P(`      twirp.WithServerHooks(o)(&serverOpts)`)
+	t.P(`    case nil: // backwards compatibility, allow nil value for the argument`)
+	t.P(`      continue`)
+	t.P(`    default:`)
+	t.P(`      panic(`, t.pkgs["fmt"], `.Sprintf("Invalid option type %T on New`, servName, `Server", o))`)
+	t.P(`    }`)
+	t.P(`  }`)
+	t.P()
 	t.P(`  return &`, servStruct, `{`)
 	t.P(`    `, servName, `: svc,`)
-	t.P(`    hooks: hooks,`)
+	t.P(`    pathPrefix: serverOpts.PathPrefix(),`)
+	t.P(`    hooks: serverOpts.Hooks,`)
 	t.P(`  }`)
 	t.P(`}`)
 	t.P()
@@ -1057,39 +1102,17 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.generateServiceMetadataAccessors(file, service)
 }
 
-// pathPrefix returns the base path for all methods handled by a particular
-// service. It includes a trailing slash. (for example
-// "/twirp/twitch.example.Haberdasher/").
-func pathPrefix(file *descriptor.FileDescriptorProto, serviceName string) string {
-	return fmt.Sprintf("/twirp/%s/", fullServiceName(file, serviceName))
-}
-
-// literalPathFor returns the complete path as defined in the Proto file.
-// For example, with package "foo.bar", service "MyService_v2", and
-// method "MyMethod_v2", it returns "foo.bar.MyService_v2/MyMethod_v2"
-func literalPathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
-	return pathPrefix(file, service.GetName()) + method.GetName()
-}
-
-// camelCasedPathFor returns the complete path but CamelCasing service
-// and method names. This is needed for backwards compatibility with Go clients.
-// For example, with package "foo.bar", service "MyService_v2", and
-// method "MyMethod_v2", it returns "foo.bar.MyServiceV2/MyMethodV2"
-// To learn more, check: https://twitchtv.github.io/twirp/docs/routing.html#http-routes
-func camelCasedPathFor(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) string {
-	return pathPrefix(file, stringutils.CamelCase(service.GetName())) + stringutils.CamelCase(method.GetName())
-
-}
-
 func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
 	pkgName := pkgName(file)
-	servName := serviceName(service)
+	servName := serviceNameCamelCased(service)
+	pkgServNameLit := pkgServiceNameLiteral(file, service)
+	pkgServNameCc := pkgServiceNameCamelCased(file, service)
 
-	pathPrefixConst := servName + "PathPrefix"
-	t.P(`// `, pathPrefixConst, ` is used for all URL paths on a twirp `, servName, ` server.`)
-	t.P(`// Requests are always: POST `, pathPrefixConst, `/method`)
-	t.P(`// It can be used in an HTTP mux to route twirp requests along with non-twirp requests on other routes.`)
-	t.P(`const `, pathPrefixConst, ` = `, strconv.Quote(pathPrefix(file, stringutils.CamelCase(service.GetName()))))
+	t.P(`// `, servName, `PathPrefix is a convenience constant that could used to identify URL paths.`)
+	t.P(`// Should be used with caution, it only matches routes generated by Twirp Go clients,`)
+	t.P(`// that add a "/twirp" prefix by default, and use CamelCase service and method names.`)
+	t.P(`// More info: https://twitchtv.github.io/twirp/docs/routing.html`)
+	t.P(`const `, servName, `PathPrefix = "/twirp/`, pkgServNameCc, `/"`)
 	t.P()
 
 	t.P(`func (s *`, servStruct, `) ServeHTTP(resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
@@ -1107,28 +1130,43 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	t.P()
 	t.P(`  if req.Method != "POST" {`)
 	t.P(`    msg := `, t.pkgs["fmt"], `.Sprintf("unsupported method %q (only POST is allowed)", req.Method)`)
-	t.P(`    err = badRouteError(msg, req.Method, req.URL.Path)`)
-	t.P(`    s.writeError(ctx, resp, err)`)
+	t.P(`    s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))`)
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
-	t.P(`  switch req.URL.Path {`)
+	t.P(`  // Verify path format: [<prefix>]/<package>.<Service>/<Method>`)
+	t.P(`  prefix, pkgService, method := parseTwirpPath(req.URL.Path)`)
+	if pkgServNameLit == pkgServNameCc {
+		t.P(`  if pkgService != `, strconv.Quote(pkgServNameLit), ` {`)
+	} else { // proto service name is not CamelCased, but need to support CamelCased routes for Go clients (https://github.com/twitchtv/twirp/pull/257)
+		t.P(`  if pkgService != `, strconv.Quote(pkgServNameLit), ` && pkgService != `, strconv.Quote(pkgServNameCc), ` {`)
+	}
+	t.P(`    msg := `, t.pkgs["fmt"], `.Sprintf("no handler for path %q", req.URL.Path)`)
+	t.P(`    s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))`)
+	t.P(`    return`)
+	t.P(`  }`)
+	t.P(`  if prefix != s.pathPrefix {`)
+	t.P(`    msg := `, t.pkgs["fmt"], `.Sprintf("invalid path prefix %q, expected %q, on path %q", prefix, s.pathPrefix, req.URL.Path)`)
+	t.P(`    s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))`)
+	t.P(`    return`)
+	t.P(`  }`)
+	t.P()
+	t.P(`  switch method {`)
 	for _, method := range service.Method {
-		methName := "serve" + stringutils.CamelCase(method.GetName())
-		path := literalPathFor(file, service, method)      // spec compliant
-		pathCc := camelCasedPathFor(file, service, method) // go clients
-		if path == pathCc {
-			t.P(`  case `, strconv.Quote(path), `:`)
-		} else {
-			t.P(`  case `, strconv.Quote(path), `, `, strconv.Quote(pathCc), `:`)
+		methNameLit := methodNameLiteral(method)
+		methNameCc := methodNameCamelCased(method)
+
+		if methNameCc == methNameLit {
+			t.P(`  case `, strconv.Quote(methNameLit), `:`)
+		} else { // proto method name is not CamelCased, but need to support CamelCased routes for Go clients (https://github.com/twitchtv/twirp/pull/257)
+			t.P(`  case `, strconv.Quote(methNameLit), `, `, strconv.Quote(methNameCc), `:`)
 		}
-		t.P(`    s.`, methName, `(ctx, resp, req)`)
+		t.P(`    s.serve`, methNameCc, `(ctx, resp, req)`)
 		t.P(`    return`)
 	}
 	t.P(`  default:`)
 	t.P(`    msg := `, t.pkgs["fmt"], `.Sprintf("no handler for path %q", req.URL.Path)`)
-	t.P(`    err = badRouteError(msg, req.Method, req.URL.Path)`)
-	t.P(`    s.writeError(ctx, resp, err)`)
+	t.P(`    s.writeError(ctx, resp, badRouteError(msg, req.Method, req.URL.Path))`)
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P(`}`)
@@ -1136,15 +1174,15 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 }
 
 func (t *twirp) generateServerMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
-	methName := stringutils.CamelCase(method.GetName())
+	methName := methodNameCamelCased(method)
 	servStruct := serviceStruct(service)
 	t.P(`func (s *`, servStruct, `) serve`, methName, `(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
 	t.P(`  header := req.Header.Get("Content-Type")`)
-	t.P(`  i := strings.Index(header, ";")`)
+	t.P(`  i := `, t.pkgs["strings"], `.Index(header, ";")`)
 	t.P(`  if i == -1 {`)
 	t.P(`    i = len(header)`)
 	t.P(`  }`)
-	t.P(`  switch strings.TrimSpace(strings.ToLower(header[:i])) {`)
+	t.P(`  switch `, t.pkgs["strings"], `.TrimSpace(`, t.pkgs["strings"], `.ToLower(header[:i])) {`)
 	t.P(`  case "application/json":`)
 	t.P(`    s.serve`, methName, `JSON(ctx, resp, req)`)
 	t.P(`  case "application/protobuf":`)
@@ -1162,8 +1200,8 @@ func (t *twirp) generateServerMethod(service *descriptor.ServiceDescriptorProto,
 
 func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	servStruct := serviceStruct(service)
-	methName := stringutils.CamelCase(method.GetName())
-	servName := serviceName(service)
+	methName := methodNameCamelCased(method)
+	servName := serviceNameCamelCased(service)
 	t.P(`func (s *`, servStruct, `) serve`, methName, `JSON(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
 	t.P(`  var err error`)
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
@@ -1214,7 +1252,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
 	t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
 	t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
-	t.P(`    callError(ctx, s.hooks, twerr)`)
+	t.P(`    ctx = callError(ctx, s.hooks, twerr)`)
 	t.P(`  }`)
 	t.P(`  callResponseSent(ctx, s.hooks)`)
 	t.P(`}`)
@@ -1223,8 +1261,8 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 
 func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	servStruct := serviceStruct(service)
-	methName := stringutils.CamelCase(method.GetName())
-	servName := serviceName(service)
+	methName := methodNameCamelCased(method)
+	servName := serviceNameCamelCased(service)
 	t.P(`func (s *`, servStruct, `) serve`, methName, `Protobuf(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, req *`, t.pkgs["http"], `.Request) {`)
 	t.P(`  var err error`)
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
@@ -1276,7 +1314,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`  if n, err := resp.Write(respBytes); err != nil {`)
 	t.P(`    msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())`)
 	t.P(`    twerr := `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Unknown, msg)`)
-	t.P(`    callError(ctx, s.hooks, twerr)`)
+	t.P(`    ctx = callError(ctx, s.hooks, twerr)`)
 	t.P(`  }`)
 	t.P(`  callResponseSent(ctx, s.hooks)`)
 	t.P(`}`)
@@ -1297,6 +1335,8 @@ func (t *twirp) serviceMetadataVarName() string {
 
 func (t *twirp) generateServiceMetadataAccessors(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) {
 	servStruct := serviceStruct(service)
+	servPkg := pkgName(file)
+
 	index := 0
 	for i, s := range file.Service {
 		if s.GetName() == service.GetName() {
@@ -1311,8 +1351,12 @@ func (t *twirp) generateServiceMetadataAccessors(file *descriptor.FileDescriptor
 	t.P(`  return `, strconv.Quote(gen.Version))
 	t.P(`}`)
 	t.P()
+	t.P(`// PathPrefix returns the base service path, in the form: "/<prefix>/<package>.<Service>/"`)
+	t.P(`// that is everything in a Twirp route except for the <Method>. This can be used for routing,`)
+	t.P(`// for example to identify the requests that are targeted to this service in a mux.`)
 	t.P(`func (s *`, servStruct, `) PathPrefix() (string) {`)
-	t.P(`  return `, serviceName(service), `PathPrefix`)
+	servName := serviceNameCamelCased(service) // it should be serviceNameLiteral(service), but needs to use CamelCase routes for backwards compatibility
+	t.P(`  return baseServicePath(s.pathPrefix, "`, servPkg, `", "`, servName, `") `)
 	t.P(`}`)
 }
 
@@ -1328,7 +1372,7 @@ func (t *twirp) generateFileDescriptor(file *descriptor.FileDescriptorProto) {
 
 	var buf bytes.Buffer
 	w, _ := gzip.NewWriterLevel(&buf, gzip.BestCompression)
-	w.Write(b)
+	_, _ = w.Write(b)
 	w.Close()
 	b = buf.Bytes()
 
@@ -1418,27 +1462,44 @@ func (t *twirp) formattedOutput() string {
 
 func unexported(s string) string { return strings.ToLower(s[:1]) + s[1:] }
 
-func fullServiceName(file *descriptor.FileDescriptorProto, name string) string {
+func pkgName(file *descriptor.FileDescriptorProto) string {
+	return file.GetPackage()
+}
+
+func serviceNameCamelCased(service *descriptor.ServiceDescriptorProto) string {
+	return stringutils.CamelCase(service.GetName())
+}
+
+func serviceNameLiteral(service *descriptor.ServiceDescriptorProto) string {
+	return service.GetName()
+}
+
+func pkgServiceNameCamelCased(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
+	name := serviceNameCamelCased(service)
 	if pkg := pkgName(file); pkg != "" {
 		name = pkg + "." + name
 	}
 	return name
 }
 
-func pkgName(file *descriptor.FileDescriptorProto) string {
-	return file.GetPackage()
-}
-
-func serviceName(service *descriptor.ServiceDescriptorProto) string {
-	return stringutils.CamelCase(service.GetName())
+func pkgServiceNameLiteral(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) string {
+	name := serviceNameLiteral(service)
+	if pkg := pkgName(file); pkg != "" {
+		name = pkg + "." + name
+	}
+	return name
 }
 
 func serviceStruct(service *descriptor.ServiceDescriptorProto) string {
-	return unexported(serviceName(service)) + "Server"
+	return unexported(serviceNameCamelCased(service)) + "Server"
 }
 
-func methodName(method *descriptor.MethodDescriptorProto) string {
+func methodNameCamelCased(method *descriptor.MethodDescriptorProto) string {
 	return stringutils.CamelCase(method.GetName())
+}
+
+func methodNameLiteral(method *descriptor.MethodDescriptorProto) string {
+	return method.GetName()
 }
 
 func fileDescSliceContains(slice []*descriptor.FileDescriptorProto, f *descriptor.FileDescriptorProto) bool {

@@ -44,8 +44,7 @@ You will also need:
 
 ### Documentation
 
-Thorough documentation is
-[on the website](https://twitchtv.github.io/twirp/docs/intro.html).
+On the website: https://twitchtv.github.io/twirp/docs/intro.html
 
 Source for this documentation is in the [docs](./docs) subdirectory. The website
 is generated from that folder using [Docusaurus](https://docusaurus.io/).

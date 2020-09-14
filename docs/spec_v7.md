@@ -1,13 +1,11 @@
 ---
-id: "spec_v5"
-title: "Twirp Wire Protocol (v5)"
-sidebar_label: "Version 5 (Current)"
+id: "spec_v7"
+title: "Twirp Wire Protocol (v7)"
+sidebar_label: "Version 7 (Draft)"
 ---
 
-This document defines the initial Twirp wire protocol over HTTP.
-The version 5 of the protocol was the initial version released to
-the public. If you are working on a new implementation of Twirp,
-please use the latest version of the spec.
+This document defines the Twirp wire protocol over HTTP. The
+current protocol version is v7.
 
 ## Overview
 
@@ -32,7 +30,7 @@ In [ABNF syntax](https://tools.ietf.org/html/rfc5234), Twirp's URLs
 have the following format:
 
 ```abnf
-URL ::= Base-URL "/twirp/" [ Package "." ] Service "/" Method
+URL ::= Base-URL [ Prefix ] "/" [ Package "." ] Service "/" Method
 ```
 
 The Twirp wire protocol uses HTTP URLs to specify the RPC
@@ -44,6 +42,8 @@ the following components.
   typically published via API documentation or service discovery.
   Currently, it should only contain URL `scheme` and `authority`. For
   example, "https://example.com".
+* **Prefix** is usually "/twirp", but it could be empty "", or an
+  arbitrary path like "/my/custom/prefix".
 * **Package** is the proto `package` name for an API, which is often
   considered as an API version. For example,
   `example.calendar.v1`. This component is omitted if the API

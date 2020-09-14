@@ -22,7 +22,22 @@ type ClientOption func(*ClientOptions)
 
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
-	Hooks *ClientHooks
+	Hooks      *ClientHooks
+	pathPrefix *string
+}
+
+func (opts *ClientOptions) PathPrefix() string {
+	if opts.pathPrefix == nil {
+		return "/twirp" // default prefix
+	}
+	return *opts.pathPrefix
+}
+
+// WithClientHooks defines the hooks for a Twirp client.
+func WithClientHooks(hooks *ClientHooks) ClientOption {
+	return func(o *ClientOptions) {
+		o.Hooks = hooks
+	}
 }
 
 // ClientHooks is a container for callbacks that can instrument a
@@ -34,13 +49,13 @@ type ClientOptions struct {
 // returns non-nil error, handling for that request will be stopped at that
 // point. The Error hook will then be triggered.
 //
-// The RequestPrepaared hook will always be called first and will be called for
+// The RequestPrepared hook will always be called first and will be called for
 // each outgoing request from the Twirp client. The last hook to be called
 // will either be Error or ResponseReceived, so be sure to handle both cases in
 // your hooks.
 type ClientHooks struct {
-	// RequestPrepared is called as soon as a request has been created and before it has been sent
-	// to the Twirp server.
+	// RequestPrepared is called as soon as a request has been created and before
+	// it has been sent to the Twirp server.
 	RequestPrepared func(context.Context, *http.Request) (context.Context, error)
 
 	// ResponseReceived is called after a request has finished sending. Since this
@@ -51,13 +66,6 @@ type ClientHooks struct {
 	// Error hook is called whenever an error occurs during the sending of a
 	// request. The Error is passed as an argument to the hook.
 	Error func(context.Context, Error)
-}
-
-// WithClientHooks defines the hooks for a Twirp client.
-func WithClientHooks(hooks *ClientHooks) ClientOption {
-	return func(o *ClientOptions) {
-		o.Hooks = hooks
-	}
 }
 
 // ChainClientHooks creates a new *ClientHooks which chains the callbacks in
@@ -100,5 +108,17 @@ func ChainClientHooks(hooks ...*ClientHooks) *ClientHooks {
 				}
 			}
 		},
+	}
+}
+
+// WithClientPathPrefix specifies a different prefix to use for routing.
+// If not specified, the "/twirp" prefix is used by default.
+// The service must be configured to serve on the same prefix.
+// An empty value "" can be speficied to use no prefix.
+// URL format: "<baseURL>[<prefix>]/<package>.<Service>/<Method>"
+// More info on Twirp docs: https://twitchtv.github.io/twirp/docs/routing.html
+func WithClientPathPrefix(prefix string) ClientOption {
+	return func(o *ClientOptions) {
+		o.pathPrefix = &prefix
 	}
 }

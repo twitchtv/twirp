@@ -10,10 +10,34 @@
 // an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-
 package twirp
 
-import "context"
+import (
+	"context"
+)
+
+// ServerOption is a functional option for extending a Twirp client.
+type ServerOption func(*ServerOptions)
+
+// ServerOptions encapsulate the configurable parameters on a Twirp client.
+type ServerOptions struct {
+	Hooks      *ServerHooks
+	pathPrefix *string
+}
+
+func (opts *ServerOptions) PathPrefix() string {
+	if opts.pathPrefix == nil {
+		return "/twirp" // default prefix
+	}
+	return *opts.pathPrefix
+}
+
+// WithServerHooks defines the hooks for a Twirp server.
+func WithServerHooks(hooks *ServerHooks) ServerOption {
+	return func(o *ServerOptions) {
+		o.Hooks = hooks
+	}
+}
 
 // ServerHooks is a container for callbacks that can instrument a
 // Twirp-generated server. These callbacks all accept a context and return a
@@ -116,5 +140,17 @@ func ChainHooks(hooks ...*ServerHooks) *ServerHooks {
 			}
 			return ctx
 		},
+	}
+}
+
+// WithServerPathPrefix specifies a different prefix for routing.
+// If not specified, the "/twirp" prefix is used by default.
+// An empty value "" can be speficied to use no prefix.
+// The clients must be configured to send requests using the same prefix.
+// URL format: "<baseURL>[<prefix>]/<package>.<Service>/<Method>"
+// More info on Twirp docs: https://twitchtv.github.io/twirp/docs/routing.html
+func WithServerPathPrefix(prefix string) ServerOption {
+	return func(o *ServerOptions) {
+		o.pathPrefix = &prefix
 	}
 }

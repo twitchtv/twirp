@@ -87,7 +87,28 @@ func TestChainClientHooks(t *testing.T) {
 	errorCalled = nil
 	hook2.Error = nil
 	chain.Error(ctx, InternalError("whoops"))
-	if have, want := 0, len(errorCalled); have != want {
+	if have, want := len(errorCalled), 0; have != want {
 		t.Errorf("unexpected number of calls, have: %d, want: %d", have, want)
+	}
+}
+
+func TestWithClientPathPrefix(t *testing.T) {
+	opts := &ClientOptions{}
+
+	// Default value
+	if have, want := opts.PathPrefix(), "/twirp"; have != want {
+		t.Errorf("unexpected default PathPrefix() on ClientOptions, have: %q, want: %q", have, want)
+	}
+
+	// Set a different prefix
+	WithClientPathPrefix("/newprfx/foobar")(opts)
+	if have, want := opts.PathPrefix(), "/newprfx/foobar"; have != want {
+		t.Errorf("unexpected value after WithClientPathPrefix, have: %q, want: %q", have, want)
+	}
+
+	// Use empty value for no-prefix
+	WithClientPathPrefix("")(opts)
+	if have, want := opts.PathPrefix(), ""; have != want {
+		t.Errorf("unexpected value after WithClientPathPrefix, have: %q, want: %q", have, want)
 	}
 }

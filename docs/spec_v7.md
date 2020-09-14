@@ -1,7 +1,7 @@
 ---
 id: "spec_v7"
 title: "Twirp Wire Protocol (v7)"
-sidebar_label: "Version 7 (Draft)"
+sidebar_label: "Version 7 (Current)"
 ---
 
 This document defines the Twirp wire protocol over HTTP. The
@@ -217,4 +217,11 @@ corresponding HTTP Status Code for the response.
 | unavailable         | 503 | The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff.
 | dataloss            | 500 | The operation resulted in unrecoverable data loss or corruption.
 
+
+## Differences with v5
+
+Twirp v5 implementations need to change the following behaviors to support v7:
+
+ * Twirp URLs in v5 could only have the "/twirp" prefix. In v7 they can have any arbitrary prefix or no prefix. See Go PR for reference: https://github.com/twitchtv/twirp/pull/264
+ * Error responses with code `resource_exhausted` in v5 had the HTTP status `403`. In v7 they have status `429`. See Go PR for reference: https://github.com/twitchtv/twirp/pull/270
 

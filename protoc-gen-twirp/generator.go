@@ -223,6 +223,8 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 		t.generateUtilImports()
 	}
 
+	t.generateVersionCheck(file)
+
 	// For each service, generate client stubs and server
 	for i, service := range file.Service {
 		t.generateService(file, service, i)
@@ -241,6 +243,14 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 
 	t.filesHandled++
 	return resp
+}
+
+func (t *twirp) generateVersionCheck(file *descriptor.FileDescriptorProto) {
+	t.P(`// This is a compile-time assertion to ensure that this generated file`)
+	t.P(`// is compatible with the twirp package used in your project.`)
+	t.P(`// A compilation error at this line likely means your copy of the`)
+	t.P(`// twirp package needs to be updated.`)
+	t.P(`const _ = `, t.pkgs["twirp"], `.TwirpPackageIsVersion7`)
 }
 
 func (t *twirp) generateFileHeader(file *descriptor.FileDescriptorProto) {

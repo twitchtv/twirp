@@ -16,6 +16,12 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the twirp package used in your project.
+// A compilation error at this line likely means your copy of the
+// twirp package needs to be updated.
+const _ = twirp.TwirpPackageIsVersion7
+
 // ==============
 // Svc2 Interface
 // ==============

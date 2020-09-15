@@ -188,8 +188,8 @@ const (
 	// credentials for the operation.
 	Unauthenticated ErrorCode = "unauthenticated"
 
-	// ResourceExhausted indicates some resource has been exhausted, perhaps a
-	// per-user quota, or perhaps the entire file system is out of space.
+	// ResourceExhausted indicates some resource has been exhausted or rate-limited,
+	// perhaps a per-user quota, or perhaps the entire file system is out of space.
 	ResourceExhausted ErrorCode = "resource_exhausted"
 
 	// FailedPrecondition indicates operation was rejected because the system is

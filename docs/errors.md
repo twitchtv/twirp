@@ -80,7 +80,7 @@ depends upon the HTTP status of the invalid response:
 | 401 Unauthorized         | Unauthenticated
 | 403 Forbidden            | PermissionDenied
 | 404 Not Found            | BadRoute
-| 429 Too Many Requests    | Unavailable
+| 429 Too Many Requests    | ResourceExhausted
 | 502 Bad Gateway          | Unavailable
 | 503 Service Unavailable  | Unavailable
 | 504 Gateway Timeout      | Unavailable

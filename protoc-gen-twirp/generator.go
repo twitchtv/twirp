@@ -613,7 +613,7 @@ func (t *twirp) generateUtils() {
 	t.P(`      code = `, t.pkgs["twirp"], `.BadRoute`)
 	t.P(`    case 429: // Too Many Requests`)
 	t.P(`      code = `, t.pkgs["twirp"], `.ResourceExhausted`)
-	t.P(`    case 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout`)
+	t.P(`    case 502, 503, 504: // Bad Gateway, Service Unavailable, Gateway Timeout`)
 	t.P(`      code = `, t.pkgs["twirp"], `.Unavailable`)
 	t.P(`    default: // All other codes`)
 	t.P(`      code = `, t.pkgs["twirp"], `.Unknown`)

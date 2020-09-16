@@ -468,7 +468,7 @@ func twirpErrorFromIntermediary(status int, msg string, bodyOrLocation string) t
 			code = twirp.BadRoute
 		case 429: // Too Many Requests
 			code = twirp.ResourceExhausted
-		case 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout
+		case 502, 503, 504: // Bad Gateway, Service Unavailable, Gateway Timeout
 			code = twirp.Unavailable
 		default: // All other codes
 			code = twirp.Unknown

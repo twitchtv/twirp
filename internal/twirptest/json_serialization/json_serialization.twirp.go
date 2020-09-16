@@ -29,6 +29,12 @@ import json "encoding/json"
 import path "path"
 import url "net/url"
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the twirp package used in your project.
+// A compilation error at this line likely means your copy of the
+// twirp package needs to be updated.
+const _ = twirp.TwirpPackageIsVersion7
+
 // ===========================
 // JSONSerialization Interface
 // ===========================
@@ -643,7 +649,9 @@ func twirpErrorFromIntermediary(status int, msg string, bodyOrLocation string) t
 			code = twirp.PermissionDenied
 		case 404: // Not Found
 			code = twirp.BadRoute
-		case 429, 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout
+		case 429: // Too Many Requests
+			code = twirp.ResourceExhausted
+		case 502, 503, 504: // Bad Gateway, Service Unavailable, Gateway Timeout
 			code = twirp.Unavailable
 		default: // All other codes
 			code = twirp.Unknown

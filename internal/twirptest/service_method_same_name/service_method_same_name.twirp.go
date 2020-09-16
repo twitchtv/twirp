@@ -161,8 +161,9 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 
 type echoServer struct {
 	Echo
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewEchoServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -184,9 +185,10 @@ func NewEchoServer(svc Echo, opts ...interface{}) TwirpServer {
 	}
 
 	return &echoServer{
-		Echo:       svc,
-		pathPrefix: serverOpts.PathPrefix(),
-		hooks:      serverOpts.Hooks,
+		Echo:             svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 
@@ -298,7 +300,7 @@ func (s *echoServer) serveEchoJSON(ctx context.Context, resp http.ResponseWriter
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
+	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return

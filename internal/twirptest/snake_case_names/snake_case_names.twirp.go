@@ -166,8 +166,9 @@ func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgs
 
 type haberdasherV1Server struct {
 	HaberdasherV1
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewHaberdasherV1Server builds a TwirpServer that can be used as an http.Handler to handle
@@ -189,9 +190,10 @@ func NewHaberdasherV1Server(svc HaberdasherV1, opts ...interface{}) TwirpServer 
 	}
 
 	return &haberdasherV1Server{
-		HaberdasherV1: svc,
-		pathPrefix:    serverOpts.PathPrefix(),
-		hooks:         serverOpts.Hooks,
+		HaberdasherV1:    svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 
@@ -303,7 +305,7 @@ func (s *haberdasherV1Server) serveMakeHatV1JSON(ctx context.Context, resp http.
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
+	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return

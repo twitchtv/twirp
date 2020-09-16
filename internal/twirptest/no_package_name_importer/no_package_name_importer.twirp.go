@@ -163,8 +163,9 @@ func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*
 
 type svc2Server struct {
 	Svc2
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewSvc2Server builds a TwirpServer that can be used as an http.Handler to handle
@@ -186,9 +187,10 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	}
 
 	return &svc2Server{
-		Svc2:       svc,
-		pathPrefix: serverOpts.PathPrefix(),
-		hooks:      serverOpts.Hooks,
+		Svc2:             svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 
@@ -300,7 +302,7 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
+	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return

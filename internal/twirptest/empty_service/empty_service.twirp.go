@@ -29,6 +29,12 @@ import json "encoding/json"
 import path "path"
 import url "net/url"
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the twirp package used in your project.
+// A compilation error at this line likely means your copy of the
+// twirp package needs to be updated.
+const _ = twirp.TwirpPackageIsVersion7
+
 // ===============
 // Empty Interface
 // ===============
@@ -104,8 +110,9 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 
 type emptyServer struct {
 	Empty
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewEmptyServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -127,9 +134,10 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 	}
 
 	return &emptyServer{
-		Empty:      svc,
-		pathPrefix: serverOpts.PathPrefix(),
-		hooks:      serverOpts.Hooks,
+		Empty:            svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 
@@ -458,7 +466,9 @@ func twirpErrorFromIntermediary(status int, msg string, bodyOrLocation string) t
 			code = twirp.PermissionDenied
 		case 404: // Not Found
 			code = twirp.BadRoute
-		case 429, 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout
+		case 429: // Too Many Requests
+			code = twirp.ResourceExhausted
+		case 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout
 			code = twirp.Unavailable
 		default: // All other codes
 			code = twirp.Unknown

@@ -455,7 +455,7 @@ func TestClientIntermediaryErrors(t *testing.T) {
 		401: twirp.Unauthenticated,
 		403: twirp.PermissionDenied,
 		404: twirp.BadRoute,
-		429: twirp.Unavailable,
+		429: twirp.ResourceExhausted,
 		502: twirp.Unavailable,
 		503: twirp.Unavailable,
 		504: twirp.Unavailable,

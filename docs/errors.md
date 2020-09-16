@@ -52,7 +52,7 @@ Each error code is defined by a constant in the `twirp` package:
 | AlreadyExists      | already_exists      | 409 Conflict
 | PermissionDenied   | permission_denied   | 403 Forbidden
 | Unauthenticated    | unauthenticated     | 401 Unauthorized
-| ResourceExhausted  | resource_exhausted  | 403 Forbidden
+| ResourceExhausted  | resource_exhausted  | 429 Too Many Requests
 | FailedPrecondition | failed_precondition | 412 Precondition Failed
 | Aborted            | aborted             | 409 Conflict
 | OutOfRange         | out_of_range        | 400 Bad Request
@@ -80,7 +80,7 @@ depends upon the HTTP status of the invalid response:
 | 401 Unauthorized         | Unauthenticated
 | 403 Forbidden            | PermissionDenied
 | 404 Not Found            | BadRoute
-| 429 Too Many Requests    | Unavailable
+| 429 Too Many Requests    | ResourceExhausted
 | 502 Bad Gateway          | Unavailable
 | 503 Service Unavailable  | Unavailable
 | 504 Gateway Timeout      | Unavailable
@@ -123,8 +123,8 @@ part of the Protobuf messages (add an error field to proto messages).
 
 ### Writing HTTP Errors outside Twirp services
 
-Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses 
-and error codes _outside_ Twirp servers, such as http middlewares, you can call `twirp.WriteError`. 
+Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses
+and error codes _outside_ Twirp servers, such as http middlewares, you can call `twirp.WriteError`.
 
 The error is expected to satisfy a `twirp.Error`, otherwise it is wrapped with `twirp.InternalError`.
 
@@ -134,7 +134,7 @@ Usage:
 rpc.WriteError(w, twirp.NewError(twirp.Unauthenticated, "invalid token"))
 ```
 
-To simplify `twirp.Error` composition, a few constructors are available, such as `NotFoundError` 
+To simplify `twirp.Error` composition, a few constructors are available, such as `NotFoundError`
 and `RequiredArgumentError`. See [docs](https://godoc.org/github.com/twitchtv/twirp#Error).
 
 With constructor:

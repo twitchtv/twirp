@@ -11,9 +11,6 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package twirp
+package json_serialization
 
-// TwirpPackageIsVersion7 is a constant referenced from generated code that
-// requires features on this version of the twirp package. Older versions
-// don't have this constant defined, causing a compile-time assetion error.
-const TwirpPackageIsVersion7 = true
+//go:generate ../../protoc_gen.sh json_serialization.proto

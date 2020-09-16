@@ -223,6 +223,8 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 		t.generateUtilImports()
 	}
 
+	t.generateVersionCheck(file)
+
 	// For each service, generate client stubs and server
 	for i, service := range file.Service {
 		t.generateService(file, service, i)
@@ -241,6 +243,14 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 
 	t.filesHandled++
 	return resp
+}
+
+func (t *twirp) generateVersionCheck(file *descriptor.FileDescriptorProto) {
+	t.P(`// This is a compile-time assertion to ensure that this generated file`)
+	t.P(`// is compatible with the twirp package used in your project.`)
+	t.P(`// A compilation error at this line likely means your copy of the`)
+	t.P(`// twirp package needs to be updated.`)
+	t.P(`const _ = `, t.pkgs["twirp"], `.TwirpPackageIsVersion7`)
 }
 
 func (t *twirp) generateFileHeader(file *descriptor.FileDescriptorProto) {
@@ -611,7 +621,9 @@ func (t *twirp) generateUtils() {
 	t.P(`      code = `, t.pkgs["twirp"], `.PermissionDenied`)
 	t.P(`    case 404: // Not Found`)
 	t.P(`      code = `, t.pkgs["twirp"], `.BadRoute`)
-	t.P(`    case 429, 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout`)
+	t.P(`    case 429: // Too Many Requests`)
+	t.P(`      code = `, t.pkgs["twirp"], `.ResourceExhausted`)
+	t.P(`    case 502, 503, 504: // Bad Gateway, Service Unavailable, Gateway Timeout`)
 	t.P(`      code = `, t.pkgs["twirp"], `.Unavailable`)
 	t.P(`    default: // All other codes`)
 	t.P(`      code = `, t.pkgs["twirp"], `.Unknown`)
@@ -1053,6 +1065,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`  `, servName)
 	t.P(`  hooks     *`, t.pkgs["twirp"], `.ServerHooks`)
 	t.P(`  pathPrefix string // prefix for routing`)
+	t.P(`  jsonSkipDefaults bool // do not include unpopulated fields (default values) in the response`)
 	t.P(`}`)
 	t.P()
 
@@ -1079,6 +1092,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`    `, servName, `: svc,`)
 	t.P(`    pathPrefix: serverOpts.PathPrefix(),`)
 	t.P(`    hooks: serverOpts.Hooks,`)
+	t.P(`    jsonSkipDefaults: serverOpts.JSONSkipDefaults,`)
 	t.P(`  }`)
 	t.P(`}`)
 	t.P()
@@ -1237,7 +1251,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
 	t.P()
 	t.P(`  var buf `, t.pkgs["bytes"], `.Buffer`)
-	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
+	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}`)
 	t.P(`  if err = marshaler.Marshal(&buf, respContent); err != nil {`)
 	t.P(`    s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))`)
 	t.P(`    return`)

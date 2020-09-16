@@ -34,6 +34,12 @@ import json "encoding/json"
 import path "path"
 import url "net/url"
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the twirp package used in your project.
+// A compilation error at this line likely means your copy of the
+// twirp package needs to be updated.
+const _ = twirp.TwirpPackageIsVersion7
+
 // ==============
 // Svc2 Interface
 // ==============
@@ -160,8 +166,9 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 
 type svc2Server struct {
 	Svc2
-	hooks      *twirp.ServerHooks
-	pathPrefix string // prefix for routing
+	hooks            *twirp.ServerHooks
+	pathPrefix       string // prefix for routing
+	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
 }
 
 // NewSvc2Server builds a TwirpServer that can be used as an http.Handler to handle
@@ -183,9 +190,10 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	}
 
 	return &svc2Server{
-		Svc2:       svc,
-		pathPrefix: serverOpts.PathPrefix(),
-		hooks:      serverOpts.Hooks,
+		Svc2:             svc,
+		pathPrefix:       serverOpts.PathPrefix(),
+		hooks:            serverOpts.Hooks,
+		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
 }
 
@@ -297,7 +305,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	ctx = callResponsePrepared(ctx, s.hooks)
 
 	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true}
+	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
 	if err = marshaler.Marshal(&buf, respContent); err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
@@ -646,7 +654,9 @@ func twirpErrorFromIntermediary(status int, msg string, bodyOrLocation string) t
 			code = twirp.PermissionDenied
 		case 404: // Not Found
 			code = twirp.BadRoute
-		case 429, 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout
+		case 429: // Too Many Requests
+			code = twirp.ResourceExhausted
+		case 502, 503, 504: // Too Many Requests, Bad Gateway, Service Unavailable, Gateway Timeout
 			code = twirp.Unavailable
 		default: // All other codes
 			code = twirp.Unknown

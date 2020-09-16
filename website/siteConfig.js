@@ -24,7 +24,7 @@ const siteConfig = {
     projectName: 'twirp',
     headerLinks: [
         {doc: 'intro', label: 'Docs'},
-        {doc: 'spec_v5', label: 'Spec'},
+        {doc: 'spec_v7', label: 'Spec'},
     ],
     users,
     /* colors for website */

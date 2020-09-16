@@ -58,12 +58,16 @@
         "sidebar_label": "Changelog"
       },
       "spec_v5": {
-        "title": "Twirp Wire Protocol",
-        "sidebar_label": "Version 5 (Latest)"
+        "title": "Twirp Wire Protocol (v5)",
+        "sidebar_label": "Version 5 (Previous)"
       },
       "spec_v6": {
-        "title": "Twirp Wire Protocol",
-        "sidebar_label": "Version 6 (archived)"
+        "title": "Twirp Wire Protocol (v6)",
+        "sidebar_label": "Version 6 (Archived)"
+      },
+      "spec_v7": {
+        "title": "Twirp Wire Protocol (v7)",
+        "sidebar_label": "Version 7 (Current)"
       }
     },
     "links": {

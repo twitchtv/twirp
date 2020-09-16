@@ -53,10 +53,6 @@
         "title": "Routing and Serialization",
         "sidebar_label": "Routing and Serialization"
       },
-      "spec_changelog": {
-        "title": "Twirp Wire Protocol Changelog",
-        "sidebar_label": "Changelog"
-      },
       "spec_v5": {
         "title": "Twirp Wire Protocol (v5)",
         "sidebar_label": "Version 5 (Previous)"

@@ -12,7 +12,7 @@ invalid) and converts it into the request struct defined in the interface. Your
 implementation returns a response struct, which Twirp serializes back to a
 Protobuf or JSON response (depending on the request `Content-Type`).
 
-See [the spec](spec.md) for more details on routing and serialization.
+See [the spec](spec_v7.md) for more details on routing and serialization.
 
 Twirp can generates two types of clients for your service:
 

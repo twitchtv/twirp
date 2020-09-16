@@ -220,7 +220,7 @@ corresponding HTTP Status Code for the response.
 
 ## Differences with v5
 
-Twirp v5 implementations need to change the following behaviors to support v7:
+Note v6 was a draft and never released. Twirp implementations supporting the protocol spec v5 should update directly to support v7.
 
  * Twirp URLs in v5 could only have the "/twirp" prefix. In v7 they can have any arbitrary prefix or no prefix. See Go PR for reference: https://github.com/twitchtv/twirp/pull/264
  * Error responses with code `resource_exhausted` in v5 had the HTTP status `403`. In v7 they have status `429`. See Go PR for reference: https://github.com/twitchtv/twirp/pull/270

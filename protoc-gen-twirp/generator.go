@@ -158,6 +158,10 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 			resp.File = append(resp.File, respFile)
 		}
 	}
+
+	supportsProto3Optional := uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+	resp.SupportedFeatures = &supportsProto3Optional
+
 	return resp
 }
 

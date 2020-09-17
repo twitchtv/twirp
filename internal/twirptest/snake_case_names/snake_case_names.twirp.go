@@ -166,6 +166,7 @@ func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgs
 
 type haberdasherV1Server struct {
 	HaberdasherV1
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -192,6 +193,7 @@ func NewHaberdasherV1Server(svc HaberdasherV1, opts ...interface{}) TwirpServer 
 	return &haberdasherV1Server{
 		HaberdasherV1:    svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -286,11 +288,34 @@ func (s *haberdasherV1Server) serveMakeHatV1JSON(ctx context.Context, resp http.
 		return
 	}
 
+	handler := s.HaberdasherV1.MakeHatV1
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*MakeHatArgsV1_SizeV1)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *MakeHatArgsV1_SizeV1")
+					}
+					return s.HaberdasherV1.MakeHatV1(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*MakeHatArgsV1_HatV1)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *MakeHatArgsV1_HatV1")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *MakeHatArgsV1_HatV1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.HaberdasherV1.MakeHatV1(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -345,11 +370,34 @@ func (s *haberdasherV1Server) serveMakeHatV1Protobuf(ctx context.Context, resp h
 		return
 	}
 
+	handler := s.HaberdasherV1.MakeHatV1
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*MakeHatArgsV1_SizeV1)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *MakeHatArgsV1_SizeV1")
+					}
+					return s.HaberdasherV1.MakeHatV1(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*MakeHatArgsV1_HatV1)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *MakeHatArgsV1_HatV1")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *MakeHatArgsV1_HatV1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.HaberdasherV1.MakeHatV1(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

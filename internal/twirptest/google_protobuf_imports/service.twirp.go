@@ -164,6 +164,7 @@ func (c *svcJSONClient) Send(ctx context.Context, in *google_protobuf1.StringVal
 
 type svcServer struct {
 	Svc
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -190,6 +191,7 @@ func NewSvcServer(svc Svc, opts ...interface{}) TwirpServer {
 	return &svcServer{
 		Svc:              svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -284,11 +286,34 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 		return
 	}
 
+	handler := s.Svc.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*google_protobuf1.StringValue)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *google_protobuf1.StringValue")
+					}
+					return s.Svc.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*google_protobuf.Empty)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *google_protobuf.Empty")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *google_protobuf.Empty
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -343,11 +368,34 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 		return
 	}
 
+	handler := s.Svc.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*google_protobuf1.StringValue)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *google_protobuf1.StringValue")
+					}
+					return s.Svc.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*google_protobuf.Empty)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *google_protobuf.Empty")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *google_protobuf.Empty
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

@@ -161,6 +161,7 @@ func (c *jSONSerializationJSONClient) EchoJSON(ctx context.Context, in *Msg) (*M
 
 type jSONSerializationServer struct {
 	JSONSerialization
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -187,6 +188,7 @@ func NewJSONSerializationServer(svc JSONSerialization, opts ...interface{}) Twir
 	return &jSONSerializationServer{
 		JSONSerialization: svc,
 		pathPrefix:        serverOpts.PathPrefix(),
+		interceptor:       twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:             serverOpts.Hooks,
 		jsonSkipDefaults:  serverOpts.JSONSkipDefaults,
 	}
@@ -281,11 +283,34 @@ func (s *jSONSerializationServer) serveEchoJSONJSON(ctx context.Context, resp ht
 		return
 	}
 
+	handler := s.JSONSerialization.EchoJSON
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg")
+					}
+					return s.JSONSerialization.EchoJSON(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.JSONSerialization.EchoJSON(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -340,11 +365,34 @@ func (s *jSONSerializationServer) serveEchoJSONProtobuf(ctx context.Context, res
 		return
 	}
 
+	handler := s.JSONSerialization.EchoJSON
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg")
+					}
+					return s.JSONSerialization.EchoJSON(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.JSONSerialization.EchoJSON(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

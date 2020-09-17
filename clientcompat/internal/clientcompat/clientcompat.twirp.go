@@ -205,6 +205,7 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 
 type compatServiceServer struct {
 	CompatService
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -231,6 +232,7 @@ func NewCompatServiceServer(svc CompatService, opts ...interface{}) TwirpServer 
 	return &compatServiceServer{
 		CompatService:    svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -328,11 +330,34 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 		return
 	}
 
+	handler := s.CompatService.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Req) (*Resp, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Req)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Req")
+					}
+					return s.CompatService.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Resp)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Resp")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Resp
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -387,11 +412,34 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 		return
 	}
 
+	handler := s.CompatService.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Req) (*Resp, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Req)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Req")
+					}
+					return s.CompatService.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Resp)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Resp")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Resp
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -457,11 +505,34 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 		return
 	}
 
+	handler := s.CompatService.NoopMethod
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Empty) (*Empty, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Empty)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Empty")
+					}
+					return s.CompatService.NoopMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Empty)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Empty")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Empty
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.NoopMethod(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -516,11 +587,34 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 		return
 	}
 
+	handler := s.CompatService.NoopMethod
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Empty) (*Empty, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Empty)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Empty")
+					}
+					return s.CompatService.NoopMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Empty)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Empty")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Empty
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.NoopMethod(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

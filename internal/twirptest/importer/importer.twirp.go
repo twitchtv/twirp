@@ -166,6 +166,7 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 
 type svc2Server struct {
 	Svc2
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -192,6 +193,7 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	return &svc2Server{
 		Svc2:             svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -286,11 +288,34 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	handler := s.Svc2.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+					}
+					return s.Svc2.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *twirp_internal_twirptest_importable.Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -345,11 +370,34 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
+	handler := s.Svc2.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+					}
+					return s.Svc2.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *twirp_internal_twirptest_importable.Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

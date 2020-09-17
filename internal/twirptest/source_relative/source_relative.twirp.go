@@ -161,6 +161,7 @@ func (c *svcJSONClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 
 type svcServer struct {
 	Svc
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -187,6 +188,7 @@ func NewSvcServer(svc Svc, opts ...interface{}) TwirpServer {
 	return &svcServer{
 		Svc:              svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -281,11 +283,34 @@ func (s *svcServer) serveMethodJSON(ctx context.Context, resp http.ResponseWrite
 		return
 	}
 
+	handler := s.Svc.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg")
+					}
+					return s.Svc.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -340,11 +365,34 @@ func (s *svcServer) serveMethodProtobuf(ctx context.Context, resp http.ResponseW
 		return
 	}
 
+	handler := s.Svc.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg")
+					}
+					return s.Svc.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

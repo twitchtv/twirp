@@ -192,6 +192,7 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 
 type svc2Server struct {
 	Svc2
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -218,6 +219,7 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	return &svc2Server{
 		Svc2:             svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -315,11 +317,34 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	handler := s.Svc2.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg2) (*Msg2, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg2)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg2")
+					}
+					return s.Svc2.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg2)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg2")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg2
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -374,11 +399,34 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
+	handler := s.Svc2.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg2) (*Msg2, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg2)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg2")
+					}
+					return s.Svc2.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg2)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg2")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg2
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -444,11 +492,34 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
+	handler := s.Svc2.SamePackageProtoImport
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg1) (*Msg1, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg1)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg1")
+					}
+					return s.Svc2.SamePackageProtoImport(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg1)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg1")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -503,11 +574,34 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
+	handler := s.Svc2.SamePackageProtoImport
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg1) (*Msg1, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg1)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *Msg1")
+					}
+					return s.Svc2.SamePackageProtoImport(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg1)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *Msg1")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.SamePackageProtoImport(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

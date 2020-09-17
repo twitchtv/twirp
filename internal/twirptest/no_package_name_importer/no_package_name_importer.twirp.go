@@ -163,6 +163,7 @@ func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*
 
 type svc2Server struct {
 	Svc2
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -189,6 +190,7 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	return &svc2Server{
 		Svc2:             svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -283,11 +285,34 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 		return
 	}
 
+	handler := s.Svc2.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *no_package_name.Msg) (*no_package_name.Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*no_package_name.Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+					}
+					return s.Svc2.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*no_package_name.Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *no_package_name.Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -342,11 +367,34 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 		return
 	}
 
+	handler := s.Svc2.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *no_package_name.Msg) (*no_package_name.Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*no_package_name.Msg)
+					if !ok {
+						return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+					}
+					return s.Svc2.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*no_package_name.Msg)
+				if !ok {
+					return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *no_package_name.Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

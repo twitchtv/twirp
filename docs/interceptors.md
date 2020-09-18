@@ -1,7 +1,7 @@
 ---
 id: "interceptors"
 title: "Interceptors"
-sidebar_label: "Interceptor"
+sidebar_label: "Interceptors"
 ---
 
 The service constructor can use the option `twirp.WithServerInterceptors(interceptors ...twirp.Interceptor)`

@@ -47,9 +47,10 @@ type Empty interface {
 // =====================
 
 type emptyProtobufClient struct {
-	client HTTPClient
-	urls   [0]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [0]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewEmptyProtobufClient creates a Protobuf client that implements the Empty interface.
@@ -67,9 +68,10 @@ func NewEmptyProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 	urls := [0]string{}
 
 	return &emptyProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -78,9 +80,10 @@ func NewEmptyProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 // =================
 
 type emptyJSONClient struct {
-	client HTTPClient
-	urls   [0]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [0]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewEmptyJSONClient creates a JSON client that implements the Empty interface.
@@ -98,9 +101,10 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 	urls := [0]string{}
 
 	return &emptyJSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 

@@ -50,9 +50,10 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
@@ -75,13 +76,40 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	return &svc2ProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
 func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	caller := c.callMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *no_package_name.Msg) (*no_package_name.Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*no_package_name.Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor")
+					}
+					return c.callMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*no_package_name.Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svc2ProtobufClient) callMethod(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
@@ -106,9 +134,10 @@ func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg
 // ================
 
 type svc2JSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
@@ -131,13 +160,40 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	return &svc2JSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
 func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	caller := c.callMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *no_package_name.Msg) (*no_package_name.Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*no_package_name.Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor")
+					}
+					return c.callMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*no_package_name.Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svc2JSONClient) callMethod(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
@@ -292,7 +348,7 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*no_package_name.Msg)
 					if !ok {
-						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor handler")
+						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor")
 					}
 					return s.Svc2.Method(ctx, typedReq)
 				},
@@ -300,7 +356,7 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 			if resp != nil {
 				typedResp, ok := resp.(*no_package_name.Msg)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor handler")
+					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -374,7 +430,7 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*no_package_name.Msg)
 					if !ok {
-						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor handler")
+						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor")
 					}
 					return s.Svc2.Method(ctx, typedReq)
 				},
@@ -382,7 +438,7 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 			if resp != nil {
 				typedResp, ok := resp.(*no_package_name.Msg)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor handler")
+					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor")
 				}
 				return typedResp, err
 			}

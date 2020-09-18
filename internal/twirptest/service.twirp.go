@@ -50,9 +50,10 @@ type Haberdasher interface {
 // ===========================
 
 type haberdasherProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
@@ -75,13 +76,40 @@ func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twi
 	}
 
 	return &haberdasherProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
 func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	caller := c.callMakeHat
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Size) (*Hat, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Size)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor")
+					}
+					return c.callMakeHat(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Hat)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *haberdasherProtobufClient) callMakeHat(ctx context.Context, in *Size) (*Hat, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
@@ -106,9 +134,10 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 // =======================
 
 type haberdasherJSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
@@ -131,13 +160,40 @@ func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.C
 	}
 
 	return &haberdasherJSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
 func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	caller := c.callMakeHat
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Size) (*Hat, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Size)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor")
+					}
+					return c.callMakeHat(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Hat)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *haberdasherJSONClient) callMakeHat(ctx context.Context, in *Size) (*Hat, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest")
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
@@ -292,7 +348,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Size)
 					if !ok {
-						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor handler")
+						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor")
 					}
 					return s.Haberdasher.MakeHat(ctx, typedReq)
 				},
@@ -300,7 +356,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 			if resp != nil {
 				typedResp, ok := resp.(*Hat)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor handler")
+					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -374,7 +430,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Size)
 					if !ok {
-						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor handler")
+						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor")
 					}
 					return s.Haberdasher.MakeHat(ctx, typedReq)
 				},
@@ -382,7 +438,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 			if resp != nil {
 				typedResp, ok := resp.(*Hat)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor handler")
+					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor")
 				}
 				return typedResp, err
 			}

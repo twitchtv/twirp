@@ -969,6 +969,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`type `, structName, ` struct {`)
 	t.P(`  client HTTPClient`)
 	t.P(`  urls   [`, methCnt, `]string`)
+	t.P(`  interceptor `, t.pkgs["twirp"], `.Interceptor`)
 	t.P(`  opts `, t.pkgs["twirp"], `.ClientOptions`)
 	t.P(`}`)
 	t.P()
@@ -998,6 +999,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`  return &`, structName, `{`)
 	t.P(`    client: client,`)
 	t.P(`    urls:   urls,`)
+	t.P(`    interceptor: `, t.pkgs["twirp"], `.ChainInterceptors(clientOpts.Interceptors...),`)
 	t.P(`    opts: clientOpts,`)
 	t.P(`  }`)
 	t.P(`}`)
@@ -1008,8 +1010,15 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		pkgName := pkgName(file)
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
-
 		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
+		t.P(`  caller := c.call`, methName)
+		t.P(`  if c.interceptor != nil {`)
+		t.generateClientInterceptorCaller(method)
+		t.P(`  }`)
+		t.P(`  return caller(ctx, in)`)
+		t.P(`}`)
+		t.P()
+		t.P(`func (c *`, structName, `) call`, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
@@ -1347,25 +1356,39 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P()
 }
 
+func (t *twirp) generateClientInterceptorCaller(method *descriptor.MethodDescriptorProto) {
+	methName := methodNameCamelCased(method)
+	t.generateInterceptorFunc("c", "caller", "c.call"+methName, method)
+}
+
 func (t *twirp) generateServerInterceptorHandler(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
 	methName := methodNameCamelCased(method)
 	servName := serviceNameCamelCased(service)
+	t.generateInterceptorFunc("s", "handler", "s."+servName+"."+methName, method)
+}
+
+func (t *twirp) generateInterceptorFunc(
+	receiverName string,
+	varName string,
+	delegateFuncName string,
+	method *descriptor.MethodDescriptorProto,
+) {
 	inputType := t.goTypeName(method.GetInputType())
 	outputType := t.goTypeName(method.GetOutputType())
-	t.P(`    handler = func(ctx `, t.pkgs["context"], `.Context, req *`, inputType, `) (*`, outputType, `, error) {`)
-	t.P(`      resp, err := s.interceptor(`)
+	t.P(`    `, varName, ` = func(ctx `, t.pkgs["context"], `.Context, req *`, inputType, `) (*`, outputType, `, error) {`)
+	t.P(`      resp, err := `, receiverName, `.interceptor(`)
 	t.P(`        func(ctx `, t.pkgs["context"], ` .Context, req interface{}) (interface{}, error) {`)
 	t.P(`          typedReq, ok := req.(*`, inputType, `)`)
 	t.P(`          if !ok {`)
-	t.P(`            return nil, `, t.pkgs["twirp"], `.InternalError("failed type assertion req.(*`, inputType, `) when calling interceptor handler")`)
+	t.P(`            return nil, `, t.pkgs["twirp"], `.InternalError("failed type assertion req.(*`, inputType, `) when calling interceptor")`)
 	t.P(`          }`)
-	t.P(`          return s.`, servName, `.`, methName, `(ctx, typedReq)`)
+	t.P(`          return `, delegateFuncName, `(ctx, typedReq)`)
 	t.P(`        },`)
 	t.P(`      )(ctx, req)`)
 	t.P(`      if resp != nil {`)
 	t.P(`        typedResp, ok := resp.(*`, outputType, `)`)
 	t.P(`        if !ok {`)
-	t.P(`          return nil, `, t.pkgs["twirp"], `.InternalError("failed type assertion resp.(*`, outputType, `) when calling interceptor handler")`)
+	t.P(`          return nil, `, t.pkgs["twirp"], `.InternalError("failed type assertion resp.(*`, outputType, `) when calling interceptor")`)
 	t.P(`        }`)
 	t.P(`        return typedResp, err`)
 	t.P(`      }`)

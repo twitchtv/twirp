@@ -22,8 +22,9 @@ type ClientOption func(*ClientOptions)
 
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
-	Hooks      *ClientHooks
-	pathPrefix *string
+	Interceptors []Interceptor
+	Hooks        *ClientHooks
+	pathPrefix   *string
 }
 
 func (opts *ClientOptions) PathPrefix() string {
@@ -31,6 +32,13 @@ func (opts *ClientOptions) PathPrefix() string {
 		return "/twirp" // default prefix
 	}
 	return *opts.pathPrefix
+}
+
+// WithClientInterceptors defines the interceptors for a Twirp client.
+func WithClientInterceptors(interceptors ...Interceptor) ClientOption {
+	return func(o *ClientOptions) {
+		o.Interceptors = append(o.Interceptors, interceptors...)
+	}
 }
 
 // WithClientHooks defines the hooks for a Twirp client.

@@ -52,9 +52,10 @@ type Svc1 interface {
 // ====================
 
 type svc1ProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvc1ProtobufClient creates a Protobuf client that implements the Svc1 interface.
@@ -77,13 +78,40 @@ func NewSvc1ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	return &svc1ProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
 func (c *svc1ProtobufClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
+	caller := c.callSend
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg1) (*Msg1, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg1)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg1) when calling interceptor")
+					}
+					return c.callSend(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg1)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg1) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svc1ProtobufClient) callSend(ctx context.Context, in *Msg1) (*Msg1, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
@@ -108,9 +136,10 @@ func (c *svc1ProtobufClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) 
 // ================
 
 type svc1JSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvc1JSONClient creates a JSON client that implements the Svc1 interface.
@@ -133,13 +162,40 @@ func NewSvc1JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	return &svc1JSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
 func (c *svc1JSONClient) Send(ctx context.Context, in *Msg1) (*Msg1, error) {
+	caller := c.callSend
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg1) (*Msg1, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg1)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg1) when calling interceptor")
+					}
+					return c.callSend(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg1)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg1) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svc1JSONClient) callSend(ctx context.Context, in *Msg1) (*Msg1, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
@@ -294,7 +350,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Msg1)
 					if !ok {
-						return nil, twirp.InternalError("failed type assertion req.(*Msg1) when calling interceptor handler")
+						return nil, twirp.InternalError("failed type assertion req.(*Msg1) when calling interceptor")
 					}
 					return s.Svc1.Send(ctx, typedReq)
 				},
@@ -302,7 +358,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 			if resp != nil {
 				typedResp, ok := resp.(*Msg1)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*Msg1) when calling interceptor handler")
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg1) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -376,7 +432,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Msg1)
 					if !ok {
-						return nil, twirp.InternalError("failed type assertion req.(*Msg1) when calling interceptor handler")
+						return nil, twirp.InternalError("failed type assertion req.(*Msg1) when calling interceptor")
 					}
 					return s.Svc1.Send(ctx, typedReq)
 				},
@@ -384,7 +440,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 			if resp != nil {
 				typedResp, ok := resp.(*Msg1)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*Msg1) when calling interceptor handler")
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg1) when calling interceptor")
 				}
 				return typedResp, err
 			}

@@ -28,5 +28,5 @@ func NewLogInterceptor(l *log.Logger) twirp.Interceptor {
 ```
 
 Check out
-[the godoc for `Interceptor`](http://godoc.org/github.com/twitchtv/twirp#Interceptors)
+[the godoc for `Interceptor`](http://godoc.org/github.com/twitchtv/twirp#Interceptor)
 for more information.

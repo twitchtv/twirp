@@ -293,7 +293,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*google_protobuf1.StringValue)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *google_protobuf1.StringValue")
+						return nil, twirp.InternalError("failed type assertion req.(*google_protobuf1.StringValue) when calling interceptor handler")
 					}
 					return s.Svc.Send(ctx, typedReq)
 				},
@@ -301,7 +301,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 			if resp != nil {
 				typedResp, ok := resp.(*google_protobuf.Empty)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *google_protobuf.Empty")
+					return nil, twirp.InternalError("failed type assertion resp.(*google_protobuf.Empty) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -375,7 +375,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*google_protobuf1.StringValue)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *google_protobuf1.StringValue")
+						return nil, twirp.InternalError("failed type assertion req.(*google_protobuf1.StringValue) when calling interceptor handler")
 					}
 					return s.Svc.Send(ctx, typedReq)
 				},
@@ -383,7 +383,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 			if resp != nil {
 				typedResp, ok := resp.(*google_protobuf.Empty)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *google_protobuf.Empty")
+					return nil, twirp.InternalError("failed type assertion resp.(*google_protobuf.Empty) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

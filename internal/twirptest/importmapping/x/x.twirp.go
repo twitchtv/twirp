@@ -292,7 +292,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*twirp_internal_twirptest_importmapping_y.MsgY)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importmapping_y.MsgY")
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importmapping_y.MsgY) when calling interceptor handler")
 					}
 					return s.Svc1.Send(ctx, typedReq)
 				},
@@ -300,7 +300,7 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 			if resp != nil {
 				typedResp, ok := resp.(*twirp_internal_twirptest_importmapping_y.MsgY)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importmapping_y.MsgY")
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importmapping_y.MsgY) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -374,7 +374,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*twirp_internal_twirptest_importmapping_y.MsgY)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importmapping_y.MsgY")
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importmapping_y.MsgY) when calling interceptor handler")
 					}
 					return s.Svc1.Send(ctx, typedReq)
 				},
@@ -382,7 +382,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 			if resp != nil {
 				typedResp, ok := resp.(*twirp_internal_twirptest_importmapping_y.MsgY)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importmapping_y.MsgY")
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importmapping_y.MsgY) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

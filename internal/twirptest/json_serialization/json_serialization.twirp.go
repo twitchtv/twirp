@@ -290,7 +290,7 @@ func (s *jSONSerializationServer) serveEchoJSONJSON(ctx context.Context, resp ht
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor handler")
 					}
 					return s.JSONSerialization.EchoJSON(ctx, typedReq)
 				},
@@ -298,7 +298,7 @@ func (s *jSONSerializationServer) serveEchoJSONJSON(ctx context.Context, resp ht
 			if resp != nil {
 				typedResp, ok := resp.(*Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -372,7 +372,7 @@ func (s *jSONSerializationServer) serveEchoJSONProtobuf(ctx context.Context, res
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor handler")
 					}
 					return s.JSONSerialization.EchoJSON(ctx, typedReq)
 				},
@@ -380,7 +380,7 @@ func (s *jSONSerializationServer) serveEchoJSONProtobuf(ctx context.Context, res
 			if resp != nil {
 				typedResp, ok := resp.(*Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

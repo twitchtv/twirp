@@ -337,7 +337,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Req)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Req")
+						return nil, twirp.InternalError("failed type assertion req.(*Req) when calling interceptor handler")
 					}
 					return s.CompatService.Method(ctx, typedReq)
 				},
@@ -345,7 +345,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 			if resp != nil {
 				typedResp, ok := resp.(*Resp)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Resp")
+					return nil, twirp.InternalError("failed type assertion resp.(*Resp) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -419,7 +419,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Req)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Req")
+						return nil, twirp.InternalError("failed type assertion req.(*Req) when calling interceptor handler")
 					}
 					return s.CompatService.Method(ctx, typedReq)
 				},
@@ -427,7 +427,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 			if resp != nil {
 				typedResp, ok := resp.(*Resp)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Resp")
+					return nil, twirp.InternalError("failed type assertion resp.(*Resp) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -512,7 +512,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Empty)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Empty")
+						return nil, twirp.InternalError("failed type assertion req.(*Empty) when calling interceptor handler")
 					}
 					return s.CompatService.NoopMethod(ctx, typedReq)
 				},
@@ -520,7 +520,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 			if resp != nil {
 				typedResp, ok := resp.(*Empty)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Empty")
+					return nil, twirp.InternalError("failed type assertion resp.(*Empty) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -594,7 +594,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Empty)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Empty")
+						return nil, twirp.InternalError("failed type assertion req.(*Empty) when calling interceptor handler")
 					}
 					return s.CompatService.NoopMethod(ctx, typedReq)
 				},
@@ -602,7 +602,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 			if resp != nil {
 				typedResp, ok := resp.(*Empty)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Empty")
+					return nil, twirp.InternalError("failed type assertion resp.(*Empty) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

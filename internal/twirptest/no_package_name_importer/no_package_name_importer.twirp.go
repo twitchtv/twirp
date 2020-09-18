@@ -292,7 +292,7 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*no_package_name.Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor handler")
 					}
 					return s.Svc2.Method(ctx, typedReq)
 				},
@@ -300,7 +300,7 @@ func (s *svc2Server) serveMethodJSON(ctx context.Context, resp http.ResponseWrit
 			if resp != nil {
 				typedResp, ok := resp.(*no_package_name.Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -374,7 +374,7 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*no_package_name.Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*no_package_name.Msg) when calling interceptor handler")
 					}
 					return s.Svc2.Method(ctx, typedReq)
 				},
@@ -382,7 +382,7 @@ func (s *svc2Server) serveMethodProtobuf(ctx context.Context, resp http.Response
 			if resp != nil {
 				typedResp, ok := resp.(*no_package_name.Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *no_package_name.Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*no_package_name.Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

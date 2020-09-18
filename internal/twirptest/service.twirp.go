@@ -292,7 +292,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Size)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Size")
+						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor handler")
 					}
 					return s.Haberdasher.MakeHat(ctx, typedReq)
 				},
@@ -300,7 +300,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 			if resp != nil {
 				typedResp, ok := resp.(*Hat)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Hat")
+					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -374,7 +374,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Size)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Size")
+						return nil, twirp.InternalError("failed type assertion req.(*Size) when calling interceptor handler")
 					}
 					return s.Haberdasher.MakeHat(ctx, typedReq)
 				},
@@ -382,7 +382,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 			if resp != nil {
 				typedResp, ok := resp.(*Hat)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Hat")
+					return nil, twirp.InternalError("failed type assertion resp.(*Hat) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

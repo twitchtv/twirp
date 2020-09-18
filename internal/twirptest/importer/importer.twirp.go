@@ -295,7 +295,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importable.Msg) when calling interceptor handler")
 					}
 					return s.Svc2.Send(ctx, typedReq)
 				},
@@ -303,7 +303,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 			if resp != nil {
 				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importable.Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -377,7 +377,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importable.Msg) when calling interceptor handler")
 					}
 					return s.Svc2.Send(ctx, typedReq)
 				},
@@ -385,7 +385,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 			if resp != nil {
 				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *twirp_internal_twirptest_importable.Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importable.Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

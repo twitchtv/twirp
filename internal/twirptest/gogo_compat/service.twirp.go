@@ -294,7 +294,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor handler")
 					}
 					return s.Svc.Send(ctx, typedReq)
 				},
@@ -302,7 +302,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 			if resp != nil {
 				typedResp, ok := resp.(*Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}
@@ -376,7 +376,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*Msg)
 					if !ok {
-						return nil, twirp.InternalError("could not convert to a *Msg")
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor handler")
 					}
 					return s.Svc.Send(ctx, typedReq)
 				},
@@ -384,7 +384,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 			if resp != nil {
 				typedResp, ok := resp.(*Msg)
 				if !ok {
-					return nil, twirp.InternalError("could not convert to a *Msg")
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor handler")
 				}
 				return typedResp, err
 			}

@@ -21,6 +21,12 @@ func TestChainInterceptors(t *testing.T) {
 	if chain := ChainInterceptors(); chain != nil {
 		t.Errorf("ChainInterceptors(0) expected to be nil, but was %v", chain)
 	}
+	if chain := ChainInterceptors(nil); chain != nil {
+		t.Errorf("ChainInterceptors(0) expected to be nil, but was %v", chain)
+	}
+	if chain := ChainInterceptors(nil, nil); chain != nil {
+		t.Errorf("ChainInterceptors(0) expected to be nil, but was %v", chain)
+	}
 
 	interceptor1 := func(next Method) Method {
 		return func(ctx context.Context, request interface{}) (interface{}, error) {
@@ -58,6 +64,14 @@ func TestChainInterceptors(t *testing.T) {
 		{
 			interceptors: []Interceptor{interceptor1, interceptor2, interceptor3},
 			want:         "abcx321",
+		},
+		{
+			interceptors: []Interceptor{interceptor1, interceptor2, nil, interceptor3},
+			want:         "abcx321",
+		},
+		{
+			interceptors: []Interceptor{interceptor1, interceptor1, interceptor1},
+			want:         "aaax111",
 		},
 	} {
 		response, err := ChainInterceptors(testCase.interceptors...)(method)(context.Background(), "")

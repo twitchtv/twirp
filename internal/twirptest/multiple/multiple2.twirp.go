@@ -72,6 +72,9 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 }
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg2) (*Msg2, error) {
@@ -98,9 +101,6 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) 
 }
 
 func (c *svc2ProtobufClient) callSend(ctx context.Context, in *Msg2) (*Msg2, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -118,6 +118,9 @@ func (c *svc2ProtobufClient) callSend(ctx context.Context, in *Msg2) (*Msg2, err
 }
 
 func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	caller := c.callSamePackageProtoImport
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg1) (*Msg1, error) {
@@ -144,9 +147,6 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 }
 
 func (c *svc2ProtobufClient) callSamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
@@ -203,6 +203,9 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 }
 
 func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg2) (*Msg2, error) {
@@ -229,9 +232,6 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
 }
 
 func (c *svc2JSONClient) callSend(ctx context.Context, in *Msg2) (*Msg2, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -249,6 +249,9 @@ func (c *svc2JSONClient) callSend(ctx context.Context, in *Msg2) (*Msg2, error) 
 }
 
 func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	caller := c.callSamePackageProtoImport
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg1) (*Msg1, error) {
@@ -275,9 +278,6 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 }
 
 func (c *svc2JSONClient) callSamePackageProtoImport(ctx context.Context, in *Msg1) (*Msg1, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.multiple")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {

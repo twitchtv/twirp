@@ -85,6 +85,9 @@ func NewCompatServiceProtobufClient(baseURL string, client HTTPClient, opts ...t
 }
 
 func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
+	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	caller := c.callMethod
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Req) (*Resp, error) {
@@ -111,9 +114,6 @@ func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Res
 }
 
 func (c *compatServiceProtobufClient) callMethod(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
-	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
-	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(Resp)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -131,6 +131,9 @@ func (c *compatServiceProtobufClient) callMethod(ctx context.Context, in *Req) (
 }
 
 func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
+	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
+	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	caller := c.callNoopMethod
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Empty) (*Empty, error) {
@@ -157,9 +160,6 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 }
 
 func (c *compatServiceProtobufClient) callNoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
-	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
-	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	out := new(Empty)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
@@ -216,6 +216,9 @@ func NewCompatServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp
 }
 
 func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
+	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	caller := c.callMethod
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Req) (*Resp, error) {
@@ -242,9 +245,6 @@ func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, e
 }
 
 func (c *compatServiceJSONClient) callMethod(ctx context.Context, in *Req) (*Resp, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
-	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
-	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(Resp)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -262,6 +262,9 @@ func (c *compatServiceJSONClient) callMethod(ctx context.Context, in *Req) (*Res
 }
 
 func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
+	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
+	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	caller := c.callNoopMethod
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Empty) (*Empty, error) {
@@ -288,9 +291,6 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 }
 
 func (c *compatServiceJSONClient) callNoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
-	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
-	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
 	out := new(Empty)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {

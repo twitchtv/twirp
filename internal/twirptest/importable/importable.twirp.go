@@ -85,6 +85,9 @@ func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 }
 
 func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importable")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
@@ -111,9 +114,6 @@ func (c *svcProtobufClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 }
 
 func (c *svcProtobufClient) callSend(ctx context.Context, in *Msg) (*Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importable")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -169,6 +169,9 @@ func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOpt
 }
 
 func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importable")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
@@ -195,9 +198,6 @@ func (c *svcJSONClient) Send(ctx context.Context, in *Msg) (*Msg, error) {
 }
 
 func (c *svcJSONClient) callSend(ctx context.Context, in *Msg) (*Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importable")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

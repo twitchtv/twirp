@@ -87,6 +87,9 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 }
 
 func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
@@ -113,9 +116,6 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 }
 
 func (c *svc2ProtobufClient) callSend(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -171,6 +171,9 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 }
 
 func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
@@ -197,9 +200,6 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 }
 
 func (c *svc2JSONClient) callSend(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

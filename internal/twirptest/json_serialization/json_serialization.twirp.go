@@ -82,6 +82,9 @@ func NewJSONSerializationProtobufClient(baseURL string, client HTTPClient, opts 
 }
 
 func (c *jSONSerializationProtobufClient) EchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "JSONSerialization")
+	ctx = ctxsetters.WithMethodName(ctx, "EchoJSON")
 	caller := c.callEchoJSON
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
@@ -108,9 +111,6 @@ func (c *jSONSerializationProtobufClient) EchoJSON(ctx context.Context, in *Msg)
 }
 
 func (c *jSONSerializationProtobufClient) callEchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "")
-	ctx = ctxsetters.WithServiceName(ctx, "JSONSerialization")
-	ctx = ctxsetters.WithMethodName(ctx, "EchoJSON")
 	out := new(Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -166,6 +166,9 @@ func NewJSONSerializationJSONClient(baseURL string, client HTTPClient, opts ...t
 }
 
 func (c *jSONSerializationJSONClient) EchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "JSONSerialization")
+	ctx = ctxsetters.WithMethodName(ctx, "EchoJSON")
 	caller := c.callEchoJSON
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
@@ -192,9 +195,6 @@ func (c *jSONSerializationJSONClient) EchoJSON(ctx context.Context, in *Msg) (*M
 }
 
 func (c *jSONSerializationJSONClient) callEchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "")
-	ctx = ctxsetters.WithServiceName(ctx, "JSONSerialization")
-	ctx = ctxsetters.WithMethodName(ctx, "EchoJSON")
 	out := new(Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

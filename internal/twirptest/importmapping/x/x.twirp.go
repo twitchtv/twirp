@@ -84,6 +84,9 @@ func NewSvc1ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 }
 
 func (c *svc1ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
@@ -110,9 +113,6 @@ func (c *svc1ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 }
 
 func (c *svc1ProtobufClient) callSend(ctx context.Context, in *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importmapping_y.MsgY)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -168,6 +168,9 @@ func NewSvc1JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 }
 
 func (c *svc1JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
@@ -194,9 +197,6 @@ func (c *svc1JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 }
 
 func (c *svc1JSONClient) callSend(ctx context.Context, in *twirp_internal_twirptest_importmapping_y.MsgY) (*twirp_internal_twirptest_importmapping_y.MsgY, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importmapping.x")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc1")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importmapping_y.MsgY)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

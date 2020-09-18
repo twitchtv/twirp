@@ -84,6 +84,9 @@ func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twi
 }
 
 func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twitch.twirp.example")
+	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	caller := c.callMakeHat
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Size) (*Hat, error) {
@@ -110,9 +113,6 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 }
 
 func (c *haberdasherProtobufClient) callMakeHat(ctx context.Context, in *Size) (*Hat, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twitch.twirp.example")
-	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
-	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -168,6 +168,9 @@ func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.C
 }
 
 func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twitch.twirp.example")
+	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
+	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	caller := c.callMakeHat
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Size) (*Hat, error) {
@@ -194,9 +197,6 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 }
 
 func (c *haberdasherJSONClient) callMakeHat(ctx context.Context, in *Size) (*Hat, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twitch.twirp.example")
-	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
-	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

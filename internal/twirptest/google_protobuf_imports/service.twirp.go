@@ -85,6 +85,9 @@ func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 }
 
 func (c *svcProtobufClient) Send(ctx context.Context, in *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.use_empty")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
@@ -111,9 +114,6 @@ func (c *svcProtobufClient) Send(ctx context.Context, in *google_protobuf1.Strin
 }
 
 func (c *svcProtobufClient) callSend(ctx context.Context, in *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.use_empty")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(google_protobuf.Empty)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -169,6 +169,9 @@ func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOpt
 }
 
 func (c *svcJSONClient) Send(ctx context.Context, in *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.use_empty")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc")
+	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	caller := c.callSend
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
@@ -195,9 +198,6 @@ func (c *svcJSONClient) Send(ctx context.Context, in *google_protobuf1.StringVal
 }
 
 func (c *svcJSONClient) callSend(ctx context.Context, in *google_protobuf1.StringValue) (*google_protobuf.Empty, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.use_empty")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc")
-	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(google_protobuf.Empty)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

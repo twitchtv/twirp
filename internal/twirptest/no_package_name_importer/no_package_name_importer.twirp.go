@@ -84,6 +84,9 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 }
 
 func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	caller := c.callMethod
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *no_package_name.Msg) (*no_package_name.Msg, error) {
@@ -110,9 +113,6 @@ func (c *svc2ProtobufClient) Method(ctx context.Context, in *no_package_name.Msg
 }
 
 func (c *svc2ProtobufClient) callMethod(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -168,6 +168,9 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 }
 
 func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
+	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	caller := c.callMethod
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *no_package_name.Msg) (*no_package_name.Msg, error) {
@@ -194,9 +197,6 @@ func (c *svc2JSONClient) Method(ctx context.Context, in *no_package_name.Msg) (*
 }
 
 func (c *svc2JSONClient) callMethod(ctx context.Context, in *no_package_name.Msg) (*no_package_name.Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "")
-	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
-	ctx = ctxsetters.WithMethodName(ctx, "Method")
 	out := new(no_package_name.Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

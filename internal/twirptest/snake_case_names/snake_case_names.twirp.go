@@ -87,6 +87,9 @@ func NewHaberdasherV1ProtobufClient(baseURL string, client HTTPClient, opts ...t
 }
 
 func (c *haberdasherV1ProtobufClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
+	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
+	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	caller := c.callMakeHatV1
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
@@ -113,9 +116,6 @@ func (c *haberdasherV1ProtobufClient) MakeHatV1(ctx context.Context, in *MakeHat
 }
 
 func (c *haberdasherV1ProtobufClient) callMakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
-	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
-	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	out := new(MakeHatArgsV1_HatV1)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -171,6 +171,9 @@ func NewHaberdasherV1JSONClient(baseURL string, client HTTPClient, opts ...twirp
 }
 
 func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
+	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
+	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	caller := c.callMakeHatV1
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
@@ -197,9 +200,6 @@ func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgs
 }
 
 func (c *haberdasherV1JSONClient) callMakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
-	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
-	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
 	out := new(MakeHatArgsV1_HatV1)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

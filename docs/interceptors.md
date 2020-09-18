@@ -4,11 +4,15 @@ title: "Interceptors"
 sidebar_label: "Interceptors"
 ---
 
-The service constructor can use the option `twirp.WithServerInterceptors(interceptors ...twirp.Interceptor)`
+The client and service constructors can use the options
+`twirp.WithClientInterceptors(interceptors ...twirp.Interceptor)`
+and `twirp.WithServerInterceptors(interceptors ...twirp.Interceptor)`
 to plug in additional functionality:
 
 ```go
-server := NewHaberdasherServer(svcImpl, twirp.WithInterceptor(NewLogInterceptor(logger.New(os.Stderr, "", 0))))
+client := NewHaberdasherProtobufClient(url, &http.Client{}, twirp.WithClientInterceptors(NewLogInterceptor(logger.New(os.Stderr, "", 0))))
+
+server := NewHaberdasherServer(svcImpl, twirp.WithServerInterceptors(NewLogInterceptor(logger.New(os.Stderr, "", 0))))
 
 // NewLogInterceptor logs various parts of a request using a standard Logger.
 func NewLogInterceptor(l *log.Logger) twirp.Interceptor {

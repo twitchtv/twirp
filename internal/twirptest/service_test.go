@@ -643,7 +643,6 @@ func TestInterceptor(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected twirp.Error type error, have %T", clientErr)
 	}
-
 	if twerr.Code() != twirp.InvalidArgument {
 		t.Errorf("expected error type to be InvalidArgument, buf found %q", twerr.Code())
 	}

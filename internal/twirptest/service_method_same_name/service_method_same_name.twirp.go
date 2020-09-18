@@ -82,6 +82,9 @@ func NewEchoProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 }
 
 func (c *echoProtobufClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Echo")
+	ctx = ctxsetters.WithMethodName(ctx, "Echo")
 	caller := c.callEcho
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
@@ -108,9 +111,6 @@ func (c *echoProtobufClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 }
 
 func (c *echoProtobufClient) callEcho(ctx context.Context, in *Msg) (*Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "")
-	ctx = ctxsetters.WithServiceName(ctx, "Echo")
-	ctx = ctxsetters.WithMethodName(ctx, "Echo")
 	out := new(Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -166,6 +166,9 @@ func NewEchoJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 }
 
 func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Echo")
+	ctx = ctxsetters.WithMethodName(ctx, "Echo")
 	caller := c.callEcho
 	if c.interceptor != nil {
 		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
@@ -192,9 +195,6 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 }
 
 func (c *echoJSONClient) callEcho(ctx context.Context, in *Msg) (*Msg, error) {
-	ctx = ctxsetters.WithPackageName(ctx, "")
-	ctx = ctxsetters.WithServiceName(ctx, "Echo")
-	ctx = ctxsetters.WithMethodName(ctx, "Echo")
 	out := new(Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {

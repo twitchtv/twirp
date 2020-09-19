@@ -37,9 +37,10 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	client HTTPClient
-	urls   [2]string
-	opts   twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [2]string
+	literalURLs   [2]string
+	opts          twirp.ClientOptions
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
@@ -55,17 +56,24 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
-	urls := [2]string{
-		serviceURL + "Send",
-		serviceURL + "SamePackageProtoImport",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
+	camelCaseURLs := [2]string{
+		serviceCamelCasedURL + "Send",
+		serviceCamelCasedURL + "SamePackageProtoImport",
+	}
+
+	literalURLs := [2]string{
+		serviceLiteralURL + "Send",
+		serviceLiteralURL + "SamePackageProtoImport",
 	}
 
 	return &svc2ProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		opts:          clientOpts,
 	}
 }
 
@@ -74,7 +82,13 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) 
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -94,7 +108,13 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[1]
+	} else {
+		requestURL = c.camelCaseURLs[1]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -114,9 +134,10 @@ func (c *svc2ProtobufClient) SamePackageProtoImport(ctx context.Context, in *Msg
 // ================
 
 type svc2JSONClient struct {
-	client HTTPClient
-	urls   [2]string
-	opts   twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [2]string
+	literalURLs   [2]string
+	opts          twirp.ClientOptions
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
@@ -132,17 +153,24 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
-	urls := [2]string{
-		serviceURL + "Send",
-		serviceURL + "SamePackageProtoImport",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.multiple", "Svc2")
+	camelCaseURLs := [2]string{
+		serviceCamelCasedURL + "Send",
+		serviceCamelCasedURL + "SamePackageProtoImport",
+	}
+
+	literalURLs := [2]string{
+		serviceLiteralURL + "Send",
+		serviceLiteralURL + "SamePackageProtoImport",
 	}
 
 	return &svc2JSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		opts:          clientOpts,
 	}
 }
 
@@ -151,7 +179,13 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *Msg2) (*Msg2, error) {
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(Msg2)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -171,7 +205,13 @@ func (c *svc2JSONClient) SamePackageProtoImport(ctx context.Context, in *Msg1) (
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "SamePackageProtoImport")
 	out := new(Msg1)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[1]
+	} else {
+		requestURL = c.camelCaseURLs[1]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

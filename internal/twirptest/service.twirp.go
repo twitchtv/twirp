@@ -50,9 +50,10 @@ type Haberdasher interface {
 // ===========================
 
 type haberdasherProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	opts          twirp.ClientOptions
 }
 
 // NewHaberdasherProtobufClient creates a Protobuf client that implements the Haberdasher interface.
@@ -68,16 +69,22 @@ func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twi
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest", "Haberdasher")
-	urls := [1]string{
-		serviceURL + "MakeHat",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest", "Haberdasher")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest", "Haberdasher")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "MakeHat",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "MakeHat",
 	}
 
 	return &haberdasherProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		opts:          clientOpts,
 	}
 }
 
@@ -86,7 +93,13 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -106,9 +119,10 @@ func (c *haberdasherProtobufClient) MakeHat(ctx context.Context, in *Size) (*Hat
 // =======================
 
 type haberdasherJSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	opts          twirp.ClientOptions
 }
 
 // NewHaberdasherJSONClient creates a JSON client that implements the Haberdasher interface.
@@ -124,16 +138,22 @@ func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.C
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest", "Haberdasher")
-	urls := [1]string{
-		serviceURL + "MakeHat",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest", "Haberdasher")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest", "Haberdasher")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "MakeHat",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "MakeHat",
 	}
 
 	return &haberdasherJSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		opts:          clientOpts,
 	}
 }
 
@@ -142,7 +162,13 @@ func (c *haberdasherJSONClient) MakeHat(ctx context.Context, in *Size) (*Hat, er
 	ctx = ctxsetters.WithServiceName(ctx, "Haberdasher")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHat")
 	out := new(Hat)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

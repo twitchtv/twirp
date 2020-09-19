@@ -53,9 +53,10 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	opts          twirp.ClientOptions
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
@@ -71,16 +72,22 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
-	urls := [1]string{
-		serviceURL + "Send",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "Send",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "Send",
 	}
 
 	return &svc2ProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		opts:          clientOpts,
 	}
 }
 
@@ -89,7 +96,13 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -109,9 +122,10 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 // ================
 
 type svc2JSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	opts          twirp.ClientOptions
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
@@ -127,16 +141,22 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
-	urls := [1]string{
-		serviceURL + "Send",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.importer", "Svc2")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "Send",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "Send",
 	}
 
 	return &svc2JSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		opts:          clientOpts,
 	}
 }
 
@@ -145,7 +165,13 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
 	out := new(twirp_internal_twirptest_importable.Msg)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

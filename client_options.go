@@ -22,8 +22,9 @@ type ClientOption func(*ClientOptions)
 
 // ClientOptions encapsulate the configurable parameters on a Twirp client.
 type ClientOptions struct {
-	Hooks      *ClientHooks
-	pathPrefix *string
+	Hooks              *ClientHooks
+	UseLiteralCaseURLs bool
+	pathPrefix         *string
 }
 
 func (opts *ClientOptions) PathPrefix() string {
@@ -120,5 +121,15 @@ func ChainClientHooks(hooks ...*ClientHooks) *ClientHooks {
 func WithClientPathPrefix(prefix string) ClientOption {
 	return func(o *ClientOptions) {
 		o.pathPrefix = &prefix
+	}
+}
+
+// WithClientLiteralCase sets twirp client to use exact names for service and method names as defined the protobuf file.
+// Example: for Service name `haberdasher` and method name `make_hat`, the default URL is `/<prefix>/<package>.Haberdasher/MakeHat`
+// using this option will make the client send requests to `/<prefix>/<package>.haberdasher/make_hat` instead.
+// This is required when working with spec-compatible servers in other languages.
+func WithClientLiteralCase() ClientOption {
+	return func(o *ClientOptions) {
+		o.UseLiteralCaseURLs = true
 	}
 }

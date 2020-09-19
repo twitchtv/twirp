@@ -15,9 +15,12 @@ package snake_case_names
 
 import (
 	context "context"
+	"fmt"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
+
+	twirp "github.com/twitchtv/twirp"
 )
 
 type HaberdasherService struct{}
@@ -52,7 +55,10 @@ type compatibilityTestClient struct {
 }
 
 func (t compatibilityTestClient) Do(req *http.Request) (*http.Response, error) {
-	req.URL.Path = "/twirp/twirp.internal.twirptest.snake_case_names.Haberdasher_v1/MakeHat_v1"
+	expectedPath := "/twirp/twirp.internal.twirptest.snake_case_names.Haberdasher_v1/MakeHat_v1"
+	if req.URL.Path != expectedPath {
+		return nil, fmt.Errorf("expected: %s, got: %s", expectedPath, req.URL.Path)
+	}
 	return t.client.Do(req)
 }
 
@@ -64,7 +70,7 @@ func TestServiceMethodNamesUnderscores(t *testing.T) {
 	s := httptest.NewServer(NewHaberdasherV1Server(&HaberdasherService{}, nil))
 	defer s.Close()
 
-	client := NewHaberdasherV1ProtobufClient(s.URL, compatibilityTestClient{client: http.DefaultClient})
+	client := NewHaberdasherV1ProtobufClient(s.URL, compatibilityTestClient{client: http.DefaultClient}, twirp.WithClientLiteralCase())
 	hat, err := client.MakeHatV1(context.Background(), &MakeHatArgsV1_SizeV1{Inches: 1})
 	if err != nil {
 		t.Fatalf("compatible protobuf client err=%q", err)

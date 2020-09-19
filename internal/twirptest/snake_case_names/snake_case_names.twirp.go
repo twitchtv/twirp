@@ -53,10 +53,11 @@ type HaberdasherV1 interface {
 // =============================
 
 type haberdasherV1ProtobufClient struct {
-	client      HTTPClient
-	urls        [1]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewHaberdasherV1ProtobufClient creates a Protobuf client that implements the HaberdasherV1 interface.
@@ -72,17 +73,23 @@ func NewHaberdasherV1ProtobufClient(baseURL string, client HTTPClient, opts ...t
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
-	urls := [1]string{
-		serviceURL + "MakeHatV1",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "Haberdasher_v1")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "MakeHatV1",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "MakeHat_v1",
 	}
 
 	return &haberdasherV1ProtobufClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -117,7 +124,13 @@ func (c *haberdasherV1ProtobufClient) MakeHatV1(ctx context.Context, in *MakeHat
 
 func (c *haberdasherV1ProtobufClient) callMakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
 	out := new(MakeHatArgsV1_HatV1)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -137,10 +150,11 @@ func (c *haberdasherV1ProtobufClient) callMakeHatV1(ctx context.Context, in *Mak
 // =========================
 
 type haberdasherV1JSONClient struct {
-	client      HTTPClient
-	urls        [1]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewHaberdasherV1JSONClient creates a JSON client that implements the HaberdasherV1 interface.
@@ -156,17 +170,23 @@ func NewHaberdasherV1JSONClient(baseURL string, client HTTPClient, opts ...twirp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
-	urls := [1]string{
-		serviceURL + "MakeHatV1",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "Haberdasher_v1")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "MakeHatV1",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "MakeHat_v1",
 	}
 
 	return &haberdasherV1JSONClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -201,7 +221,13 @@ func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgs
 
 func (c *haberdasherV1JSONClient) callMakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
 	out := new(MakeHatArgsV1_HatV1)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

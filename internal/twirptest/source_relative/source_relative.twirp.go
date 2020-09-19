@@ -48,10 +48,11 @@ type Svc interface {
 // ===================
 
 type svcProtobufClient struct {
-	client      HTTPClient
-	urls        [1]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewSvcProtobufClient creates a Protobuf client that implements the Svc interface.
@@ -67,17 +68,23 @@ func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.source_relative", "Svc")
-	urls := [1]string{
-		serviceURL + "Method",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.source_relative", "Svc")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.source_relative", "Svc")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "Method",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "Method",
 	}
 
 	return &svcProtobufClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -112,7 +119,13 @@ func (c *svcProtobufClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 
 func (c *svcProtobufClient) callMethod(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -132,10 +145,11 @@ func (c *svcProtobufClient) callMethod(ctx context.Context, in *Msg) (*Msg, erro
 // ===============
 
 type svcJSONClient struct {
-	client      HTTPClient
-	urls        [1]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewSvcJSONClient creates a JSON client that implements the Svc interface.
@@ -151,17 +165,23 @@ func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOpt
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.source_relative", "Svc")
-	urls := [1]string{
-		serviceURL + "Method",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.source_relative", "Svc")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.source_relative", "Svc")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "Method",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "Method",
 	}
 
 	return &svcJSONClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -196,7 +216,13 @@ func (c *svcJSONClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 
 func (c *svcJSONClient) callMethod(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

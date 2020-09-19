@@ -48,10 +48,11 @@ type JSONSerialization interface {
 // =================================
 
 type jSONSerializationProtobufClient struct {
-	client      HTTPClient
-	urls        [1]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewJSONSerializationProtobufClient creates a Protobuf client that implements the JSONSerialization interface.
@@ -67,17 +68,23 @@ func NewJSONSerializationProtobufClient(baseURL string, client HTTPClient, opts 
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
-	urls := [1]string{
-		serviceURL + "EchoJSON",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "EchoJSON",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "EchoJSON",
 	}
 
 	return &jSONSerializationProtobufClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -112,7 +119,13 @@ func (c *jSONSerializationProtobufClient) EchoJSON(ctx context.Context, in *Msg)
 
 func (c *jSONSerializationProtobufClient) callEchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -132,10 +145,11 @@ func (c *jSONSerializationProtobufClient) callEchoJSON(ctx context.Context, in *
 // =============================
 
 type jSONSerializationJSONClient struct {
-	client      HTTPClient
-	urls        [1]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [1]string
+	literalURLs   [1]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewJSONSerializationJSONClient creates a JSON client that implements the JSONSerialization interface.
@@ -151,17 +165,23 @@ func NewJSONSerializationJSONClient(baseURL string, client HTTPClient, opts ...t
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
-	urls := [1]string{
-		serviceURL + "EchoJSON",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
+	camelCaseURLs := [1]string{
+		serviceCamelCasedURL + "EchoJSON",
+	}
+
+	literalURLs := [1]string{
+		serviceLiteralURL + "EchoJSON",
 	}
 
 	return &jSONSerializationJSONClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -196,7 +216,13 @@ func (c *jSONSerializationJSONClient) EchoJSON(ctx context.Context, in *Msg) (*M
 
 func (c *jSONSerializationJSONClient) callEchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

@@ -50,10 +50,11 @@ type CompatService interface {
 // =============================
 
 type compatServiceProtobufClient struct {
-	client      HTTPClient
-	urls        [2]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [2]string
+	literalURLs   [2]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
@@ -69,18 +70,25 @@ func NewCompatServiceProtobufClient(baseURL string, client HTTPClient, opts ...t
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
-	urls := [2]string{
-		serviceURL + "Method",
-		serviceURL + "NoopMethod",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
+	camelCaseURLs := [2]string{
+		serviceCamelCasedURL + "Method",
+		serviceCamelCasedURL + "NoopMethod",
+	}
+
+	literalURLs := [2]string{
+		serviceLiteralURL + "Method",
+		serviceLiteralURL + "NoopMethod",
 	}
 
 	return &compatServiceProtobufClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -115,7 +123,13 @@ func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Res
 
 func (c *compatServiceProtobufClient) callMethod(ctx context.Context, in *Req) (*Resp, error) {
 	out := new(Resp)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -161,7 +175,13 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 
 func (c *compatServiceProtobufClient) callNoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
 	out := new(Empty)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[1]
+	} else {
+		requestURL = c.camelCaseURLs[1]
+	}
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -181,10 +201,11 @@ func (c *compatServiceProtobufClient) callNoopMethod(ctx context.Context, in *Em
 // =========================
 
 type compatServiceJSONClient struct {
-	client      HTTPClient
-	urls        [2]string
-	interceptor twirp.Interceptor
-	opts        twirp.ClientOptions
+	client        HTTPClient
+	camelCaseURLs [2]string
+	literalURLs   [2]string
+	interceptor   twirp.Interceptor
+	opts          twirp.ClientOptions
 }
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
@@ -200,18 +221,25 @@ func NewCompatServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
-	urls := [2]string{
-		serviceURL + "Method",
-		serviceURL + "NoopMethod",
+	sanitizedBaseURL := sanitizeBaseURL(baseURL)
+	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
+	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
+	camelCaseURLs := [2]string{
+		serviceCamelCasedURL + "Method",
+		serviceCamelCasedURL + "NoopMethod",
+	}
+
+	literalURLs := [2]string{
+		serviceLiteralURL + "Method",
+		serviceLiteralURL + "NoopMethod",
 	}
 
 	return &compatServiceJSONClient{
-		client:      client,
-		urls:        urls,
-		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
-		opts:        clientOpts,
+		client:        client,
+		camelCaseURLs: camelCaseURLs,
+		literalURLs:   literalURLs,
+		interceptor:   twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:          clientOpts,
 	}
 }
 
@@ -246,7 +274,13 @@ func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, e
 
 func (c *compatServiceJSONClient) callMethod(ctx context.Context, in *Req) (*Resp, error) {
 	out := new(Resp)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[0]
+	} else {
+		requestURL = c.camelCaseURLs[0]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -292,7 +326,13 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 
 func (c *compatServiceJSONClient) callNoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
 	out := new(Empty)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	var requestURL = ""
+	if c.opts.UseLiteralCaseURLs {
+		requestURL = c.literalURLs[1]
+	} else {
+		requestURL = c.camelCaseURLs[1]
+	}
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {

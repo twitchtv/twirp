@@ -1026,6 +1026,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		t.P(`  }`)
 	}
 
+	t.P()
 	t.P(`  return &`, structName, `{`)
 	t.P(`    client: client,`)
 	t.P(`    urls:   urls,`)

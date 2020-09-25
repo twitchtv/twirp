@@ -76,6 +76,7 @@ func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	urls := [1]string{
 		serviceURL + "Send",
 	}
+
 	return &svcProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -159,6 +160,7 @@ func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOpt
 	urls := [1]string{
 		serviceURL + "Send",
 	}
+
 	return &svcJSONClient{
 		client:      client,
 		urls:        urls,

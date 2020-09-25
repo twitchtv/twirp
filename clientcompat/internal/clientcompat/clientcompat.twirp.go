@@ -75,6 +75,7 @@ func NewCompatServiceProtobufClient(baseURL string, client HTTPClient, opts ...t
 		serviceURL + "Method",
 		serviceURL + "NoopMethod",
 	}
+
 	return &compatServiceProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -205,6 +206,7 @@ func NewCompatServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp
 		serviceURL + "Method",
 		serviceURL + "NoopMethod",
 	}
+
 	return &compatServiceJSONClient{
 		client:      client,
 		urls:        urls,

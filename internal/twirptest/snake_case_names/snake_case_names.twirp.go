@@ -86,6 +86,7 @@ func NewHaberdasherV1ProtobufClient(baseURL string, client HTTPClient, opts ...t
 			serviceURL + "MakeHat_v1",
 		}
 	}
+
 	return &haberdasherV1ProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -178,6 +179,7 @@ func NewHaberdasherV1JSONClient(baseURL string, client HTTPClient, opts ...twirp
 			serviceURL + "MakeHat_v1",
 		}
 	}
+
 	return &haberdasherV1JSONClient{
 		client:      client,
 		urls:        urls,

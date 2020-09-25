@@ -74,6 +74,7 @@ func NewHaberdasherProtobufClient(baseURL string, client HTTPClient, opts ...twi
 	urls := [1]string{
 		serviceURL + "MakeHat",
 	}
+
 	return &haberdasherProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -157,6 +158,7 @@ func NewHaberdasherJSONClient(baseURL string, client HTTPClient, opts ...twirp.C
 	urls := [1]string{
 		serviceURL + "MakeHat",
 	}
+
 	return &haberdasherJSONClient{
 		client:      client,
 		urls:        urls,

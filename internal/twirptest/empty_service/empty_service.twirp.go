@@ -66,6 +66,7 @@ func NewEmptyProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 	}
 
 	urls := [0]string{}
+
 	return &emptyProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -98,6 +99,7 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 	}
 
 	urls := [0]string{}
+
 	return &emptyJSONClient{
 		client:      client,
 		urls:        urls,

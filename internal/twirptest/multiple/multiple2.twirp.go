@@ -62,6 +62,7 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 		serviceURL + "Send",
 		serviceURL + "SamePackageProtoImport",
 	}
+
 	return &svc2ProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -192,6 +193,7 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 		serviceURL + "Send",
 		serviceURL + "SamePackageProtoImport",
 	}
+
 	return &svc2JSONClient{
 		client:      client,
 		urls:        urls,

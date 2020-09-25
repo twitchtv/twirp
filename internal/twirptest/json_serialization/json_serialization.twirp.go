@@ -72,6 +72,7 @@ func NewJSONSerializationProtobufClient(baseURL string, client HTTPClient, opts 
 	urls := [1]string{
 		serviceURL + "EchoJSON",
 	}
+
 	return &jSONSerializationProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -155,6 +156,7 @@ func NewJSONSerializationJSONClient(baseURL string, client HTTPClient, opts ...t
 	urls := [1]string{
 		serviceURL + "EchoJSON",
 	}
+
 	return &jSONSerializationJSONClient{
 		client:      client,
 		urls:        urls,

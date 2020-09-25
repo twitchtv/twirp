@@ -74,6 +74,7 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	urls := [1]string{
 		serviceURL + "Method",
 	}
+
 	return &svc2ProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -157,6 +158,7 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	urls := [1]string{
 		serviceURL + "Method",
 	}
+
 	return &svc2JSONClient{
 		client:      client,
 		urls:        urls,

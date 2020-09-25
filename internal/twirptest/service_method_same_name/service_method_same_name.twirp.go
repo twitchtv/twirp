@@ -72,6 +72,7 @@ func NewEchoProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	urls := [1]string{
 		serviceURL + "Echo",
 	}
+
 	return &echoProtobufClient{
 		client:      client,
 		urls:        urls,
@@ -155,6 +156,7 @@ func NewEchoJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	urls := [1]string{
 		serviceURL + "Echo",
 	}
+
 	return &echoJSONClient{
 		client:      client,
 		urls:        urls,

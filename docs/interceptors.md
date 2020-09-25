@@ -4,33 +4,43 @@ title: "Interceptors"
 sidebar_label: "Interceptors"
 ---
 
-The client and service constructors can use the options
-`twirp.WithClientInterceptors(interceptors ...twirp.Interceptor)`
-and `twirp.WithServerInterceptors(interceptors ...twirp.Interceptor)`
-to plug in additional functionality:
+Interceptors are like middleware, wrapping RPC calls with extra functionality.
+
+In most cases, it is better to use [Hooks](hooks.md) for observability at key points
+during a request lifecycle. Hooks do not mutate the request and response structs,
+which results in less problems when debugging issues.
+
+Example:
 
 ```go
-client := NewHaberdasherProtobufClient(url, &http.Client{}, twirp.WithClientInterceptors(NewLogInterceptor(logger.New(os.Stderr, "", 0))))
-
-server := NewHaberdasherServer(svcImpl, twirp.WithServerInterceptors(NewLogInterceptor(logger.New(os.Stderr, "", 0))))
-
-// NewLogInterceptor logs various parts of a request using a standard Logger.
-func NewLogInterceptor(l *log.Logger) twirp.Interceptor {
+// NewInterceptorMakeSmallHats builds an interceptor that modifies
+// calls to MakeHat ignoring the request, and instead always making small hats.
+func NewInterceptorMakeSmallHats() twirp.Interceptor {
   return func(next twirp.Method) twirp.Method {
     return func(ctx context.Context, req interface{}) (interface{}, error) {
-      l.Printf("request: %v", request)
-      resp, err := next(ctx, req)
-      if err != nil {
-        l.Printf("error: %v", err)
-        return nil, err
+      if twirp.MethodName(ctx) == "MakeHat" {
+        return next(ctx, &haberdasher.Size{Inches: 1})
       }
-      l.Printf("response: %v", resp)
-      return resp, nil
+      return next(ctx, req)
     }
   }
 }
 ```
 
+To wrap all client requests with the interceptor:
+
+```go
+client := NewHaberdasherProtobufClient(url, &http.Client{},
+  twirp.WithClientInterceptors(NewInterceptorMakeSmallHats()))
+```
+
+To wrap all service requests with the interceptor:
+
+```go
+server := NewHaberdasherServer(svcImpl,
+  twirp.WithServerInterceptors(NewInterceptorMakeSmallHats())
+```
+
 Check out
-[the godoc for `Interceptor`](http://godoc.org/github.com/twitchtv/twirp#Interceptor)
+[the godoc for Interceptor](http://godoc.org/github.com/twitchtv/twirp#Interceptor)
 for more information.

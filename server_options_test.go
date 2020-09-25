@@ -107,3 +107,17 @@ func TestWithServerPathPrefix(t *testing.T) {
 		t.Errorf("unexpected value after WithServerPathPrefix, have: %q, want: %q", have, want)
 	}
 }
+
+func TestWithJSONSkipDefaults(t *testing.T) {
+	opts := &ServerOptions{}
+
+	WithServerJSONSkipDefaults(true)(opts)
+	if !opts.JSONSkipDefaults {
+		t.Errorf("opts.JSONSkipDefaults expected to be true, but it is false")
+	}
+
+	WithServerJSONSkipDefaults(false)(opts)
+	if opts.JSONSkipDefaults {
+		t.Errorf("opts.JSONSkipDefaults expected to be false, but it is true")
+	}
+}

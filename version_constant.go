@@ -11,6 +11,9 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package gen
+package twirp
 
-const Version = "v7.0.0"
+// TwirpPackageIsVersion7 is a constant referenced from generated code that
+// requires features on this version of the twirp package. Older versions
+// don't have this constant defined, causing a compile-time assetion error.
+const TwirpPackageIsVersion7 = true

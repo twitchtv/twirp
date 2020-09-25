@@ -1,7 +1,7 @@
 ---
 id: "spec_v7"
 title: "Twirp Wire Protocol (v7)"
-sidebar_label: "Version 7 (Draft)"
+sidebar_label: "Version 7 (Current)"
 ---
 
 This document defines the Twirp wire protocol over HTTP. The
@@ -219,7 +219,7 @@ corresponding HTTP Status Code for the response.
 | already_exists      | 409 | An attempt to create an entity failed because one already exists.
 | permission_denied   | 403 | The caller does not have permission to execute the specified operation. It must not be used if the caller cannot be identified (use "unauthenticated" instead).
 | unauthenticated     | 401 | The request does not have valid authentication credentials for the operation.
-| resource_exhausted  | 403 | Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space.
+| resource_exhausted  | 429 | Some resource has been exhausted or rate-limited, perhaps a per-user quota, or perhaps the entire file system is out of space.
 | failed_precondition | 412 | The operation was rejected because the system is not in a state required for the operation's execution. For example, doing an rmdir operation on a directory that is non-empty, or on a non-directory object, or when having conflicting read-modify-write on the same resource.
 | aborted             | 409 | The operation was aborted, typically due to a concurrency issue like sequencer check failures, transaction aborts, etc.
 | out_of_range        | 400 | The operation was attempted past the valid range. For example, seeking or reading past end of a paginated collection. Unlike "invalid_argument", this error indicates a problem that may be fixed if the system state changes (i.e. adding more items to the collection). There is a fair bit of overlap between "failed_precondition" and "out_of_range". We recommend using "out_of_range" (the more specific error) when it applies so that callers who are iterating through a space can easily look for an "out_of_range" error to detect when they are done.
@@ -228,4 +228,11 @@ corresponding HTTP Status Code for the response.
 | unavailable         | 503 | The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff.
 | dataloss            | 500 | The operation resulted in unrecoverable data loss or corruption.
 
+
+## Differences with v5
+
+Note v6 was a draft and never released. Twirp implementations supporting the protocol spec v5 should update directly to support v7.
+
+ * Twirp URLs in v5 could only have the "/twirp" prefix. In v7 they can have any arbitrary prefix or no prefix. See Go PR for reference: https://github.com/twitchtv/twirp/pull/264
+ * Error responses with code `resource_exhausted` in v5 had the HTTP status `403`. In v7 they have status `429`. See Go PR for reference: https://github.com/twitchtv/twirp/pull/270
 

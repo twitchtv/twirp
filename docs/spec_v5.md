@@ -1,7 +1,7 @@
 ---
 id: "spec_v5"
 title: "Twirp Wire Protocol (v5)"
-sidebar_label: "Version 5 (Current)"
+sidebar_label: "Version 5 (Previous)"
 ---
 
 This document defines the initial Twirp wire protocol over HTTP.

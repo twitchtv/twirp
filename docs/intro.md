@@ -12,7 +12,7 @@ powers the server, and then generated clients can consume your service straight
 away.
 
 This doc is an overview of how you use Twirp - how you interact with it, what
-you write, and what it generates.
+you write, and what it generates. Using the Go implementation as example: https://github.com/twitchtv/twirp
 
 ## Making a Twirp Service
 

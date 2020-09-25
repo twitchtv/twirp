@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -572,6 +573,79 @@ func TestErroringHooks(t *testing.T) {
 			t.Error("Error hook was not triggered")
 		}
 	})
+}
+
+func TestInterceptor(t *testing.T) {
+	interceptor := func(next twirp.Method) twirp.Method {
+		return func(ctx context.Context, request interface{}) (interface{}, error) {
+			methodName, _ := twirp.MethodName(ctx)
+			if methodName != "MakeHat" {
+				return nil, fmt.Errorf("unexpected methodName: %q", methodName)
+			}
+			serviceName, _ := twirp.ServiceName(ctx)
+			if serviceName != "Haberdasher" {
+				return nil, fmt.Errorf("unexpected serviceName: %q", serviceName)
+			}
+			packageName, _ := twirp.PackageName(ctx)
+			if packageName != "twirp.internal.twirptest" {
+				return nil, fmt.Errorf("unexpected packageName: %q", packageName)
+			}
+			size, ok := request.(*Size)
+			if !ok {
+				return nil, fmt.Errorf("could not cast %T to a *Size", request)
+			}
+			size.Inches = size.Inches + 1
+			response, err := next(ctx, request)
+			hat, ok := response.(*Hat)
+			if ok && hat != nil {
+				hat.Color = hat.Color + "x"
+				return hat, err
+			}
+			return nil, err
+		}
+	}
+	h := PickyHatmaker(3)
+
+	s := httptest.NewServer(NewHaberdasherServer(h))
+	defer s.Close()
+	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	hat, clientErr := client.MakeHat(context.Background(), &Size{Inches: 3})
+	if clientErr != nil {
+		t.Fatalf("client err=%q", clientErr)
+	}
+	if hat.Size != 3 {
+		t.Errorf("hat size expected=3 actual=%v", hat.Size)
+	}
+
+	s = httptest.NewServer(
+		NewHaberdasherServer(
+			h,
+			twirp.WithServerInterceptors(
+				interceptor,
+				interceptor,
+			),
+		),
+	)
+	defer s.Close()
+	client = NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
+	hat, clientErr = client.MakeHat(context.Background(), &Size{Inches: 1})
+	if clientErr != nil {
+		t.Fatalf("client err=%q", clientErr)
+	}
+	if hat.Size != 3 {
+		t.Errorf("hat size expected=3 actual=%v", hat.Size)
+	}
+	if hat.Color != "bluexx" {
+		t.Errorf("hat color expected=bluexx actual=%v", hat.Color)
+	}
+	_, clientErr = client.MakeHat(context.Background(), &Size{Inches: 3})
+	twerr, ok := clientErr.(twirp.Error)
+	if !ok {
+		t.Fatalf("expected twirp.Error type error, have %T", clientErr)
+	}
+	if twerr.Code() != twirp.InvalidArgument {
+		t.Errorf("expected error type to be InvalidArgument, buf found %q", twerr.Code())
+	}
 }
 
 func TestInternalErrorPassing(t *testing.T) {

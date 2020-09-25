@@ -53,9 +53,10 @@ type Svc2 interface {
 // ====================
 
 type svc2ProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvc2ProtobufClient creates a Protobuf client that implements the Svc2 interface.
@@ -78,9 +79,10 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	return &svc2ProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -88,6 +90,32 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
+	caller := c.callSend
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+					}
+					return c.callSend(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svc2ProtobufClient) callSend(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
 	out := new(twirp_internal_twirptest_importable.Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -109,9 +137,10 @@ func (c *svc2ProtobufClient) Send(ctx context.Context, in *twirp_internal_twirpt
 // ================
 
 type svc2JSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvc2JSONClient creates a JSON client that implements the Svc2 interface.
@@ -134,9 +163,10 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	return &svc2JSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -144,6 +174,32 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.importer")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc2")
 	ctx = ctxsetters.WithMethodName(ctx, "Send")
+	caller := c.callSend
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+					}
+					return c.callSend(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svc2JSONClient) callSend(ctx context.Context, in *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
 	out := new(twirp_internal_twirptest_importable.Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -166,6 +222,7 @@ func (c *svc2JSONClient) Send(ctx context.Context, in *twirp_internal_twirptest_
 
 type svc2Server struct {
 	Svc2
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -192,6 +249,7 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	return &svc2Server{
 		Svc2:             svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -286,11 +344,34 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	handler := s.Svc2.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+					}
+					return s.Svc2.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *twirp_internal_twirptest_importable.Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -345,11 +426,34 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
+	handler := s.Svc2.Send
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *twirp_internal_twirptest_importable.Msg) (*twirp_internal_twirptest_importable.Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*twirp_internal_twirptest_importable.Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+					}
+					return s.Svc2.Send(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*twirp_internal_twirptest_importable.Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*twirp_internal_twirptest_importable.Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *twirp_internal_twirptest_importable.Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc2.Send(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

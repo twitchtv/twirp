@@ -48,9 +48,10 @@ type Svc interface {
 // ===================
 
 type svcProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvcProtobufClient creates a Protobuf client that implements the Svc interface.
@@ -73,9 +74,10 @@ func NewSvcProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	}
 
 	return &svcProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -83,6 +85,32 @@ func (c *svcProtobufClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.source_relative")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
+	caller := c.callMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return c.callMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svcProtobufClient) callMethod(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -104,9 +132,10 @@ func (c *svcProtobufClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 // ===============
 
 type svcJSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewSvcJSONClient creates a JSON client that implements the Svc interface.
@@ -129,9 +158,10 @@ func NewSvcJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOpt
 	}
 
 	return &svcJSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -139,6 +169,32 @@ func (c *svcJSONClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.source_relative")
 	ctx = ctxsetters.WithServiceName(ctx, "Svc")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
+	caller := c.callMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return c.callMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *svcJSONClient) callMethod(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -161,6 +217,7 @@ func (c *svcJSONClient) Method(ctx context.Context, in *Msg) (*Msg, error) {
 
 type svcServer struct {
 	Svc
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -187,6 +244,7 @@ func NewSvcServer(svc Svc, opts ...interface{}) TwirpServer {
 	return &svcServer{
 		Svc:              svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -281,11 +339,34 @@ func (s *svcServer) serveMethodJSON(ctx context.Context, resp http.ResponseWrite
 		return
 	}
 
+	handler := s.Svc.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return s.Svc.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -340,11 +421,34 @@ func (s *svcServer) serveMethodProtobuf(ctx context.Context, resp http.ResponseW
 		return
 	}
 
+	handler := s.Svc.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return s.Svc.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Svc.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

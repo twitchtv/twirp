@@ -48,9 +48,10 @@ type Echo interface {
 // ====================
 
 type echoProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewEchoProtobufClient creates a Protobuf client that implements the Echo interface.
@@ -73,9 +74,10 @@ func NewEchoProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	}
 
 	return &echoProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -83,6 +85,32 @@ func (c *echoProtobufClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "Echo")
 	ctx = ctxsetters.WithMethodName(ctx, "Echo")
+	caller := c.callEcho
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return c.callEcho(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *echoProtobufClient) callEcho(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -104,9 +132,10 @@ func (c *echoProtobufClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 // ================
 
 type echoJSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewEchoJSONClient creates a JSON client that implements the Echo interface.
@@ -129,9 +158,10 @@ func NewEchoJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 	}
 
 	return &echoJSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -139,6 +169,32 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "Echo")
 	ctx = ctxsetters.WithMethodName(ctx, "Echo")
+	caller := c.callEcho
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return c.callEcho(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *echoJSONClient) callEcho(ctx context.Context, in *Msg) (*Msg, error) {
 	out := new(Msg)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -161,6 +217,7 @@ func (c *echoJSONClient) Echo(ctx context.Context, in *Msg) (*Msg, error) {
 
 type echoServer struct {
 	Echo
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -187,6 +244,7 @@ func NewEchoServer(svc Echo, opts ...interface{}) TwirpServer {
 	return &echoServer{
 		Echo:             svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -281,11 +339,34 @@ func (s *echoServer) serveEchoJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	handler := s.Echo.Echo
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return s.Echo.Echo(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Echo.Echo(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -340,11 +421,34 @@ func (s *echoServer) serveEchoProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
+	handler := s.Echo.Echo
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return s.Echo.Echo(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.Echo.Echo(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

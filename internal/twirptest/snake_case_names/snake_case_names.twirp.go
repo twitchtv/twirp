@@ -53,9 +53,10 @@ type HaberdasherV1 interface {
 // =============================
 
 type haberdasherV1ProtobufClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewHaberdasherV1ProtobufClient creates a Protobuf client that implements the HaberdasherV1 interface.
@@ -78,9 +79,10 @@ func NewHaberdasherV1ProtobufClient(baseURL string, client HTTPClient, opts ...t
 	}
 
 	return &haberdasherV1ProtobufClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -88,6 +90,32 @@ func (c *haberdasherV1ProtobufClient) MakeHatV1(ctx context.Context, in *MakeHat
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
 	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
+	caller := c.callMakeHatV1
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*MakeHatArgsV1_SizeV1)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*MakeHatArgsV1_SizeV1) when calling interceptor")
+					}
+					return c.callMakeHatV1(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*MakeHatArgsV1_HatV1)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*MakeHatArgsV1_HatV1) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *haberdasherV1ProtobufClient) callMakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
 	out := new(MakeHatArgsV1_HatV1)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -109,9 +137,10 @@ func (c *haberdasherV1ProtobufClient) MakeHatV1(ctx context.Context, in *MakeHat
 // =========================
 
 type haberdasherV1JSONClient struct {
-	client HTTPClient
-	urls   [1]string
-	opts   twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewHaberdasherV1JSONClient creates a JSON client that implements the HaberdasherV1 interface.
@@ -134,9 +163,10 @@ func NewHaberdasherV1JSONClient(baseURL string, client HTTPClient, opts ...twirp
 	}
 
 	return &haberdasherV1JSONClient{
-		client: client,
-		urls:   urls,
-		opts:   clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -144,6 +174,32 @@ func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgs
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.internal.twirptest.snake_case_names")
 	ctx = ctxsetters.WithServiceName(ctx, "HaberdasherV1")
 	ctx = ctxsetters.WithMethodName(ctx, "MakeHatV1")
+	caller := c.callMakeHatV1
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*MakeHatArgsV1_SizeV1)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*MakeHatArgsV1_SizeV1) when calling interceptor")
+					}
+					return c.callMakeHatV1(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*MakeHatArgsV1_HatV1)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*MakeHatArgsV1_HatV1) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *haberdasherV1JSONClient) callMakeHatV1(ctx context.Context, in *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
 	out := new(MakeHatArgsV1_HatV1)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
@@ -166,6 +222,7 @@ func (c *haberdasherV1JSONClient) MakeHatV1(ctx context.Context, in *MakeHatArgs
 
 type haberdasherV1Server struct {
 	HaberdasherV1
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -192,6 +249,7 @@ func NewHaberdasherV1Server(svc HaberdasherV1, opts ...interface{}) TwirpServer 
 	return &haberdasherV1Server{
 		HaberdasherV1:    svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -286,11 +344,34 @@ func (s *haberdasherV1Server) serveMakeHatV1JSON(ctx context.Context, resp http.
 		return
 	}
 
+	handler := s.HaberdasherV1.MakeHatV1
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*MakeHatArgsV1_SizeV1)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*MakeHatArgsV1_SizeV1) when calling interceptor")
+					}
+					return s.HaberdasherV1.MakeHatV1(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*MakeHatArgsV1_HatV1)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*MakeHatArgsV1_HatV1) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *MakeHatArgsV1_HatV1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.HaberdasherV1.MakeHatV1(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -345,11 +426,34 @@ func (s *haberdasherV1Server) serveMakeHatV1Protobuf(ctx context.Context, resp h
 		return
 	}
 
+	handler := s.HaberdasherV1.MakeHatV1
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *MakeHatArgsV1_SizeV1) (*MakeHatArgsV1_HatV1, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*MakeHatArgsV1_SizeV1)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*MakeHatArgsV1_SizeV1) when calling interceptor")
+					}
+					return s.HaberdasherV1.MakeHatV1(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*MakeHatArgsV1_HatV1)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*MakeHatArgsV1_HatV1) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *MakeHatArgsV1_HatV1
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.HaberdasherV1.MakeHatV1(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

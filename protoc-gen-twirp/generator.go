@@ -964,15 +964,18 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	servName := serviceNameCamelCased(service)
 	structName := unexported(servName) + name + "Client"
 	newClientFunc := "New" + servName + name + "Client"
+	servNameLit := serviceNameLiteral(service)
+	servNameCc := servName
 
 	methCnt := strconv.Itoa(len(service.Method))
 	t.P(`type `, structName, ` struct {`)
 	t.P(`  client HTTPClient`)
-	t.P(`  urls   [`, methCnt, `]string`)
+	t.P(`  urls  [`, methCnt, `]string`)
 	t.P(`  interceptor `, t.pkgs["twirp"], `.Interceptor`)
 	t.P(`  opts `, t.pkgs["twirp"], `.ClientOptions`)
 	t.P(`}`)
 	t.P()
+
 	t.P(`// `, newClientFunc, ` creates a `, name, ` client that implements the `, servName, ` interface.`)
 	t.P(`// It communicates using `, name, ` and can be configured with a custom HTTPClient.`)
 	t.P(`func `, newClientFunc, `(baseURL string, client HTTPClient, opts ...`, t.pkgs["twirp"], `.ClientOption) `, servName, ` {`)
@@ -988,13 +991,41 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	if len(service.Method) > 0 {
 		t.P(`  // Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>`)
 		t.P(`  serviceURL := sanitizeBaseURL(baseURL)`)
-		t.P(`  serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servName, `")`)
+		if servNameLit == servNameCc {
+			t.P(`  serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameCc, `")`)
+		} else { // proto service name is not CamelCased, then it needs to check client option to decide if needs to change case
+			t.P(`  if clientOpts.LiteralURLs {`)
+			t.P(`    serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameLit, `")`)
+			t.P(`  } else {`)
+			t.P(`    serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameCc, `")`)
+			t.P(`  }`)
+		}
 	}
 	t.P(`  urls := [`, methCnt, `]string{`)
 	for _, method := range service.Method {
 		t.P(`    serviceURL + "`, methodNameCamelCased(method), `",`)
 	}
 	t.P(`  }`)
+
+	allMethodsCamelCased := true
+	for _, method := range service.Method {
+		methNameLit := methodNameLiteral(method)
+		methNameCc := methodNameCamelCased(method)
+		if methNameCc != methNameLit {
+			allMethodsCamelCased = false
+			break
+		}
+	}
+	if !allMethodsCamelCased {
+		t.P(`  if clientOpts.LiteralURLs {`)
+		t.P(`    urls = [`, methCnt, `]string{`)
+		for _, method := range service.Method {
+			t.P(`    serviceURL + "`, methodNameLiteral(method), `",`)
+		}
+		t.P(`    }`)
+		t.P(`  }`)
+	}
+
 	t.P()
 	t.P(`  return &`, structName, `{`)
 	t.P(`    client: client,`)
@@ -1039,7 +1070,6 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		t.P(`}`)
 		t.P()
 	}
-
 }
 
 func (t *twirp) generateClientHooks() {

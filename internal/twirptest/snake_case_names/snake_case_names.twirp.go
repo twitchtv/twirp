@@ -73,9 +73,18 @@ func NewHaberdasherV1ProtobufClient(baseURL string, client HTTPClient, opts ...t
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
+	if clientOpts.LiteralURLs {
+		serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "Haberdasher_v1")
+	} else {
+		serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
+	}
 	urls := [1]string{
 		serviceURL + "MakeHatV1",
+	}
+	if clientOpts.LiteralURLs {
+		urls = [1]string{
+			serviceURL + "MakeHat_v1",
+		}
 	}
 
 	return &haberdasherV1ProtobufClient{
@@ -157,9 +166,18 @@ func NewHaberdasherV1JSONClient(baseURL string, client HTTPClient, opts ...twirp
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
-	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
+	if clientOpts.LiteralURLs {
+		serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "Haberdasher_v1")
+	} else {
+		serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.internal.twirptest.snake_case_names", "HaberdasherV1")
+	}
 	urls := [1]string{
 		serviceURL + "MakeHatV1",
+	}
+	if clientOpts.LiteralURLs {
+		urls = [1]string{
+			serviceURL + "MakeHat_v1",
+		}
 	}
 
 	return &haberdasherV1JSONClient{

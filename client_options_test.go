@@ -112,3 +112,19 @@ func TestWithClientPathPrefix(t *testing.T) {
 		t.Errorf("unexpected value after WithClientPathPrefix, have: %q, want: %q", have, want)
 	}
 }
+
+func TestWithClientLiteralURLs(t *testing.T) {
+	opts := &ClientOptions{}
+
+	WithClientLiteralURLs(true)(opts)
+	if have, want := opts.LiteralURLs, true; have != want {
+		t.Errorf("unexpected value after WithClientLiteralURLs, have: %t, want: %t", have, want)
+		return
+	}
+
+	WithClientLiteralURLs(false)(opts)
+	if have, want := opts.LiteralURLs, false; have != want {
+		t.Errorf("unexpected value after WithClientLiteralURLs, have: %t, want: %t", have, want)
+		return
+	}
+}

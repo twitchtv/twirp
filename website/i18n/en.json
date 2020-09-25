@@ -37,6 +37,10 @@
         "title": "Installing Twirp",
         "sidebar_label": "Installation"
       },
+      "interceptors": {
+        "title": "Interceptors",
+        "sidebar_label": "Interceptors"
+      },
       "intro": {
         "title": "Meet Twirp!",
         "sidebar_label": "Overview"

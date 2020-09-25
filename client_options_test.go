@@ -113,20 +113,18 @@ func TestWithClientPathPrefix(t *testing.T) {
 	}
 }
 
-func TestWithClientLiteralCase(t *testing.T) {
+func TestWithClientLiteralURLs(t *testing.T) {
 	opts := &ClientOptions{}
 
-	// Default value
-	if have, want := opts.UseLiteralCaseURLs, false; have != want {
-		t.Errorf("unexpected default UseLiteral on ClientOptions, have: %t, want: %t", have, want)
+	WithClientLiteralURLs(true)(opts)
+	if have, want := opts.LiteralURLs, true; have != want {
+		t.Errorf("unexpected value after WithClientLiteralURLs, have: %t, want: %t", have, want)
 		return
 	}
 
-	// Set a different prefix
-	WithClientLiteralCase()(opts)
-	if have, want := opts.UseLiteralCaseURLs, true; have != want {
-		t.Errorf("unexpected value after WithClientLiteralCase, have: %t, want: %t", have, want)
+	WithClientLiteralURLs(false)(opts)
+	if have, want := opts.LiteralURLs, false; have != want {
+		t.Errorf("unexpected value after WithClientLiteralURLs, have: %t, want: %t", have, want)
 		return
 	}
-
 }

@@ -50,10 +50,10 @@ type CompatService interface {
 // =============================
 
 type compatServiceProtobufClient struct {
-	client        HTTPClient
-	camelCaseURLs [2]string
-	literalURLs   [2]string
-	opts          twirp.ClientOptions
+	client      HTTPClient
+	urls        [2]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewCompatServiceProtobufClient creates a Protobuf client that implements the CompatService interface.
@@ -69,24 +69,17 @@ func NewCompatServiceProtobufClient(baseURL string, client HTTPClient, opts ...t
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	sanitizedBaseURL := sanitizeBaseURL(baseURL)
-	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
-	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
-	camelCaseURLs := [2]string{
-		serviceCamelCasedURL + "Method",
-		serviceCamelCasedURL + "NoopMethod",
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
+	urls := [2]string{
+		serviceURL + "Method",
+		serviceURL + "NoopMethod",
 	}
-
-	literalURLs := [2]string{
-		serviceLiteralURL + "Method",
-		serviceLiteralURL + "NoopMethod",
-	}
-
 	return &compatServiceProtobufClient{
-		client:        client,
-		camelCaseURLs: camelCaseURLs,
-		literalURLs:   literalURLs,
-		opts:          clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -94,14 +87,34 @@ func (c *compatServiceProtobufClient) Method(ctx context.Context, in *Req) (*Res
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
-	out := new(Resp)
-	var requestURL = ""
-	if c.opts.UseLiteralCaseURLs {
-		requestURL = c.literalURLs[0]
-	} else {
-		requestURL = c.camelCaseURLs[0]
+	caller := c.callMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Req) (*Resp, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Req)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Req) when calling interceptor")
+					}
+					return c.callMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Resp)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Resp) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
 	}
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
+	return caller(ctx, in)
+}
+
+func (c *compatServiceProtobufClient) callMethod(ctx context.Context, in *Req) (*Resp, error) {
+	out := new(Resp)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -120,14 +133,34 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
-	out := new(Empty)
-	var requestURL = ""
-	if c.opts.UseLiteralCaseURLs {
-		requestURL = c.literalURLs[1]
-	} else {
-		requestURL = c.camelCaseURLs[1]
+	caller := c.callNoopMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Empty) (*Empty, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Empty)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Empty) when calling interceptor")
+					}
+					return c.callNoopMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Empty)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Empty) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
 	}
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
+	return caller(ctx, in)
+}
+
+func (c *compatServiceProtobufClient) callNoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
+	out := new(Empty)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -147,10 +180,10 @@ func (c *compatServiceProtobufClient) NoopMethod(ctx context.Context, in *Empty)
 // =========================
 
 type compatServiceJSONClient struct {
-	client        HTTPClient
-	camelCaseURLs [2]string
-	literalURLs   [2]string
-	opts          twirp.ClientOptions
+	client      HTTPClient
+	urls        [2]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewCompatServiceJSONClient creates a JSON client that implements the CompatService interface.
@@ -166,24 +199,17 @@ func NewCompatServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	sanitizedBaseURL := sanitizeBaseURL(baseURL)
-	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
-	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
-	camelCaseURLs := [2]string{
-		serviceCamelCasedURL + "Method",
-		serviceCamelCasedURL + "NoopMethod",
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "twirp.clientcompat", "CompatService")
+	urls := [2]string{
+		serviceURL + "Method",
+		serviceURL + "NoopMethod",
 	}
-
-	literalURLs := [2]string{
-		serviceLiteralURL + "Method",
-		serviceLiteralURL + "NoopMethod",
-	}
-
 	return &compatServiceJSONClient{
-		client:        client,
-		camelCaseURLs: camelCaseURLs,
-		literalURLs:   literalURLs,
-		opts:          clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -191,14 +217,34 @@ func (c *compatServiceJSONClient) Method(ctx context.Context, in *Req) (*Resp, e
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "Method")
-	out := new(Resp)
-	var requestURL = ""
-	if c.opts.UseLiteralCaseURLs {
-		requestURL = c.literalURLs[0]
-	} else {
-		requestURL = c.camelCaseURLs[0]
+	caller := c.callMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Req) (*Resp, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Req)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Req) when calling interceptor")
+					}
+					return c.callMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Resp)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Resp) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
 	}
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
+	return caller(ctx, in)
+}
+
+func (c *compatServiceJSONClient) callMethod(ctx context.Context, in *Req) (*Resp, error) {
+	out := new(Resp)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -217,14 +263,34 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 	ctx = ctxsetters.WithPackageName(ctx, "twirp.clientcompat")
 	ctx = ctxsetters.WithServiceName(ctx, "CompatService")
 	ctx = ctxsetters.WithMethodName(ctx, "NoopMethod")
-	out := new(Empty)
-	var requestURL = ""
-	if c.opts.UseLiteralCaseURLs {
-		requestURL = c.literalURLs[1]
-	} else {
-		requestURL = c.camelCaseURLs[1]
+	caller := c.callNoopMethod
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Empty) (*Empty, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Empty)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Empty) when calling interceptor")
+					}
+					return c.callNoopMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Empty)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Empty) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
 	}
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
+	return caller(ctx, in)
+}
+
+func (c *compatServiceJSONClient) callNoopMethod(ctx context.Context, in *Empty) (*Empty, error) {
+	out := new(Empty)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -245,6 +311,7 @@ func (c *compatServiceJSONClient) NoopMethod(ctx context.Context, in *Empty) (*E
 
 type compatServiceServer struct {
 	CompatService
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -271,6 +338,7 @@ func NewCompatServiceServer(svc CompatService, opts ...interface{}) TwirpServer 
 	return &compatServiceServer{
 		CompatService:    svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}
@@ -368,11 +436,34 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 		return
 	}
 
+	handler := s.CompatService.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Req) (*Resp, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Req)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Req) when calling interceptor")
+					}
+					return s.CompatService.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Resp)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Resp) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Resp
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -427,11 +518,34 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 		return
 	}
 
+	handler := s.CompatService.Method
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Req) (*Resp, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Req)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Req) when calling interceptor")
+					}
+					return s.CompatService.Method(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Resp)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Resp) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Resp
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.Method(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -497,11 +611,34 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 		return
 	}
 
+	handler := s.CompatService.NoopMethod
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Empty) (*Empty, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Empty)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Empty) when calling interceptor")
+					}
+					return s.CompatService.NoopMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Empty)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Empty) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Empty
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.NoopMethod(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -556,11 +693,34 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 		return
 	}
 
+	handler := s.CompatService.NoopMethod
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Empty) (*Empty, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Empty)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Empty) when calling interceptor")
+					}
+					return s.CompatService.NoopMethod(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Empty)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Empty) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Empty
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.CompatService.NoopMethod(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

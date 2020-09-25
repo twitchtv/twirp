@@ -12,6 +12,7 @@
             "routing",
             "errors",
             "hooks",
+            "interceptors",
             "command_line",
             "proto_and_json",
             "curl"

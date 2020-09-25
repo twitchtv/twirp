@@ -48,10 +48,10 @@ type JSONSerialization interface {
 // =================================
 
 type jSONSerializationProtobufClient struct {
-	client        HTTPClient
-	camelCaseURLs [1]string
-	literalURLs   [1]string
-	opts          twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewJSONSerializationProtobufClient creates a Protobuf client that implements the JSONSerialization interface.
@@ -67,22 +67,16 @@ func NewJSONSerializationProtobufClient(baseURL string, client HTTPClient, opts 
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	sanitizedBaseURL := sanitizeBaseURL(baseURL)
-	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
-	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
-	camelCaseURLs := [1]string{
-		serviceCamelCasedURL + "EchoJSON",
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
+	urls := [1]string{
+		serviceURL + "EchoJSON",
 	}
-
-	literalURLs := [1]string{
-		serviceLiteralURL + "EchoJSON",
-	}
-
 	return &jSONSerializationProtobufClient{
-		client:        client,
-		camelCaseURLs: camelCaseURLs,
-		literalURLs:   literalURLs,
-		opts:          clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -90,14 +84,34 @@ func (c *jSONSerializationProtobufClient) EchoJSON(ctx context.Context, in *Msg)
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "JSONSerialization")
 	ctx = ctxsetters.WithMethodName(ctx, "EchoJSON")
-	out := new(Msg)
-	var requestURL = ""
-	if c.opts.UseLiteralCaseURLs {
-		requestURL = c.literalURLs[0]
-	} else {
-		requestURL = c.camelCaseURLs[0]
+	caller := c.callEchoJSON
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return c.callEchoJSON(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
 	}
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
+	return caller(ctx, in)
+}
+
+func (c *jSONSerializationProtobufClient) callEchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
+	out := new(Msg)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -117,10 +131,10 @@ func (c *jSONSerializationProtobufClient) EchoJSON(ctx context.Context, in *Msg)
 // =============================
 
 type jSONSerializationJSONClient struct {
-	client        HTTPClient
-	camelCaseURLs [1]string
-	literalURLs   [1]string
-	opts          twirp.ClientOptions
+	client      HTTPClient
+	urls        [1]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewJSONSerializationJSONClient creates a JSON client that implements the JSONSerialization interface.
@@ -136,22 +150,16 @@ func NewJSONSerializationJSONClient(baseURL string, client HTTPClient, opts ...t
 	}
 
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
-	sanitizedBaseURL := sanitizeBaseURL(baseURL)
-	serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
-	serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
-	camelCaseURLs := [1]string{
-		serviceCamelCasedURL + "EchoJSON",
+	serviceURL := sanitizeBaseURL(baseURL)
+	serviceURL += baseServicePath(clientOpts.PathPrefix(), "", "JSONSerialization")
+	urls := [1]string{
+		serviceURL + "EchoJSON",
 	}
-
-	literalURLs := [1]string{
-		serviceLiteralURL + "EchoJSON",
-	}
-
 	return &jSONSerializationJSONClient{
-		client:        client,
-		camelCaseURLs: camelCaseURLs,
-		literalURLs:   literalURLs,
-		opts:          clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -159,14 +167,34 @@ func (c *jSONSerializationJSONClient) EchoJSON(ctx context.Context, in *Msg) (*M
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "JSONSerialization")
 	ctx = ctxsetters.WithMethodName(ctx, "EchoJSON")
-	out := new(Msg)
-	var requestURL = ""
-	if c.opts.UseLiteralCaseURLs {
-		requestURL = c.literalURLs[0]
-	} else {
-		requestURL = c.camelCaseURLs[0]
+	caller := c.callEchoJSON
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return c.callEchoJSON(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
 	}
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, requestURL, in, out)
+	return caller(ctx, in)
+}
+
+func (c *jSONSerializationJSONClient) callEchoJSON(ctx context.Context, in *Msg) (*Msg, error) {
+	out := new(Msg)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -187,6 +215,7 @@ func (c *jSONSerializationJSONClient) EchoJSON(ctx context.Context, in *Msg) (*M
 
 type jSONSerializationServer struct {
 	JSONSerialization
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -213,6 +242,7 @@ func NewJSONSerializationServer(svc JSONSerialization, opts ...interface{}) Twir
 	return &jSONSerializationServer{
 		JSONSerialization: svc,
 		pathPrefix:        serverOpts.PathPrefix(),
+		interceptor:       twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:             serverOpts.Hooks,
 		jsonSkipDefaults:  serverOpts.JSONSkipDefaults,
 	}
@@ -307,11 +337,34 @@ func (s *jSONSerializationServer) serveEchoJSONJSON(ctx context.Context, resp ht
 		return
 	}
 
+	handler := s.JSONSerialization.EchoJSON
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return s.JSONSerialization.EchoJSON(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.JSONSerialization.EchoJSON(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -366,11 +419,34 @@ func (s *jSONSerializationServer) serveEchoJSONProtobuf(ctx context.Context, res
 		return
 	}
 
+	handler := s.JSONSerialization.EchoJSON
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Msg) (*Msg, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Msg)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Msg) when calling interceptor")
+					}
+					return s.JSONSerialization.EchoJSON(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Msg)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Msg) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
 	// Call service method
 	var respContent *Msg
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.JSONSerialization.EchoJSON(ctx, reqContent)
+		respContent, err = handler(ctx, reqContent)
 	}()
 
 	if err != nil {

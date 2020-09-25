@@ -47,10 +47,10 @@ type Empty interface {
 // =====================
 
 type emptyProtobufClient struct {
-	client        HTTPClient
-	camelCaseURLs [0]string
-	literalURLs   [0]string
-	opts          twirp.ClientOptions
+	client      HTTPClient
+	urls        [0]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewEmptyProtobufClient creates a Protobuf client that implements the Empty interface.
@@ -65,15 +65,12 @@ func NewEmptyProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 		o(&clientOpts)
 	}
 
-	camelCaseURLs := [0]string{}
-
-	literalURLs := [0]string{}
-
+	urls := [0]string{}
 	return &emptyProtobufClient{
-		client:        client,
-		camelCaseURLs: camelCaseURLs,
-		literalURLs:   literalURLs,
-		opts:          clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -82,10 +79,10 @@ func NewEmptyProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 // =================
 
 type emptyJSONClient struct {
-	client        HTTPClient
-	camelCaseURLs [0]string
-	literalURLs   [0]string
-	opts          twirp.ClientOptions
+	client      HTTPClient
+	urls        [0]string
+	interceptor twirp.Interceptor
+	opts        twirp.ClientOptions
 }
 
 // NewEmptyJSONClient creates a JSON client that implements the Empty interface.
@@ -100,15 +97,12 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 		o(&clientOpts)
 	}
 
-	camelCaseURLs := [0]string{}
-
-	literalURLs := [0]string{}
-
+	urls := [0]string{}
 	return &emptyJSONClient{
-		client:        client,
-		camelCaseURLs: camelCaseURLs,
-		literalURLs:   literalURLs,
-		opts:          clientOpts,
+		client:      client,
+		urls:        urls,
+		interceptor: twirp.ChainInterceptors(clientOpts.Interceptors...),
+		opts:        clientOpts,
 	}
 }
 
@@ -118,6 +112,7 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 
 type emptyServer struct {
 	Empty
+	interceptor      twirp.Interceptor
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
@@ -144,6 +139,7 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 	return &emptyServer{
 		Empty:            svc,
 		pathPrefix:       serverOpts.PathPrefix(),
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
 		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
 	}

@@ -21,6 +21,7 @@ type ServerOption func(*ServerOptions)
 
 // ServerOptions encapsulate the configurable parameters on a Twirp client.
 type ServerOptions struct {
+	Interceptors     []Interceptor
 	Hooks            *ServerHooks
 	pathPrefix       *string
 	JSONSkipDefaults bool
@@ -31,6 +32,13 @@ func (opts *ServerOptions) PathPrefix() string {
 		return "/twirp" // default prefix
 	}
 	return *opts.pathPrefix
+}
+
+// WithServerInterceptors defines the interceptors for a Twirp server.
+func WithServerInterceptors(interceptors ...Interceptor) ServerOption {
+	return func(o *ServerOptions) {
+		o.Interceptors = append(o.Interceptors, interceptors...)
+	}
 }
 
 // WithServerHooks defines the hooks for a Twirp server.

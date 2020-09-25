@@ -26,3 +26,7 @@ Check out
 for information on the specific callbacks. For an example hooks implementation,
 [`github.com/twitchtv/twirp/hooks/statsd`](https://github.com/twitchtv/twirp/blob/master/hooks/statsd/)
 is a good tutorial.
+
+On the client side, use `*twirp.ClientHooks`.
+
+For advanced cases, [interceptors](interceptors.md) can be used to plug in extra functionality.

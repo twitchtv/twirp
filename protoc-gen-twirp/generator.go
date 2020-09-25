@@ -964,15 +964,18 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	servName := serviceNameCamelCased(service)
 	structName := unexported(servName) + name + "Client"
 	newClientFunc := "New" + servName + name + "Client"
+	servNameLit := serviceNameLiteral(service)
+	servNameCc := servName
 
 	methCnt := strconv.Itoa(len(service.Method))
 	t.P(`type `, structName, ` struct {`)
 	t.P(`  client HTTPClient`)
-	t.P(`  camelCaseURLs  [`, methCnt, `]string`)
-	t.P(`  literalURLs    [`, methCnt, `]string`)
-	t.P(`  opts           `, t.pkgs["twirp"], `.ClientOptions`)
+	t.P(`  urls  [`, methCnt, `]string`)
+	t.P(`  interceptor `, t.pkgs["twirp"], `.Interceptor`)
+	t.P(`  opts `, t.pkgs["twirp"], `.ClientOptions`)
 	t.P(`}`)
 	t.P()
+
 	t.P(`// `, newClientFunc, ` creates a `, name, ` client that implements the `, servName, ` interface.`)
 	t.P(`// It communicates using `, name, ` and can be configured with a custom HTTPClient.`)
 	t.P(`func `, newClientFunc, `(baseURL string, client HTTPClient, opts ...`, t.pkgs["twirp"], `.ClientOption) `, servName, ` {`)
@@ -987,28 +990,47 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P()
 	if len(service.Method) > 0 {
 		t.P(`  // Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>`)
-		t.P(`  sanitizedBaseURL := sanitizeBaseURL(baseURL)`)
-		t.P(`  serviceCamelCasedURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, serviceNameCamelCased(service), `")`)
-		t.P(`  serviceLiteralURL := sanitizedBaseURL + baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, serviceNameLiteral(service), `")`)
+		t.P(`  serviceURL := sanitizeBaseURL(baseURL)`)
+		if servNameLit == servNameCc {
+			t.P(`  serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameCc, `")`)
+		} else { // proto service name is not CamelCased, then it needs to check client option to decide if needs to change case
+			t.P(`  if clientOpts.LiteralURLs {`)
+			t.P(`    serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameLit, `")`)
+			t.P(`  } else {`)
+			t.P(`    serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameCc, `")`)
+			t.P(`  }`)
+		}
+	}
+	t.P(`  urls := [`, methCnt, `]string{`)
+	for _, method := range service.Method {
+		t.P(`    serviceURL + "`, methodNameCamelCased(method), `",`)
+	}
+	t.P(`  }`)
+
+	allMethodsCamelCased := true
+	for _, method := range service.Method {
+		methNameLit := methodNameLiteral(method)
+		methNameCc := methodNameCamelCased(method)
+		if methNameCc != methNameLit {
+			allMethodsCamelCased = false
+			break
+		}
+	}
+	if !allMethodsCamelCased {
+		t.P(`  if clientOpts.LiteralURLs {`)
+		t.P(`    urls = [`, methCnt, `]string{`)
+		for _, method := range service.Method {
+			t.P(`    serviceURL + "`, methodNameLiteral(method), `",`)
+		}
+		t.P(`    }`)
+		t.P(`  }`)
 	}
 
-	t.P(`  camelCaseURLs := [`, methCnt, `]string{`)
-	for _, method := range service.Method {
-		t.P(`    serviceCamelCasedURL + "`, methodNameCamelCased(method), `",`)
-	}
-	t.P(`  }`)
-	t.P()
-	t.P(`  literalURLs := [`, methCnt, `]string{`)
-	for _, method := range service.Method {
-		t.P(`    serviceLiteralURL + "`, methodNameLiteral(method), `",`)
-	}
-	t.P(`  }`)
-	t.P()
 	t.P(`  return &`, structName, `{`)
-	t.P(`    client:         client,`)
-	t.P(`    camelCaseURLs:  camelCaseURLs,`)
-	t.P(`    literalURLs:    literalURLs,`)
-	t.P(`    opts:           clientOpts,`)
+	t.P(`    client: client,`)
+	t.P(`    urls:   urls,`)
+	t.P(`    interceptor: `, t.pkgs["twirp"], `.ChainInterceptors(clientOpts.Interceptors...),`)
+	t.P(`    opts: clientOpts,`)
 	t.P(`  }`)
 	t.P(`}`)
 	t.P()
@@ -1018,19 +1040,20 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		pkgName := pkgName(file)
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
-
 		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
-		t.P(`  out := new(`, outputType, `)`)
-		t.P(`  var requestURL = ""`)
-		t.P(`  if c.opts.UseLiteralCaseURLs {`)
-		t.P(`  requestURL = c.literalURLs[`, strconv.Itoa(i), `]`)
-		t.P(`  } else {`)
-		t.P(`  requestURL = c.camelCaseURLs[`, strconv.Itoa(i), `]`)
+		t.P(`  caller := c.call`, methName)
+		t.P(`  if c.interceptor != nil {`)
+		t.generateClientInterceptorCaller(method)
 		t.P(`  }`)
-		t.P(`  ctx, err := do`, name, `Request(ctx, c.client, c.opts.Hooks, requestURL, in, out)`)
+		t.P(`  return caller(ctx, in)`)
+		t.P(`}`)
+		t.P()
+		t.P(`func (c *`, structName, `) call`, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
+		t.P(`  out := new(`, outputType, `)`)
+		t.P(`  ctx, err := do`, name, `Request(ctx, c.client, c.opts.Hooks, c.urls[`, strconv.Itoa(i), `], in, out)`)
 		t.P(`  if err != nil {`)
 		t.P(`    twerr, ok := err.(`, t.pkgs["twirp"], `.Error)`)
 		t.P(`    if !ok {`)
@@ -1046,7 +1069,6 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		t.P(`}`)
 		t.P()
 	}
-
 }
 
 func (t *twirp) generateClientHooks() {
@@ -1079,6 +1101,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	servStruct := serviceStruct(service)
 	t.P(`type `, servStruct, ` struct {`)
 	t.P(`  `, servName)
+	t.P(`  interceptor `, t.pkgs["twirp"], `.Interceptor`)
 	t.P(`  hooks     *`, t.pkgs["twirp"], `.ServerHooks`)
 	t.P(`  pathPrefix string // prefix for routing`)
 	t.P(`  jsonSkipDefaults bool // do not include unpopulated fields (default values) in the response`)
@@ -1107,6 +1130,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`  return &`, servStruct, `{`)
 	t.P(`    `, servName, `: svc,`)
 	t.P(`    pathPrefix: serverOpts.PathPrefix(),`)
+	t.P(`    interceptor: `, t.pkgs["twirp"], `.ChainInterceptors(serverOpts.Interceptors...),`)
 	t.P(`    hooks: serverOpts.Hooks,`)
 	t.P(`    jsonSkipDefaults: serverOpts.JSONSkipDefaults,`)
 	t.P(`  }`)
@@ -1248,11 +1272,16 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
+	t.P(`  handler := s.`, servName, `.`, methName)
+	t.P(`  if s.interceptor != nil {`)
+	t.generateServerInterceptorHandler(service, method)
+	t.P(`  }`)
+	t.P()
 	t.P(`  // Call service method`)
 	t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
 	t.P(`  func() {`)
 	t.P(`    defer ensurePanicResponses(ctx, resp, s.hooks)`)
-	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = handler(ctx, reqContent)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)
@@ -1313,11 +1342,16 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
+	t.P(`  handler := s.`, servName, `.`, methName)
+	t.P(`  if s.interceptor != nil {`)
+	t.generateServerInterceptorHandler(service, method)
+	t.P(`  }`)
+	t.P()
 	t.P(`  // Call service method`)
 	t.P(`  var respContent *`, t.goTypeName(method.GetOutputType()))
 	t.P(`  func() {`)
 	t.P(`    defer ensurePanicResponses(ctx, resp, s.hooks)`)
-	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = handler(ctx, reqContent)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)
@@ -1349,6 +1383,46 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`  callResponseSent(ctx, s.hooks)`)
 	t.P(`}`)
 	t.P()
+}
+
+func (t *twirp) generateClientInterceptorCaller(method *descriptor.MethodDescriptorProto) {
+	methName := methodNameCamelCased(method)
+	t.generateInterceptorFunc("c", "caller", "c.call"+methName, method)
+}
+
+func (t *twirp) generateServerInterceptorHandler(service *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) {
+	methName := methodNameCamelCased(method)
+	servName := serviceNameCamelCased(service)
+	t.generateInterceptorFunc("s", "handler", "s."+servName+"."+methName, method)
+}
+
+func (t *twirp) generateInterceptorFunc(
+	receiverName string,
+	varName string,
+	delegateFuncName string,
+	method *descriptor.MethodDescriptorProto,
+) {
+	inputType := t.goTypeName(method.GetInputType())
+	outputType := t.goTypeName(method.GetOutputType())
+	t.P(`    `, varName, ` = func(ctx `, t.pkgs["context"], `.Context, req *`, inputType, `) (*`, outputType, `, error) {`)
+	t.P(`      resp, err := `, receiverName, `.interceptor(`)
+	t.P(`        func(ctx `, t.pkgs["context"], ` .Context, req interface{}) (interface{}, error) {`)
+	t.P(`          typedReq, ok := req.(*`, inputType, `)`)
+	t.P(`          if !ok {`)
+	t.P(`            return nil, `, t.pkgs["twirp"], `.InternalError("failed type assertion req.(*`, inputType, `) when calling interceptor")`)
+	t.P(`          }`)
+	t.P(`          return `, delegateFuncName, `(ctx, typedReq)`)
+	t.P(`        },`)
+	t.P(`      )(ctx, req)`)
+	t.P(`      if resp != nil {`)
+	t.P(`        typedResp, ok := resp.(*`, outputType, `)`)
+	t.P(`        if !ok {`)
+	t.P(`          return nil, `, t.pkgs["twirp"], `.InternalError("failed type assertion resp.(*`, outputType, `) when calling interceptor")`)
+	t.P(`        }`)
+	t.P(`        return typedResp, err`)
+	t.P(`      }`)
+	t.P(`      return nil, err`)
+	t.P(`    }`)
 }
 
 // serviceMetadataVarName is the variable name used in generated code to refer

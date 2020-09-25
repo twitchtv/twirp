@@ -53,17 +53,6 @@ the following components.
 * **Method** is the proto `rpc` name for an API method. For example,
   `CreateEvent`.
 
-The package, service and method names are taken from the proto file
-definition. The [Protobuf spec](https://developers.google.com/protocol-buffers/docs/reference/proto3-spec#identifiers)
-allows to use CamelCased and underscored_names. However, Twirp
-implementations usually need to map Service and Method names to
-their specific naming conventions, which may cause naming collisions.
-For example, Go requires exported variables to start with a capital,
-so the names `MyMethod` and `myMethod` will map to the same interface method.
-To avoid this problem, Twirp implementations should expect and fully support
-names that follow the [Protobuf Style Guide](https://developers.google.com/protocol-buffers/docs/style#services),
-in particular, Service and Method names that are CamelCased (with an initial capital).
-
 ### Requests
 
 Twirp always uses HTTP POST method to send requests, because it

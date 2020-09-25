@@ -13,4 +13,4 @@
 
 package gen
 
-const Version = "v7.0.0"
+const Version = "v7.1.0"

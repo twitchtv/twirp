@@ -816,7 +816,7 @@ func TestRoutingPathPrefix(t *testing.T) {
 		t.Fatalf("invalid URL path, have=%q, want=%q", have, want)
 	}
 
-	// Clients using the deafult "/twirp" prefix should not hit the service
+	// Clients using the default "/twirp" prefix should not hit the service
 	c2 := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
 	if _, err := c2.MakeHat(ctx, r); err == nil {
 		t.Fatalf("Expected bad_route error because service has a different path prefix, got nil")

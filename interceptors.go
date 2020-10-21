@@ -23,7 +23,7 @@ import (
 //
 // Just like http middleware, interceptors can mutate requests and responses.
 // This can enable some powerful integrations, but it should be used with much care
-// becuase it may result in code that is very hard to debug.
+// because it may result in code that is very hard to debug.
 //
 // Example of an interceptor that logs every request and response:
 //

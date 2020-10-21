@@ -49,7 +49,7 @@ func TestNoExternalDeps(t *testing.T) {
 			t.Fatalf("unable to import package %s: %s", pkgName, err)
 		}
 		for _, imported := range pkg.Imports {
-			// Standard libary packages don't have a '.' in them.
+			// Standard library packages don't have a '.' in them.
 			if !strings.Contains(imported, ".") {
 				continue
 			}

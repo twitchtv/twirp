@@ -138,7 +138,7 @@ func TestJSONSerializationServiceSkipDefaults(t *testing.T) {
 	defer s.Close()
 
 	// Manual JSON request to get empty response.
-	// Response should skip empty fields, in this case be completelly empty
+	// Response should skip empty fields, in this case be completely empty
 	reqBody := bytes.NewBuffer([]byte(
 		`{"allEmpty": true}`,
 	))

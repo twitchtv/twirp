@@ -4,7 +4,7 @@ on:
   schedule:
   - cron: "0 0 * * *" # This action would run every day at midnight
 
-jobs: # Documentation on the github action https://github.com/marketplace/actions/close-stale-issues
+jobs: # Job to close stale PRs and issues. Documentation on the github action https://github.com/marketplace/actions/close-stale-issues
   stale:
     runs-on: ubuntu-latest
     steps:

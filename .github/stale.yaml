@@ -4,11 +4,11 @@ on:
   schedule:
   - cron: "0 0 * * *" # This action would run every day at midnight
 
-jobs:
+jobs: # Documentation on the github action https://github.com/marketplace/actions/close-stale-issues
   stale:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/stale@v3 # Documentation on the github action https://github.com/marketplace/actions/close-stale-issues
+    - uses: actions/stale@v3
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: 'This issue is stale because it has been open 30 days with no activity. Remove stale label / comment or this will be closed in 5 days'
@@ -17,4 +17,3 @@ jobs:
         days-before-close: 5
         stale-pr-label: 'no-pr-activity'
         stale-issue-label: 'no-issue-activity'
-               

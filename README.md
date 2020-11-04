@@ -33,7 +33,7 @@ is a good read.
 Use `go get` to install the Go client-and-server generator:
 
 ```
-go get github.com/twitchtv/twirp/protoc-gen-twirp
+go get github.com/twitchtv/twirp/v8/protoc-gen-twirp
 ```
 
 You will also need:

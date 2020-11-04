@@ -55,7 +55,7 @@ Download and install `protoc-gen-go` using the normal Go tools:
 
 ```sh
 $ go get -u github.com/golang/protobuf/protoc-gen-go
-$ go get -u github.com/twitchtv/twirp/protoc-gen-twirp
+$ go get -u github.com/twitchtv/twirp/v8/protoc-gen-twirp
 ```
 
 The normal Go tools will install `protoc-gen-go` in `$GOBIN`, defaulting to

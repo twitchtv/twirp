@@ -104,7 +104,7 @@ import (
     "context"
     "math/rand"
 
-    "github.com/twitchtv/twirp"
+    "github.com/twitchtv/twirp/v8"
     pb "github.com/twitchtv/twirpexample/rpc/haberdasher"
 )
 

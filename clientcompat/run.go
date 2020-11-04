@@ -20,7 +20,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	"github.com/twitchtv/twirp/clientcompat/internal/clientcompat"
+	"github.com/twitchtv/twirp/v8/clientcompat/internal/clientcompat"
 )
 
 func runClient(clientBin string, msg *clientcompat.ClientCompatMessage) (resp []byte, errCode string, err error) {

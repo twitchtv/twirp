@@ -55,12 +55,12 @@ func TestNoExternalDeps(t *testing.T) {
 			}
 			// This is a non-stdlib package. It's okay if it's a twirp package - as
 			// long as it doesn't have any external deps itself.
-			if strings.HasPrefix(imported, "github.com/twitchtv/twirp") {
+			if strings.HasPrefix(imported, "github.com/twitchtv/twirp/v8") {
 				walkImports(imported)
 			} else {
 				t.Errorf("imported external dependency: %v, imported by %v", imported, pkgName)
 			}
 		}
 	}
-	walkImports("github.com/twitchtv/twirp")
+	walkImports("github.com/twitchtv/twirp/v8")
 }

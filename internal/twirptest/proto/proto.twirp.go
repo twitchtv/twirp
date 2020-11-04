@@ -3,7 +3,7 @@
 
 /*
 Package proto is a generated twirp stub package.
-This code was generated with github.com/twitchtv/twirp/protoc-gen-twirp v7.1.0.
+This code was generated with github.com/twitchtv/twirp/v8/protoc-gen-twirp v7.1.0.
 
 Test to make sure that a package named proto doesn't break
 
@@ -23,8 +23,8 @@ import strconv "strconv"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
 import proto "github.com/golang/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+import twirp "github.com/twitchtv/twirp/v8"
+import ctxsetters "github.com/twitchtv/twirp/v8/ctxsetters"
 
 // Imports only used by utility functions:
 import io "io"

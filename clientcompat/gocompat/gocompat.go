@@ -21,8 +21,8 @@ import (
 	"os"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/twitchtv/twirp"
-	"github.com/twitchtv/twirp/clientcompat/internal/clientcompat"
+	"github.com/twitchtv/twirp/v8"
+	"github.com/twitchtv/twirp/v8/clientcompat/internal/clientcompat"
 )
 
 func main() {

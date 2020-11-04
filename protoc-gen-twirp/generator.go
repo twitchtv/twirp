@@ -29,9 +29,9 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pkg/errors"
-	"github.com/twitchtv/twirp/internal/gen"
-	"github.com/twitchtv/twirp/internal/gen/stringutils"
-	"github.com/twitchtv/twirp/internal/gen/typemap"
+	"github.com/twitchtv/twirp/v8/internal/gen"
+	"github.com/twitchtv/twirp/v8/internal/gen/stringutils"
+	"github.com/twitchtv/twirp/v8/internal/gen/typemap"
 )
 
 type twirp struct {
@@ -260,7 +260,7 @@ func (t *twirp) generateFileHeader(file *descriptor.FileDescriptorProto) {
 	if t.filesHandled == 0 {
 		t.P("/*")
 		t.P("Package ", t.genPkgName, " is a generated twirp stub package.")
-		t.P("This code was generated with github.com/twitchtv/twirp/protoc-gen-twirp ", gen.Version, ".")
+		t.P("This code was generated with github.com/twitchtv/twirp/v8/protoc-gen-twirp ", gen.Version, ".")
 		t.P()
 		comment, err := t.reg.FileComments(file)
 		if err == nil && comment.Leading != "" {
@@ -299,8 +299,8 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	// dependency imports
 	t.P(`import `, t.pkgs["jsonpb"], ` "github.com/golang/protobuf/jsonpb"`)
 	t.P(`import `, t.pkgs["proto"], ` "github.com/golang/protobuf/proto"`)
-	t.P(`import `, t.pkgs["twirp"], ` "github.com/twitchtv/twirp"`)
-	t.P(`import `, t.pkgs["ctxsetters"], ` "github.com/twitchtv/twirp/ctxsetters"`)
+	t.P(`import `, t.pkgs["twirp"], ` "github.com/twitchtv/twirp/v8"`)
+	t.P(`import `, t.pkgs["ctxsetters"], ` "github.com/twitchtv/twirp/v8/ctxsetters"`)
 	t.P()
 
 	// It's legal to import a message and use it as an input or output for a

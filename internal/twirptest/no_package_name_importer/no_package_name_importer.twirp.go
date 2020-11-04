@@ -3,7 +3,7 @@
 
 /*
 Package no_package_name_importer is a generated twirp stub package.
-This code was generated with github.com/twitchtv/twirp/protoc-gen-twirp v7.1.0.
+This code was generated with github.com/twitchtv/twirp/v8/protoc-gen-twirp v7.1.0.
 
 It is generated from these files:
 	no_package_name_importer.proto
@@ -20,10 +20,10 @@ import strconv "strconv"
 
 import jsonpb "github.com/golang/protobuf/jsonpb"
 import proto "github.com/golang/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+import twirp "github.com/twitchtv/twirp/v8"
+import ctxsetters "github.com/twitchtv/twirp/v8/ctxsetters"
 
-import no_package_name "github.com/twitchtv/twirp/internal/twirptest/no_package_name"
+import no_package_name "github.com/twitchtv/twirp/v8/internal/twirptest/no_package_name"
 
 // Imports only used by utility functions:
 import io "io"

@@ -18,7 +18,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/twitchtv/twirp/internal/contextkeys"
+	"github.com/twitchtv/twirp/v8/internal/contextkeys"
 )
 
 // MethodName extracts the name of the method being handled in the given

@@ -104,9 +104,8 @@ gen:
 	protoc --proto_path=. --twirp_out=. --go_out=. rpc/<service>/service.proto
 
 upgrade:
-	# Upgrade glide dependencies
-	glide update --strip-vendor
-	glide-vc --only-code --no-tests --keep '**/*.proto'
+	# Upgrade dependencies if using modules
+	go get -u
 ```
 
 ## Naming Conventions

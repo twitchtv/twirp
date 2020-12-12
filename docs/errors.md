@@ -51,6 +51,7 @@ Each error code is defined by a constant in the `twirp` package:
 | BadRoute           | bad_route           | 404 Not Found
 | AlreadyExists      | already_exists      | 409 Conflict
 | PermissionDenied   | permission_denied   | 403 Forbidden
+| PayloadTooLarge   | payload_too_large   | 413 Payload Too Large
 | Unauthenticated    | unauthenticated     | 401 Unauthorized
 | ResourceExhausted  | resource_exhausted  | 429 Too Many Requests
 | FailedPrecondition | failed_precondition | 412 Precondition Failed

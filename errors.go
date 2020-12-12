@@ -161,6 +161,10 @@ const (
 	// disagreement in message format between the client and server.
 	Malformed ErrorCode = "malformed"
 
+	// PayloadTooLarge error means that request length is larger than the limits
+	// set by server
+	PayloadTooLarge ErrorCode = "payload_too_large"
+
 	// DeadlineExceeded means operation expired before completion. For operations
 	// that change the state of the system, this error may be returned even if the
 	// operation has completed successfully (timeout).
@@ -259,6 +263,8 @@ func ServerHTTPStatusFromErrorCode(code ErrorCode) int {
 		return 404 // Not Found
 	case AlreadyExists:
 		return 409 // Conflict
+	case PayloadTooLarge:
+		return 413 // Payload Too Large
 	case PermissionDenied:
 		return 403 // Forbidden
 	case Unauthenticated:

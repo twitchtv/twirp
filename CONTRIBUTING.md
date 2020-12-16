@@ -32,6 +32,7 @@ Twirp uses github pull requests. Fork, hack away at your changes and submit. Mos
 
 ### Requirements
 
+ * Add tests that cover your contribution. Overall code coverage should not decrease.
  * Twirp officially supports the last 3 releases of Go.
  * Protobuf version 3.x.x to generate code with the protoc command.
  * The Python implementation uses Python 2.7. As such, it is not suitable for production use in its current form.

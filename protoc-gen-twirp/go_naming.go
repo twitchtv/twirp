@@ -31,6 +31,9 @@ func goPackageOption(f *descriptor.FileDescriptorProto) (impPath, pkg string, ok
 		return
 	}
 	ok = true
+	if bits := strings.Split(pkg, ";"); len(bits) == 2 {
+		return bits[0], bits[1], ok
+	}
 	// The presence of a slash implies there's an import path.
 	slash := strings.LastIndex(pkg, "/")
 	if slash < 0 {

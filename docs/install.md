@@ -6,9 +6,9 @@ sidebar_label: Installation
 
 You'll need a few things to install Twirp:
 
-- [Go](https://golang.org/doc/install), Twirp supports the last 3 major versions
-- The protobuf compiler `protoc`
-- Go and Twirp protoc plugins `protoc-gen-go` and `protoc-gen-twirp`
+ * [Go](https://golang.org/doc/install), Twirp supports the last 3 major versions
+ * The protobuf compiler `protoc`
+ * Go and Twirp protoc plugins `protoc-gen-go` and `protoc-gen-twirp`
 
 ## Install protoc
 

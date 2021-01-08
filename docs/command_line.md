@@ -37,8 +37,8 @@ paths for different users, you might need to resort to command-line parameters.
 
 This behavior can be customized by using two different command line parameters:
 
-- `import_prefix`, which prefixes all generated import paths with something.
-- `go_import_mapping`, which lets you set an explicit mapping of import paths to
+* `import_prefix`, which prefixes all generated import paths with something.
+* `go_import_mapping`, which lets you set an explicit mapping of import paths to
   use for particular .proto files.
 
 ## Import prefix parameter

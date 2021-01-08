@@ -5,7 +5,8 @@ sidebar_label: Installation
 ---
 
 You'll need a few things to install Twirp:
- * Go1.7+
+
+ * [Go](https://golang.org/doc/install), Twirp supports the last 3 major versions
  * The protobuf compiler `protoc`
  * Go and Twirp protoc plugins `protoc-gen-go` and `protoc-gen-twirp`
 
@@ -14,40 +15,9 @@ You'll need a few things to install Twirp:
 [Install Protocol Buffers v3](https://developers.google.com/protocol-buffers/docs/gotutorial),
 the `protoc` compiler that is used to auto-generate code. The simplest way to do
 this is to download pre-compiled binaries for your platform from here:
-https://github.com/google/protobuf/releases
-
-It is also available in MacOS through Homebrew:
-
-```sh
-$ brew install protobuf
-```
+https://github.com/google/protobuf/releases or in MacOS `brew install protobuf`.
 
 ## Get protoc-gen-go and protoc-gen-twirp plugins
-
-### With retool
-
-We recommend using [retool](https://github.com/twitchtv/retool) to manage go
-tools like commands and linters:
-
-```sh
-$ go get github.com/twitchtv/retool
-```
-
-Install the plugins into your project's `_tools` folder:
-```sh
-$ retool add github.com/golang/protobuf/protoc-gen-go master
-$ retool add github.com/twitchtv/twirp/protoc-gen-twirp master
-```
-
-This will make it easier to manage and update versions without causing problems
-to other project collaborators.
-
-If the plugins were installed with retool, when run the `protoc` command make
-sure to prefix with `retool do`, for example:
-
-```sh
-$ retool do protoc --proto_path=$GOPATH/src:. --twirp_out=. --go_out=. ./rpc/haberdasher/service.proto
-```
 
 ### With go get
 
@@ -66,19 +36,16 @@ to find it, so you might need to explicitly add it to your path:
 $ export PATH=$PATH:$GOPATH/bin
 ```
 
-## Updating Twirp ##
+You can also add the `export` above to your `.bashrc` file and source it when needed.
+
+## Updating Twirp
 
 Twirp releases are tagged with semantic versioning and releases are managed by
 Github. See the [releases](https://github.com/twitchtv/twirp/releases) page.
 
-To stay up to date, you update `protoc-gen-twirp` and regenerate your code. If
-you are using [retool](https://github.com/twitchtv/retool), that's done with
+To stay up to date, you update `protoc-gen-twirp` and regenerate your code.
 
-```sh
-$ retool upgrade github.com/twitchtv/twirp/protoc-gen-twirp v5.2.0
-```
-
-If you're not using retool, you can also do a system-wide install with checking
+To upgrade you can do a system-wide install with checking
 out the package new version and using `go install`:
 
 ```sh

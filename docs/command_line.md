@@ -1,7 +1,7 @@
 ---
-id: "command_line"
-title: "Command line parameters"
-sidebar_label: "Command line parameters"
+id: 'command_line'
+title: 'Command line parameters'
+sidebar_label: 'Command line parameters'
 ---
 
 In general, Twirp's Go generator shouldn't need command line parameters. There
@@ -34,7 +34,6 @@ option go_package = "github.com/twitchtv/thisisanexample";
 
 will set things up properly. But if a file needs to be imported at different
 paths for different users, you might need to resort to command-line parameters.
-
 
 This behavior can be customized by using two different command line parameters:
 
@@ -72,8 +71,7 @@ There are two ways to provide this parameter to `--twirp_out`:
 
 ### As provided to `protoc-gen-go`
 
-Just like `proto-gen-go`, you can use a shorthand, formatted as: `M<proto
-filename>=<go import path>`. For example, you could tell `protoc-gen-twirp` that
+Just like `proto-gen-go`, you can use a shorthand, formatted as: `M<proto filename>=<go import path>`. For example, you could tell `protoc-gen-twirp` that
 `rpcutil/empty.proto` can be found at `github.com/example/rpcutil` by using
 `Mrpcutil/empty.proto=github.com/example/rpcutil`. Here's a full example:
 
@@ -90,8 +88,7 @@ $ protoc \
 ### Using the `go_import_mapping@` prefix
 
 This is exactly the same as the previous method; it's just a little more verbose
-and a little clearer. The format is `go_import_mapping@<proto filename>=<go
-import path>`. For example, you could tell `protoc-gen-twirp` that
+and a little clearer. The format is `go_import_mapping@<proto filename>=<go import path>`. For example, you could tell `protoc-gen-twirp` that
 `rpcutil/empty.proto` can be found at `github.com/example/rpcutil` by using
 `go_import_mapping@rpcutil/empty.proto=github.com/example/rpcutil`. Here's a
 full example:

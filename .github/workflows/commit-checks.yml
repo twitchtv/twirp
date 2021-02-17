@@ -30,5 +30,7 @@ jobs:
       run: |
         import sys
         with open("cover_percentage", "r") as f:
-          if float(f.readlines()[0]) < 50.0:
-            sys.exit("insufficient code coverage")
+          cov = float(f.readlines()[0])
+          if cov < 31.0:
+            sys.exit("insufficient code coverage {}%".format(cov))
+          print("code coverage {}%".format(cov))

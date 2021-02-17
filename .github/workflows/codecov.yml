@@ -12,7 +12,7 @@ jobs:
         go-version: ['^1.16.0', '^1.15.0', '^1.14.0']
     env:
       GO111MODULE: 'off'
-      GOPATH: '/tmp/go'
+      GOPATH: ${{ runner.workspace }}/go
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -20,7 +20,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v2
       with:
-        path: '/tmp/go/src/github.com/twitchtv/twirp'
+        path: ./go/src/github.com/${{ github.repository }}
     - name: Generate coverage
       run: |
         go test -race -coverprofile=cover.out ./...

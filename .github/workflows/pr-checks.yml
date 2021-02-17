@@ -21,7 +21,7 @@ jobs:
     - name: Generate coverage
       run: |
         export GOPATH=$GITHUB_WORKSPACE/go
-        go test -race -coverprofile=cover.out
+        go test -race -coverprofile=cover.out ./...
         go tool cover -func=cover.out | grep total | grep -Eo '[0-9]+\.[0-9]+' > cover_percentage
     - name: Ensure coverage
       shell: python

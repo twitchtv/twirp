@@ -1,0 +1,25 @@
+name: codecov
+on:
+  push:
+    branches: codecov
+  pull_request:
+jobs:
+  codecov:
+    name: codecov
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['^1.16.0', '^1.15.0', '^1.14.0']
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Generate coverage
+      run: go test -race -coverprofile=cover.out ./...
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./cover.out
+        verbose: true

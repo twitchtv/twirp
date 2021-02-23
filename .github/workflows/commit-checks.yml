@@ -3,7 +3,7 @@ on:
   push:
 jobs:
   run:
-    name: test
+    name: tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -18,7 +18,7 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Test
+    - name: Run Go Tests
       run: |
         export GOPATH=$GITHUB_WORKSPACE/go
         go test -race -coverprofile=cover.out ./...

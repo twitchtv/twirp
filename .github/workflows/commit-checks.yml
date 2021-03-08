@@ -1,0 +1,24 @@
+name: commit checks
+on:
+  push:
+jobs:
+  run:
+    name: tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['^1.16.0', '^1.15.0', '^1.14.0']
+    env:
+      GO111MODULE: 'off'
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: ./go/src/github.com/${{ github.repository }}
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Run Go Tests
+      run: |
+        export GOPATH=$GITHUB_WORKSPACE/go
+        go test -race -coverprofile=cover.out ./...

@@ -1337,7 +1337,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`    if ctx.Err() == context.Canceled  {`)
 	t.P(`    		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, "context canceled"))`)
 	t.P(`    		return`)
-	t.P(`  	 } else if ctx.Err()) == context.DeadlineExceeded {`)
+	t.P(`  	 } else if ctx.Err() == context.DeadlineExceeded {`)
 	t.P(`    		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, "context deadline exceeded"))`)
 	t.P(`    		return`)
 	t.P(`  	 }`)

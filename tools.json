@@ -2,7 +2,7 @@
   "Tools": [
     {
       "Repository": "github.com/golang/protobuf/protoc-gen-go",
-      "Commit": "7716a980bceefe9a0213654823d9ea62d23b87a2"
+      "Commit": "78b1f09b4310f9ee5c9a07dca51bf007b82c83ea"
     },
     {
       "Repository": "github.com/kisielk/errcheck",

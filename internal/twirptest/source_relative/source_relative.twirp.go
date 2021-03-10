@@ -412,6 +412,13 @@ func (s *svcServer) serveMethodProtobuf(ctx context.Context, resp http.ResponseW
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
+		if ctx.Err() == context.Canceled {
+			s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, "context canceled"))
+			return
+		} else if ctx.Err() == context.DeadlineExceeded {
+			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, "context deadline exceeded"))
+			return
+		}
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}

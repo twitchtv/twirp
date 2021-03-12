@@ -510,14 +510,14 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 	}
 
 	buf, err := ioutil.ReadAll(req.Body)
-	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
-		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
-		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
-		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
-		return
-	}
 	if err != nil {
+		if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
+			return
+		} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
+			return
+		}
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
@@ -692,14 +692,14 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 	}
 
 	buf, err := ioutil.ReadAll(req.Body)
-	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
-		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
-		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
-		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
-		return
-	}
 	if err != nil {
+		if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
+			return
+		} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
+			return
+		}
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}

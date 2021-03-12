@@ -434,14 +434,14 @@ func (s *haberdasherV1Server) serveMakeHatV1Protobuf(ctx context.Context, resp h
 	}
 
 	buf, err := ioutil.ReadAll(req.Body)
-	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
-		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
-		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
-		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
-		return
-	}
 	if err != nil {
+		if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
+			return
+		} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
+			return
+		}
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}

@@ -1528,7 +1528,7 @@ func TestPanicFlushing(t *testing.T) {
 	}
 }
 
-type errReader int
+type errReader struct{}
 
 func (errReader) Read(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("test error")
@@ -1543,7 +1543,7 @@ func TestContextCancelError(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	// Make a request, that will endpoint method
-	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader(0))
+	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
 	req.Header.Set("Accept", "application/protobuf")
 	req.Header.Set("Content-Type", "application/protobuf")
 	// Associate the cancellable context we just created to the request
@@ -1577,10 +1577,11 @@ func TestDeadlineExceededError(t *testing.T) {
 	server := NewHaberdasherServer(s, nil)
 
 	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, 1*time.Millisecond)
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(1*time.Millisecond))
+	defer cancel()
 
 	// Make a request, that will endpoint method
-	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader(0))
+	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
 	req.Header.Set("Accept", "application/protobuf")
 	req.Header.Set("Content-Type", "application/protobuf")
 	// Associate the cancellable context we just created to the request
@@ -1622,7 +1623,7 @@ func TestFailedToReadRequestBodyError(t *testing.T) {
 	ctx := context.Background()
 
 	// Make a request, that will call endpoint method
-	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader(0))
+	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
 	req.Header.Set("Accept", "application/protobuf")
 	req.Header.Set("Content-Type", "application/protobuf")
 	// Associate the cancellable context we just created to the request

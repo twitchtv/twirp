@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httptrace"
 	"reflect"
 	"regexp"
 	"strings"
@@ -1529,25 +1530,32 @@ func TestPanicFlushing(t *testing.T) {
 }
 
 func TestContextCancelError(t *testing.T) {
-	ctx := context.Background()
-	var cancel context.CancelFunc
-	hooks := &twirp.ServerHooks{RequestReceived: func(ctx context.Context) (context.Context, error) {
-		ctx, cancel = context.WithCancel(ctx)
-		cancel()
-		return ctx, nil
-	}}
-	s := httptest.NewServer(NewHaberdasherServer(nil, hooks))
+	s := httptest.NewServer(NewHaberdasherServer(nil))
 	defer s.Close()
 
-	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
-	_, err := client.MakeHat(ctx, &Size{Inches: 1})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	url := fmt.Sprintf("%s/%s", s.URL, "twirp/twirp.internal.twirptest.Haberdasher/MakeHat")
+	fmt.Println(url)
+	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBufferString("testing"))
+	req.Header.Set("Accept", "application/protobuf")
+	req.Header.Set("Content-Type", "application/protobuf")
+	trace := &httptrace.ClientTrace{
+		WroteHeaders: func() {
+			time.Sleep(5 * time.Minute)
+		},
+	}
+	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
+
+	client := &http.Client{}
+	_, err := client.Do(req)
 	if err == nil {
 		t.Fatal("twirp client err is nil for cancled")
 	}
 
 	twerr, ok := err.(twirp.Error)
 	if !ok {
-		t.Fatalf("expected twirp.Error type error, have %T", err)
+		t.Fatalf("expected twirp.Error type error, have %s", err.Error())
 	}
 
 	if ctxErr := twirp.Canceled; twerr.Code() != ctxErr {

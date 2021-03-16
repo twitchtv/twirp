@@ -17,3 +17,5 @@ jobs: # Job to close stale PRs and issues. Documentation on the github action ht
         days-before-close: 5
         stale-pr-label: 'no-pr-activity'
         stale-issue-label: 'no-issue-activity'
+        exempt-pr-labels: 'pending'
+        exempt-issue-labels: 'pending'

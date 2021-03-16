@@ -422,7 +422,7 @@ func (s *svcServer) serveSendProtobuf(ctx context.Context, resp http.ResponseWri
 			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 			return
 		}
-		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
+		s.writeError(ctx, resp, twirp.NewError(twirp.Malformed, "failed to read request body"))
 		return
 	}
 	reqContent := new(Msg)

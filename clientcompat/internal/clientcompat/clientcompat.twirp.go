@@ -518,7 +518,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 			return
 		}
-		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
+		s.writeError(ctx, resp, twirp.NewError(twirp.Malformed, "failed to read request body"))
 		return
 	}
 	reqContent := new(Req)
@@ -700,7 +700,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 			return
 		}
-		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
+		s.writeError(ctx, resp, twirp.NewError(twirp.Malformed, "failed to read request body"))
 		return
 	}
 	reqContent := new(Empty)

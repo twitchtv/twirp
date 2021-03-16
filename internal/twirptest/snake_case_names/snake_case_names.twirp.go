@@ -442,7 +442,7 @@ func (s *haberdasherV1Server) serveMakeHatV1Protobuf(ctx context.Context, resp h
 			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 			return
 		}
-		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
+		s.writeError(ctx, resp, twirp.NewError(twirp.Malformed, "failed to read request body"))
 		return
 	}
 	reqContent := new(MakeHatArgsV1_SizeV1)

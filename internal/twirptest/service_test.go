@@ -23,7 +23,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httptrace"
 	"reflect"
 	"regexp"
 	"strings"
@@ -1529,73 +1528,149 @@ func TestPanicFlushing(t *testing.T) {
 	}
 }
 
-func TestContextCancelError(t *testing.T) {
-	s := httptest.NewServer(NewHaberdasherServer(nil))
-	defer s.Close()
+type errReader struct{}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	url := fmt.Sprintf("%s/%s", s.URL, "twirp/twirp.internal.twirptest.Haberdasher/MakeHat")
-	fmt.Println(url)
-	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBufferString("testing"))
+func (errReader) Read(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("test error")
+}
+
+func TestContextCancelError(t *testing.T) {
+	// test case validate context cancel error handling
+	var s Haberdasher
+	hooks := &twirp.ServerHooks{Error: func(ctx context.Context, err twirp.Error) context.Context {
+		if ctxErr := twirp.Canceled; err.Code() != ctxErr {
+			t.Errorf("twirp ErrorCode expected to be %q, but found %q", ctxErr, err.Code())
+		}
+		if ctxErr := context.Canceled.Error(); err.Msg() != ctxErr {
+			t.Errorf("twirp client err has unexpected message %q, want %q", err.Msg(), ctxErr)
+		}
+		return ctx
+	}}
+	server := NewHaberdasherServer(s, hooks)
+
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	// Make a request, that will endpoint method
+	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
 	req.Header.Set("Accept", "application/protobuf")
 	req.Header.Set("Content-Type", "application/protobuf")
-	trace := &httptrace.ClientTrace{
-		WroteHeaders: func() {
-			time.Sleep(5 * time.Minute)
-		},
-	}
-	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
+	// Associate the cancellable context we just created to the request
+	req = req.WithContext(ctx)
+	// cancel context
+	cancel()
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, req)
 
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err == nil {
-		t.Fatal("twirp client err is nil for cancled")
-	}
-
-	twerr, ok := err.(twirp.Error)
-	if !ok {
-		t.Fatalf("expected twirp.Error type error, have %s", err.Error())
+	// validate error code
+	expectedErrCode := twirp.ServerHTTPStatusFromErrorCode(twirp.Canceled)
+	if w.Code != expectedErrCode {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", expectedErrCode, w.Code)
 	}
 
-	if ctxErr := twirp.Canceled; twerr.Code() != ctxErr {
-		t.Errorf("twirp ErrorCode expected to be %q, but found %q", ctxErr, twerr.Code())
+	// validate error message
+	respBytes, err := ioutil.ReadAll(w.Body)
+	if err != nil {
+		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
-	if ctxErr := context.Canceled.Error(); twerr.Msg() != ctxErr {
-		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), ctxErr)
+
+	expectedErrMessage := "context canceled"
+	if !strings.Contains(string(respBytes), expectedErrMessage) {
+		t.Errorf("twirp client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
 	}
 }
 
 func TestDeadlineExceededError(t *testing.T) {
-	hooks := &twirp.ServerHooks{RequestReceived: func(ctx context.Context) (context.Context, error) {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Millisecond)
-		defer cancel()
-		select {
-		case <-ctx.Done():
-			// ctx.Err() will have context.DeadlineExceeded
-		case <-time.After(1 * time.Second):
-			t.Fatalf("Waited too long for DeadlineExceeded ")
+	// test case validate context deadline exceed error handling
+	var s Haberdasher
+	hooks := &twirp.ServerHooks{Error: func(ctx context.Context, err twirp.Error) context.Context {
+		if ctxErr := twirp.DeadlineExceeded; err.Code() != ctxErr {
+			t.Errorf("twirp ErrorCode expected to be %q, but found %q", ctxErr, err.Code())
 		}
-		return ctx, nil
+		if ctxErr := context.DeadlineExceeded.Error(); err.Msg() != ctxErr {
+			t.Errorf("twirp client err has unexpected message %q, want %q", err.Msg(), ctxErr)
+		}
+		return ctx
 	}}
-	s := httptest.NewServer(NewHaberdasherServer(nil, hooks))
-	defer s.Close()
+	server := NewHaberdasherServer(s, hooks)
 
-	client := NewHaberdasherProtobufClient(s.URL, http.DefaultClient)
-	_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
-	if err == nil {
-		t.Fatal("twirp client err is nil for cancled")
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Millisecond)
+	defer cancel()
+	// Make a request, that will endpoint method
+	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
+	req.Header.Set("Accept", "application/protobuf")
+	req.Header.Set("Content-Type", "application/protobuf")
+	// Associate the cancellable context we just created to the request
+	req = req.WithContext(ctx)
+
+	// wait for deadline exceed timeout in context object
+	select {
+	case <-ctx.Done():
+		// ctx.Err() will have context.DeadlineExceeded
+	case <-time.After(1 * time.Second):
+		t.Fatalf("Waited too long for DeadlineExceeded ")
+	}
+	w := httptest.NewRecorder()
+
+	server.ServeHTTP(w, req)
+
+	// validate error code
+	expectedErrCode := twirp.ServerHTTPStatusFromErrorCode(twirp.DeadlineExceeded)
+	if w.Code != expectedErrCode {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", expectedErrCode, w.Code)
 	}
 
-	twerr, ok := err.(twirp.Error)
-	if !ok {
-		t.Fatalf("expected twirp.Error type error, have %T", err)
+	// validate error message
+	respBytes, err := ioutil.ReadAll(w.Body)
+	if err != nil {
+		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
 
-	if ctxErr := twirp.DeadlineExceeded; twerr.Code() != ctxErr {
-		t.Errorf("twirp ErrorCode expected to be %q, but found %q", ctxErr, twerr.Code())
+	expectedErrMessage := "context deadline exceeded"
+	if !strings.Contains(string(respBytes), expectedErrMessage) {
+		t.Errorf("twirp client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
 	}
-	if ctxErr := context.DeadlineExceeded.Error(); twerr.Msg() != ctxErr {
-		t.Errorf("twirp client err has unexpected message %q, want %q", twerr.Msg(), ctxErr)
+}
+
+func TestFailedToReadRequestBodyError(t *testing.T) {
+	// test case validate reqest body read error handling
+	var s Haberdasher
+	hooks := &twirp.ServerHooks{Error: func(ctx context.Context, err twirp.Error) context.Context {
+		if ctxErr := twirp.Malformed; err.Code() != ctxErr {
+			t.Errorf("twirp ErrorCode expected to be %q, but found %q", ctxErr, err.Code())
+		}
+		if ctxErr := "failed to read request body"; err.Msg() != ctxErr {
+			t.Errorf("twirp client err has unexpected message %q, want %q", err.Msg(), ctxErr)
+		}
+		return ctx
+	}}
+	server := NewHaberdasherServer(s, hooks)
+	ctx := context.Background()
+
+	// Make a request, that will call endpoint method
+	req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
+	req.Header.Set("Accept", "application/protobuf")
+	req.Header.Set("Content-Type", "application/protobuf")
+	// Associate the cancellable context we just created to the request
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, req)
+
+	// validate error code
+	expectedErrCode := twirp.ServerHTTPStatusFromErrorCode(twirp.Malformed)
+	if w.Code != expectedErrCode {
+		t.Errorf("twirp ErrorCode expected to be %q, but found %q", expectedErrCode, w.Code)
+	}
+
+	// validate error message
+	respBytes, err := ioutil.ReadAll(w.Body)
+	if err != nil {
+		t.Fatalf("Could not even read bytes from response: %q", err.Error())
+	}
+
+	expectedErrMessage := "failed to read request body"
+	if !strings.Contains(string(respBytes), expectedErrMessage) {
+		t.Errorf("twirp client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
 	}
 }

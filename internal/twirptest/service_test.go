@@ -1572,6 +1572,34 @@ func TestRequestBodyError(t *testing.T) {
 			},
 			isContextCancled: true,
 		},
+		{
+			testname:         "JSONFailedToReadRequestBodyError",
+			expectedError:    twirp.Malformed,
+			errorString:      "the json request could not be decoded",
+			reqestType:       "application/json",
+			contextFunc:      func(ctx context.Context) (context.Context, context.CancelFunc) { return ctx, func() {} },
+			isContextCancled: false,
+		},
+		{
+			testname:      "JSONDeadlineExceededError",
+			expectedError: twirp.DeadlineExceeded,
+			errorString:   context.DeadlineExceeded.Error(),
+			reqestType:    "application/json",
+			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
+				return context.WithTimeout(ctx, 0*time.Millisecond)
+			},
+			isContextCancled: false,
+		},
+		{
+			testname:      "JSONFailedToReadRequestBodyError",
+			expectedError: twirp.Canceled,
+			errorString:   context.Canceled.Error(),
+			reqestType:    "application/json",
+			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
+				return context.WithCancel(ctx)
+			},
+			isContextCancled: true,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testname, func(t *testing.T) {

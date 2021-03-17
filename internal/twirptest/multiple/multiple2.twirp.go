@@ -421,6 +421,13 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
+			return
+		} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
+			return
+		}
 		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
 		return
 	}
@@ -603,6 +610,13 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+		if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
+			return
+		} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+			s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
+			return
+		}
 		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
 		return
 	}

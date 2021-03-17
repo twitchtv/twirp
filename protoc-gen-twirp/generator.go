@@ -1341,7 +1341,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`    		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))`)
 	t.P(`    		return`)
 	t.P(`  		}`)
-	t.P(`    	s.writeError(ctx, resp, twirp.NewError(twirp.Malformed, "failed to read request body"))`)
+	t.P(`    	s.writeError(ctx, resp, malformedRequestError("failed to read request body"))`)
 	t.P(`    	return`)
 	t.P(`  }`)
 	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)

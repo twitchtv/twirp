@@ -1147,8 +1147,8 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P()
 
 	// Write request body read issue
-	t.P(`// writeRequestBodyError is used to handle error when the twirp server cannot read request`)
-	t.P(`func (s *`, servStruct, `) writeRequestBodyError(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, msg string) {`)
+	t.P(`// handleRequestBodyError is used to handle error when the twirp server cannot read request`)
+	t.P(`func (s *`, servStruct, `) handleRequestBodyError(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, msg string) {`)
 	t.P(`  		if ctxErr := context.Canceled; ctxErr == ctx.Err() {`)
 	t.P(`    		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))`)
 	t.P(`    		return`)
@@ -1283,7 +1283,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
 	t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
 	t.P(`  if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {`)
-	t.P(`       s.writeRequestBodyError(ctx, resp, "the json request could not be decoded")`)
+	t.P(`       s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")`)
 	t.P(`    	return`)
 	t.P(`  }`)
 	t.P()
@@ -1348,7 +1348,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P()
 	t.P(`  buf, err := `, t.pkgs["ioutil"], `.ReadAll(req.Body)`)
 	t.P(`  if err != nil {`)
-	t.P(`       s.writeRequestBodyError(ctx, resp, "failed to read request body")`)
+	t.P(`       s.handleRequestBodyError(ctx, resp, "failed to read request body")`)
 	t.P(`    	return`)
 	t.P(`  }`)
 	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)

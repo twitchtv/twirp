@@ -153,8 +153,8 @@ func (s *emptyServer) writeError(ctx context.Context, resp http.ResponseWriter, 
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// writeRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *emptyServer) writeRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+// handleRequestBodyError is used to handle error when the twirp server cannot read request
+func (s *emptyServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return

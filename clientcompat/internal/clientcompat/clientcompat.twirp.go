@@ -352,8 +352,8 @@ func (s *compatServiceServer) writeError(ctx context.Context, resp http.Response
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// writeRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *compatServiceServer) writeRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+// handleRequestBodyError is used to handle error when the twirp server cannot read request
+func (s *compatServiceServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return
@@ -446,7 +446,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 	reqContent := new(Req)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
 		return
 	}
 
@@ -523,7 +523,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.writeRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body")
 		return
 	}
 	reqContent := new(Req)
@@ -621,7 +621,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 	reqContent := new(Empty)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
 		return
 	}
 
@@ -698,7 +698,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.writeRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body")
 		return
 	}
 	reqContent := new(Empty)

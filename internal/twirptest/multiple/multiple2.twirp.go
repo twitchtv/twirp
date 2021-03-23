@@ -339,8 +339,8 @@ func (s *svc2Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 	writeError(ctx, resp, err, s.hooks)
 }
 
-// writeRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *svc2Server) writeRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+// handleRequestBodyError is used to handle error when the twirp server cannot read request
+func (s *svc2Server) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return
@@ -433,7 +433,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
 		return
 	}
 
@@ -510,7 +510,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.writeRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body")
 		return
 	}
 	reqContent := new(Msg2)
@@ -608,7 +608,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.writeRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
 		return
 	}
 
@@ -685,7 +685,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.writeRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body")
 		return
 	}
 	reqContent := new(Msg1)

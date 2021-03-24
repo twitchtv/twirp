@@ -22,6 +22,7 @@ import (
 	"go/printer"
 	"go/token"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -337,8 +338,13 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 			}
 		}
 	}
-	for pkg, importPath := range deps {
-		t.P(`import `, pkg, ` `, importPath)
+	pkgs := make([]string, 0, len(deps))
+	for pkg := range deps {
+		pkgs = append(pkgs, pkg)
+	}
+	sort.Strings(pkgs)
+	for _, pkg := range pkgs {
+		t.P(`import `, pkg, ` `, deps[pkg])
 	}
 	if len(deps) > 0 {
 		t.P()

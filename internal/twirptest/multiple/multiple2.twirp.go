@@ -340,15 +340,16 @@ func (s *svc2Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 }
 
 // handleRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *svc2Server) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+func (s *svc2Server) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string, err error) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+	}
+	if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 		return
 	}
-	s.writeError(ctx, resp, malformedRequestError(msg))
+	s.writeError(ctx, resp, twirp.WrapError(malformedRequestError(msg), err))
 }
 
 // Svc2PathPrefix is a convenience constant that could used to identify URL paths.
@@ -433,7 +434,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 	reqContent := new(Msg2)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
 
@@ -510,7 +511,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.handleRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
 	}
 	reqContent := new(Msg2)
@@ -608,7 +609,7 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 	reqContent := new(Msg1)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
 
@@ -685,7 +686,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.handleRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
 	}
 	reqContent := new(Msg1)

@@ -353,15 +353,16 @@ func (s *compatServiceServer) writeError(ctx context.Context, resp http.Response
 }
 
 // handleRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *compatServiceServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+func (s *compatServiceServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string, err error) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+	}
+	if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 		return
 	}
-	s.writeError(ctx, resp, malformedRequestError(msg))
+	s.writeError(ctx, resp, twirp.WrapError(malformedRequestError(msg), err))
 }
 
 // CompatServicePathPrefix is a convenience constant that could used to identify URL paths.
@@ -446,7 +447,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 	reqContent := new(Req)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
 
@@ -523,7 +524,7 @@ func (s *compatServiceServer) serveMethodProtobuf(ctx context.Context, resp http
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.handleRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
 	}
 	reqContent := new(Req)
@@ -621,7 +622,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 	reqContent := new(Empty)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
 
@@ -698,7 +699,7 @@ func (s *compatServiceServer) serveNoopMethodProtobuf(ctx context.Context, resp 
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.handleRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
 	}
 	reqContent := new(Empty)

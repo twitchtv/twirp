@@ -259,15 +259,16 @@ func (s *haberdasherServer) writeError(ctx context.Context, resp http.ResponseWr
 }
 
 // handleRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *haberdasherServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+func (s *haberdasherServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string, err error) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+	}
+	if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 		return
 	}
-	s.writeError(ctx, resp, malformedRequestError(msg))
+	s.writeError(ctx, resp, twirp.WrapError(malformedRequestError(msg), err))
 }
 
 // HaberdasherPathPrefix is a convenience constant that could used to identify URL paths.
@@ -349,7 +350,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 	reqContent := new(Size)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
-		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded")
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
 
@@ -426,7 +427,7 @@ func (s *haberdasherServer) serveMakeHatProtobuf(ctx context.Context, resp http.
 
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.handleRequestBodyError(ctx, resp, "failed to read request body")
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
 	}
 	reqContent := new(Size)

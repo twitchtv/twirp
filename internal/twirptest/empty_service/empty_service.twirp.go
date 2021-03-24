@@ -154,15 +154,16 @@ func (s *emptyServer) writeError(ctx context.Context, resp http.ResponseWriter, 
 }
 
 // handleRequestBodyError is used to handle error when the twirp server cannot read request
-func (s *emptyServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string) {
+func (s *emptyServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string, err error) {
 	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, ctxErr.Error()))
 		return
-	} else if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+	}
+	if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))
 		return
 	}
-	s.writeError(ctx, resp, malformedRequestError(msg))
+	s.writeError(ctx, resp, twirp.WrapError(malformedRequestError(msg), err))
 }
 
 // EmptyPathPrefix is a convenience constant that could used to identify URL paths.

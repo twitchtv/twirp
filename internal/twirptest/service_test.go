@@ -1534,6 +1534,9 @@ func (errReader) Read(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("test error")
 }
 
+// Test failures when reading the request.
+// The request could be incomplete because the client timed out, which in most cases is signaled by
+// a context cancelation or timeout. In those cases, the twirp handled would properly identify and return those errors.
 func TestRequestBodyError(t *testing.T) {
 	type contextUpdate func(ctx context.Context) (context.Context, context.CancelFunc)
 	testCases := []struct {
@@ -1645,6 +1648,7 @@ func TestRequestBodyError(t *testing.T) {
 			}
 
 			expectedErrMessage := tc.errorString
+			fmt.Println(string(respBytes))
 			if !strings.Contains(string(respBytes), expectedErrMessage) {
 				t.Errorf("twirp client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
 			}

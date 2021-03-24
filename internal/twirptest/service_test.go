@@ -1648,7 +1648,6 @@ func TestRequestBodyError(t *testing.T) {
 			}
 
 			expectedErrMessage := tc.errorString
-			fmt.Println(string(respBytes))
 			if !strings.Contains(string(respBytes), expectedErrMessage) {
 				t.Errorf("twirp client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
 			}

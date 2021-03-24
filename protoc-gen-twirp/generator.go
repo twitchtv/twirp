@@ -1157,7 +1157,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`    s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, ctxErr.Error()))`)
 	t.P(`    return`)
 	t.P(`  }`)
-	t.P(`  	s.writeError(ctx, resp, twirp.WrapError(malformedRequestError(msg), err))`)
+	t.P(`  s.writeError(ctx, resp, twirp.WrapError(malformedRequestError(msg), err))`)
 	t.P(`}`)
 	t.P()
 

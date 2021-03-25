@@ -121,3 +121,12 @@ func TestWithJSONSkipDefaults(t *testing.T) {
 		t.Errorf("opts.JSONSkipDefaults expected to be false, but it is true")
 	}
 }
+
+func TestWithServerJSONCamelCaseNames(t *testing.T) {
+	opts := &ServerOptions{}
+
+	WithServerJSONCamelCaseNames(true)(opts)
+	if !opts.JSONCamelCaseNames {
+		t.Errorf("opts.JSONCamelCaseNames expected to be true, but it is false")
+	}
+}

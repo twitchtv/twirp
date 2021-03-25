@@ -213,3 +213,30 @@ func TestJSONSerializationServiceSkipDefaults(t *testing.T) {
 		t.Fatalf("invalid msg2.Snippets[0], have=%v, want=%v", have, want)
 	}
 }
+
+func TestJSONSerializationCamelCase(t *testing.T) {
+	s := httptest.NewServer(
+		NewJSONSerializationServer(
+			&JSONSerializationService{},
+			twirp.WithServerJSONCamelCaseNames(true),
+		),
+	)
+	defer s.Close()
+
+	reqBody := bytes.NewBuffer([]byte(`{"pageNumber": 123}`))
+	req, _ := http.NewRequest("POST", s.URL+"/twirp/JSONSerialization/EchoJSON", reqBody)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("manual EchoJSON err=%q", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("manual EchoJSON invalid status, have=%d, want=200", resp.StatusCode)
+	}
+	buf := new(bytes.Buffer)
+	_, _ = buf.ReadFrom(resp.Body)
+	want := `{"query":"","pageNumber":123,"hell":0,"foobar":"FOO","snippets":[],"allEmpty":false}`
+	if buf.String() != want {
+		t.Fatalf(`manual EchoJSON response with JSONCamelCaseNames expected to be '%q'. But it is=%q`, want, buf.String())
+	}
+}

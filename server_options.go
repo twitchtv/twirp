@@ -21,10 +21,11 @@ type ServerOption func(*ServerOptions)
 
 // ServerOptions encapsulate the configurable parameters on a Twirp client.
 type ServerOptions struct {
-	Interceptors     []Interceptor
-	Hooks            *ServerHooks
-	pathPrefix       *string
-	JSONSkipDefaults bool
+	Interceptors       []Interceptor
+	Hooks              *ServerHooks
+	pathPrefix         *string
+	JSONSkipDefaults   bool
+	JSONCamelCaseNames bool
 }
 
 func (opts *ServerOptions) PathPrefix() string {
@@ -174,5 +175,17 @@ func WithServerPathPrefix(prefix string) ServerOption {
 func WithServerJSONSkipDefaults(skipDefaults bool) ServerOption {
 	return func(o *ServerOptions) {
 		o.JSONSkipDefaults = skipDefaults
+	}
+}
+
+// WithServerJSONCamelCaseNames configures JSON serialization to use
+// lowerCameCase field names rather than the original proto field names.
+// It is disabled by default, because JSON is commonly used for manual
+// debugging. But sometimes converting to lowerCamelCase is needed
+// to match the default canonical encoding on other proto-json parsers.
+// See: https://developers.google.com/protocol-buffers/docs/proto3#json
+func WithServerJSONCamelCaseNames(val bool) ServerOption {
+	return func(o *ServerOptions) {
+		o.JSONCamelCaseNames = val
 	}
 }

@@ -1540,68 +1540,68 @@ func (errReader) Read(p []byte) (n int, err error) {
 func TestRequestBodyError(t *testing.T) {
 	type contextUpdate func(ctx context.Context) (context.Context, context.CancelFunc)
 	testCases := []struct {
-		testname         string
-		expectedError    twirp.ErrorCode
-		errorString      string
-		reqestType       string
-		contextFunc      contextUpdate
-		isContextCancled bool
+		testname          string
+		expectedError     twirp.ErrorCode
+		errorString       string
+		requestType       string
+		contextFunc       contextUpdate
+		isContextCanceled bool
 	}{
 		{
-			testname:         "ProtobufFailedToReadRequestBodyError",
-			expectedError:    twirp.Malformed,
-			errorString:      "failed to read request body",
-			reqestType:       "application/protobuf",
-			contextFunc:      func(ctx context.Context) (context.Context, context.CancelFunc) { return ctx, func() {} },
-			isContextCancled: false,
+			testname:          "ProtobufFailedToReadRequestBodyError",
+			expectedError:     twirp.Malformed,
+			errorString:       "failed to read request body",
+			requestType:       "application/protobuf",
+			contextFunc:       func(ctx context.Context) (context.Context, context.CancelFunc) { return ctx, func() {} },
+			isContextCanceled: false,
 		},
 		{
 			testname:      "ProtobufDeadlineExceededError",
 			expectedError: twirp.DeadlineExceeded,
 			errorString:   context.DeadlineExceeded.Error(),
-			reqestType:    "application/protobuf",
+			requestType:   "application/protobuf",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithTimeout(ctx, 0*time.Millisecond)
 			},
-			isContextCancled: false,
+			isContextCanceled: false,
 		},
 		{
 			testname:      "ProtobufFailedToReadRequestBodyError",
 			expectedError: twirp.Canceled,
 			errorString:   context.Canceled.Error(),
-			reqestType:    "application/protobuf",
+			requestType:   "application/protobuf",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithCancel(ctx)
 			},
-			isContextCancled: true,
+			isContextCanceled: true,
 		},
 		{
-			testname:         "JSONFailedToReadRequestBodyError",
-			expectedError:    twirp.Malformed,
-			errorString:      "the json request could not be decoded",
-			reqestType:       "application/json",
-			contextFunc:      func(ctx context.Context) (context.Context, context.CancelFunc) { return ctx, func() {} },
-			isContextCancled: false,
+			testname:          "JSONFailedToReadRequestBodyError",
+			expectedError:     twirp.Malformed,
+			errorString:       "the json request could not be decoded",
+			requestType:       "application/json",
+			contextFunc:       func(ctx context.Context) (context.Context, context.CancelFunc) { return ctx, func() {} },
+			isContextCanceled: false,
 		},
 		{
 			testname:      "JSONDeadlineExceededError",
 			expectedError: twirp.DeadlineExceeded,
 			errorString:   context.DeadlineExceeded.Error(),
-			reqestType:    "application/json",
+			requestType:   "application/json",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithTimeout(ctx, 0*time.Millisecond)
 			},
-			isContextCancled: false,
+			isContextCanceled: false,
 		},
 		{
 			testname:      "JSONFailedToReadRequestBodyError",
 			expectedError: twirp.Canceled,
 			errorString:   context.Canceled.Error(),
-			reqestType:    "application/json",
+			requestType:   "application/json",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithCancel(ctx)
 			},
-			isContextCancled: true,
+			isContextCanceled: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -1623,11 +1623,11 @@ func TestRequestBodyError(t *testing.T) {
 
 			// Make a request, that will call endpoint method
 			req, _ := http.NewRequest(http.MethodPost, "http://testing:8080/twirp/twirp.internal.twirptest.Haberdasher/MakeHat", errReader{})
-			req.Header.Set("Accept", tc.reqestType)
-			req.Header.Set("Content-Type", tc.reqestType)
+			req.Header.Set("Accept", tc.requestType)
+			req.Header.Set("Content-Type", tc.requestType)
 			// Associate the cancellable context we just created to the request
 			req = req.WithContext(ctx)
-			if tc.isContextCancled {
+			if tc.isContextCanceled {
 				cancel()
 			} else {
 				defer cancel()
@@ -1638,7 +1638,7 @@ func TestRequestBodyError(t *testing.T) {
 			// validate error code
 			expectedErrCode := twirp.ServerHTTPStatusFromErrorCode(tc.expectedError)
 			if w.Code != expectedErrCode {
-				t.Errorf("twirp ErrorCode expected to be %q, but found %q", expectedErrCode, w.Code)
+				t.Errorf("HTTP ErrorCode expected to be %q, but found %q", expectedErrCode, w.Code)
 			}
 
 			// validate error message
@@ -1649,7 +1649,7 @@ func TestRequestBodyError(t *testing.T) {
 
 			expectedErrMessage := tc.errorString
 			if !strings.Contains(string(respBytes), expectedErrMessage) {
-				t.Errorf("twirp client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
+				t.Errorf("HTTP client err has unexpected message %q, want %q", string(respBytes), expectedErrMessage)
 			}
 		})
 	}

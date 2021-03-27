@@ -23,8 +23,8 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
+import google_protobuf "github.com/golang/protobuf/ptypes/empty"
 
 // Imports only used by utility functions:
 import io "io"
@@ -261,11 +261,11 @@ func (s *svcServer) writeError(ctx context.Context, resp http.ResponseWriter, er
 
 // handleRequestBodyError is used to handle error when the twirp server cannot read request
 func (s *svcServer) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string, err error) {
-	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+	if context.Canceled == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, "failed to read request: context canceled"))
 		return
 	}
-	if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+	if context.DeadlineExceeded == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, "failed to read request: deadline exceeded"))
 		return
 	}

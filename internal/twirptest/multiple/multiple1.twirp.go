@@ -262,11 +262,11 @@ func (s *svc1Server) writeError(ctx context.Context, resp http.ResponseWriter, e
 
 // handleRequestBodyError is used to handle error when the twirp server cannot read request
 func (s *svc1Server) handleRequestBodyError(ctx context.Context, resp http.ResponseWriter, msg string, err error) {
-	if ctxErr := context.Canceled; ctxErr == ctx.Err() {
+	if context.Canceled == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.Canceled, "failed to read request: context canceled"))
 		return
 	}
-	if ctxErr := context.DeadlineExceeded; ctxErr == ctx.Err() {
+	if context.DeadlineExceeded == ctx.Err() {
 		s.writeError(ctx, resp, twirp.NewError(twirp.DeadlineExceeded, "failed to read request: deadline exceeded"))
 		return
 	}

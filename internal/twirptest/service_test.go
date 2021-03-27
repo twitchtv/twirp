@@ -1558,7 +1558,7 @@ func TestRequestBodyError(t *testing.T) {
 		{
 			testname:      "ProtobufDeadlineExceededError",
 			expectedError: twirp.DeadlineExceeded,
-			errorString:   context.DeadlineExceeded.Error(),
+			errorString:   "failed to read request: deadline exceeded",
 			requestType:   "application/protobuf",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithTimeout(ctx, 0*time.Millisecond)
@@ -1568,7 +1568,7 @@ func TestRequestBodyError(t *testing.T) {
 		{
 			testname:      "ProtobufFailedToReadRequestBodyError",
 			expectedError: twirp.Canceled,
-			errorString:   context.Canceled.Error(),
+			errorString:   "failed to read request: context canceled",
 			requestType:   "application/protobuf",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithCancel(ctx)
@@ -1586,7 +1586,7 @@ func TestRequestBodyError(t *testing.T) {
 		{
 			testname:      "JSONDeadlineExceededError",
 			expectedError: twirp.DeadlineExceeded,
-			errorString:   context.DeadlineExceeded.Error(),
+			errorString:   "failed to read request: deadline exceeded",
 			requestType:   "application/json",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithTimeout(ctx, 0*time.Millisecond)
@@ -1596,7 +1596,7 @@ func TestRequestBodyError(t *testing.T) {
 		{
 			testname:      "JSONFailedToReadRequestBodyError",
 			expectedError: twirp.Canceled,
-			errorString:   context.Canceled.Error(),
+			errorString:   "failed to read request: context canceled",
 			requestType:   "application/json",
 			contextFunc: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithCancel(ctx)

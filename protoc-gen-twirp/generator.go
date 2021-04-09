@@ -1146,6 +1146,21 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`}`)
 	t.P()
 
+	// Write request body read issue
+	t.P(`// handleRequestBodyError is used to handle error when the twirp server cannot read request`)
+	t.P(`func (s *`, servStruct, `) handleRequestBodyError(ctx `, t.pkgs["context"], `.Context, resp `, t.pkgs["http"], `.ResponseWriter, msg string, err error) {`)
+	t.P(`  if `, t.pkgs["context"], `.Canceled == ctx.Err() {`)
+	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.Canceled, "failed to read request: context canceled"))`)
+	t.P(`    return`)
+	t.P(`  } `)
+	t.P(`  if `, t.pkgs["context"], `.DeadlineExceeded == ctx.Err() {`)
+	t.P(`    s.writeError(ctx, resp, `, t.pkgs["twirp"], `.NewError(`, t.pkgs["twirp"], `.DeadlineExceeded, "failed to read request: deadline exceeded"))`)
+	t.P(`    return`)
+	t.P(`  }`)
+	t.P(`  s.writeError(ctx, resp, `, t.pkgs["twirp"], `.WrapError(malformedRequestError(msg), err))`)
+	t.P(`}`)
+	t.P()
+
 	// Routing.
 	t.generateServerRouting(servStruct, file, service)
 
@@ -1269,7 +1284,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
 	t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
 	t.P(`  if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {`)
-	t.P(`    s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))`)
+	t.P(`    s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)`)
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
@@ -1334,7 +1349,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P()
 	t.P(`  buf, err := `, t.pkgs["ioutil"], `.ReadAll(req.Body)`)
 	t.P(`  if err != nil {`)
-	t.P(`    s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))`)
+	t.P(`    s.handleRequestBodyError(ctx, resp, "failed to read request body", err)`)
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)

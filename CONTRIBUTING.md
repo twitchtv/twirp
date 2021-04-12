@@ -78,8 +78,8 @@ Twirp uses Github releases. To make a new release:
  4. Add a new commit to master with a message like "Version vX.X.X release" and push.
  5. Tag the commit you just made: `git tag vX.X.X` and `git push origin --tags`.
  6. Go to Github https://github.com/twitchtv/twirp/releases and "Draft a new release".
- 7. Make sure to document changes, upgrade instructions are very important.
- 8. Run `make release_gen` to generate release assets in the `release` directory. This requires Docker to be installed. Then Upload all files in the `release` directory as part of the release.
+ 7. Make sure to document changes as part of release comment
+ 8. Make sure to document upgrade instructions as part of release comment if users need to update their existing client code (Example: [v.7.0.0](https://github.com/twitchtv/twirp/releases/tag/v7.0.0)).
 
 
 ## Code of Conduct

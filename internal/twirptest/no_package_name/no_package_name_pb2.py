@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='no_package_name.proto',
   package='',
   syntax='proto3',
-  serialized_options=b'Z\017no_package_name',
+  serialized_options=b'Z\020/no_package_name',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x15no_package_name.proto\"\x05\n\x03Msg2\x19\n\x03Svc\x12\x12\n\x04Send\x12\x04.Msg\x1a\x04.MsgB\x11Z\x0fno_package_nameb\x06proto3'
+  serialized_pb=b'\n\x15no_package_name.proto\"\x05\n\x03Msg2\x19\n\x03Svc\x12\x12\n\x04Send\x12\x04.Msg\x1a\x04.MsgB\x12Z\x10/no_package_nameb\x06proto3'
 )
 
 

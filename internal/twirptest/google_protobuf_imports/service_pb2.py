@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twirp.internal.twirptest.use_empty',
   syntax='proto3',
-  serialized_options=b'Z\027google_protobuf_imports',
+  serialized_options=b'Z\031./google_protobuf_imports',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rservice.proto\x12\"twirp.internal.twirptest.use_empty\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto2C\n\x03Svc\x12<\n\x04Send\x12\x1c.google.protobuf.StringValue\x1a\x16.google.protobuf.EmptyB\x19Z\x17google_protobuf_importsb\x06proto3'
+  serialized_pb=b'\n\rservice.proto\x12\"twirp.internal.twirptest.use_empty\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto2C\n\x03Svc\x12<\n\x04Send\x12\x1c.google.protobuf.StringValue\x1a\x16.google.protobuf.EmptyB\x1bZ\x19./google_protobuf_importsb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,google_dot_protobuf_dot_wrappers__pb2.DESCRIPTOR,])
 

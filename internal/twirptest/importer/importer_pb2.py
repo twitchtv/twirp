@@ -18,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='importer.proto',
   package='twirp.internal.twirptest.importer',
   syntax='proto3',
-  serialized_options=b'Z\010importer',
+  serialized_options=b'Z\n./importer',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0eimporter.proto\x12!twirp.internal.twirptest.importer\x1aHgithub.com/twitchtv/twirp/internal/twirptest/importable/importable.proto2b\n\x04Svc2\x12Z\n\x04Send\x12(.twirp.internal.twirptest.importable.Msg\x1a(.twirp.internal.twirptest.importable.MsgB\nZ\x08importerb\x06proto3'
+  serialized_pb=b'\n\x0eimporter.proto\x12!twirp.internal.twirptest.importer\x1aHgithub.com/twitchtv/twirp/internal/twirptest/importable/importable.proto2b\n\x04Svc2\x12Z\n\x04Send\x12(.twirp.internal.twirptest.importable.Msg\x1a(.twirp.internal.twirptest.importable.MsgB\x0cZ\n./importerb\x06proto3'
   ,
   dependencies=[github_dot_com_dot_twitchtv_dot_twirp_dot_internal_dot_twirptest_dot_importable_dot_importable__pb2.DESCRIPTOR,])
 

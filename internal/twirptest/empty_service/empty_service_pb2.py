@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='empty_service.proto',
   package='twirp.internal.twirptest.emptyservice',
   syntax='proto3',
-  serialized_options=b'Z\rempty_service',
+  serialized_options=b'Z\017./empty_service',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13\x65mpty_service.proto\x12%twirp.internal.twirptest.emptyservice2\x07\n\x05\x45mptyB\x0fZ\rempty_serviceb\x06proto3'
+  serialized_pb=b'\n\x13\x65mpty_service.proto\x12%twirp.internal.twirptest.emptyservice2\x07\n\x05\x45mptyB\x11Z\x0f./empty_serviceb\x06proto3'
 )
 
 

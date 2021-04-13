@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='snake_case_names.proto',
   package='twirp.internal.twirptest.snake_case_names',
   syntax='proto3',
-  serialized_options=b'Z\020snake_case_names',
+  serialized_options=b'Z\022./snake_case_names',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16snake_case_names.proto\x12)twirp.internal.twirptest.snake_case_names\"`\n\x0eMakeHatArgs_v1\x1a\x33\n\x06Hat_v1\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x1a\x19\n\x07Size_v1\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32\xa4\x01\n\x0eHaberdasher_v1\x12\x91\x01\n\nMakeHat_v1\x12\x41.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1\x1a@.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1B\x12Z\x10snake_case_namesb\x06proto3'
+  serialized_pb=b'\n\x16snake_case_names.proto\x12)twirp.internal.twirptest.snake_case_names\"`\n\x0eMakeHatArgs_v1\x1a\x33\n\x06Hat_v1\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x1a\x19\n\x07Size_v1\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32\xa4\x01\n\x0eHaberdasher_v1\x12\x91\x01\n\nMakeHat_v1\x12\x41.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Size_v1\x1a@.twirp.internal.twirptest.snake_case_names.MakeHatArgs_v1.Hat_v1B\x14Z\x12./snake_case_namesb\x06proto3'
 )
 
 

@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twirp.internal.twirptest',
   syntax='proto3',
-  serialized_options=b'Z\013./twirptest',
+  serialized_options=b'Z\022internal/twirptest',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.HatB\rZ\x0b./twirptestb\x06proto3'
+  serialized_pb=b'\n\rservice.proto\x12\x18twirp.internal.twirptest\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32W\n\x0bHaberdasher\x12H\n\x07MakeHat\x12\x1e.twirp.internal.twirptest.Size\x1a\x1d.twirp.internal.twirptest.HatB\x14Z\x12internal/twirptestb\x06proto3'
 )
 
 

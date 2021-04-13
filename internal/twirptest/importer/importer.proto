@@ -2,7 +2,7 @@ syntax = "proto3";
 
 // Test to make sure that importing other packages doesnt break
 package twirp.internal.twirptest.importer;
-option go_package = "importer";
+option go_package = "./;importer";
 
 import "github.com/twitchtv/twirp/internal/twirptest/importable/importable.proto";
 

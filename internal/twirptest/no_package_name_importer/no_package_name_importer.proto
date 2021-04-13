@@ -5,7 +5,7 @@ import "github.com/twitchtv/twirp/internal/twirptest/no_package_name/no_package_
 // Test to make sure that importing a proto file without a package name doesn't
 // break, even if importing proto file lacks a package name.
 
-option go_package = "no_package_name_importer";
+option go_package = "./;no_package_name_importer";
 
 service Svc2 {
   rpc Method(Msg) returns (Msg);

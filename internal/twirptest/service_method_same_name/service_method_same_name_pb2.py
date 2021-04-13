@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service_method_same_name.proto',
   package='',
   syntax='proto3',
-  serialized_options=b'Z\032./service_method_same_name',
+  serialized_options=b'Z\033./;service_method_same_name',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1eservice_method_same_name.proto\"\x05\n\x03Msg2\x1c\n\x04\x45\x63ho\x12\x14\n\x04\x45\x63ho\x12\x04.Msg\x1a\x04.Msg\"\x00\x42\x1cZ\x1a./service_method_same_nameb\x06proto3'
+  serialized_pb=b'\n\x1eservice_method_same_name.proto\"\x05\n\x03Msg2\x1c\n\x04\x45\x63ho\x12\x14\n\x04\x45\x63ho\x12\x04.Msg\x1a\x04.Msg\"\x00\x42\x1dZ\x1b./;service_method_same_nameb\x06proto3'
 )
 
 

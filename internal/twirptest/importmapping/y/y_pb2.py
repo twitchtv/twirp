@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='y/y.proto',
   package='twirp.internal.twirptest.importmapping.y',
   syntax='proto3',
-  serialized_options=None,
+  serialized_options=b'Z\004./;y',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\ty/y.proto\x12(twirp.internal.twirptest.importmapping.y\"\x06\n\x04MsgYb\x06proto3'
+  serialized_pb=b'\n\ty/y.proto\x12(twirp.internal.twirptest.importmapping.y\"\x06\n\x04MsgYB\x06Z\x04./;yb\x06proto3'
 )
 
 
@@ -60,4 +60,5 @@ MsgY = _reflection.GeneratedProtocolMessageType('MsgY', (_message.Message,), {
 _sym_db.RegisterMessage(MsgY)
 
 
+DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)

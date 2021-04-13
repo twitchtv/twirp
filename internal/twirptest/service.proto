@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package twirp.internal.twirptest;
-option go_package = "twirptest";
+option go_package = "internal/twirptest";
 
 message Hat {
   int32 size = 1;

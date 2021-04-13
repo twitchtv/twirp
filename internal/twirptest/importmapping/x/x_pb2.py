@@ -18,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='x/x.proto',
   package='twirp.internal.twirptest.importmapping.x',
   syntax='proto3',
-  serialized_options=b'Z\001x',
+  serialized_options=b'Z\004./;x',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\tx/x.proto\x12(twirp.internal.twirptest.importmapping.x\x1a\ty/y.proto2n\n\x04Svc1\x12\x66\n\x04Send\x12..twirp.internal.twirptest.importmapping.y.MsgY\x1a..twirp.internal.twirptest.importmapping.y.MsgYB\x03Z\x01xb\x06proto3'
+  serialized_pb=b'\n\tx/x.proto\x12(twirp.internal.twirptest.importmapping.x\x1a\ty/y.proto2n\n\x04Svc1\x12\x66\n\x04Send\x12..twirp.internal.twirptest.importmapping.y.MsgY\x1a..twirp.internal.twirptest.importmapping.y.MsgYB\x06Z\x04./;xb\x06proto3'
   ,
   dependencies=[y_dot_y__pb2.DESCRIPTOR,])
 

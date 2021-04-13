@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='importable.proto',
   package='twirp.internal.twirptest.importable',
   syntax='proto3',
-  serialized_options=b'Z\014./importable',
+  serialized_options=b'Z\r./;importable',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x10importable.proto\x12#twirp.internal.twirptest.importable\"\x05\n\x03Msg2a\n\x03Svc\x12Z\n\x04Send\x12(.twirp.internal.twirptest.importable.Msg\x1a(.twirp.internal.twirptest.importable.MsgB\x0eZ\x0c./importableb\x06proto3'
+  serialized_pb=b'\n\x10importable.proto\x12#twirp.internal.twirptest.importable\"\x05\n\x03Msg2a\n\x03Svc\x12Z\n\x04Send\x12(.twirp.internal.twirptest.importable.Msg\x1a(.twirp.internal.twirptest.importable.MsgB\x0fZ\r./;importableb\x06proto3'
 )
 
 

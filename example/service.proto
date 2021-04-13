@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package twitch.twirp.example;
-option go_package = "example";
+option go_package = "/.;example";
 
 // A Hat is a piece of headwear made by a Haberdasher.
 message Hat {

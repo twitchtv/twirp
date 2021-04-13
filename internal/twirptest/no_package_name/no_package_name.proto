@@ -2,7 +2,7 @@ syntax = "proto3";
 
 // Test to make sure that a proto file without a package name doesn't break
 
-option go_package = "no_package_name";
+option go_package = "./;no_package_name";
 
 message Msg {}
 

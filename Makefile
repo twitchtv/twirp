@@ -7,10 +7,10 @@ all: setup test_all
 
 .PHONY: test test_all test_core test_clients test_go_client test_python_client generate release_gen
 
-# Phony commands:
 generate:
-	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-...
-	$(RETOOL) do go generate ./...
+	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-twirp
+	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-twirp_python
+	GO111MODULE=off $(RETOOL) do go generate ./...
 
 test_all: setup test_core test_clients
 

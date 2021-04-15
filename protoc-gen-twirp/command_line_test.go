@@ -36,9 +36,9 @@ func TestParseCommandLineParams(t *testing.T) {
 		},
 		{
 			"unknown parameter",
-			"k=v",
+			"kkk=vvv",
 			nil,
-			errors.New(`unknown parameter "k"`),
+			errors.New(`invalid command line flag kkk=vvv`),
 		},
 		{
 			"empty parameter value - no equals sign",
@@ -100,6 +100,36 @@ func TestParseCommandLineParams(t *testing.T) {
 					"rpcutil/empty.proto":           "github.com/example/rpcutil",
 					"rpc/haberdasher/service.proto": "github.com/example/rpc/haberdasher",
 				},
+			},
+			nil,
+		},
+		{
+			"paths=import",
+			"paths=import",
+			&commandLineParams{
+				paths: "import",
+			},
+			nil,
+		},
+		{
+			"paths=source_relative",
+			"paths=source_relative",
+			&commandLineParams{
+				paths: "source_relative",
+			},
+			nil,
+		},
+		{
+			"paths=invalidstuff",
+			"paths=invalidstuff",
+			nil,
+			errors.New(`invalid command line flag paths=invalidstuff`),
+		},
+		{
+			"module parameter",
+			"module=foo/bar/fizz",
+			&commandLineParams{
+				module: "foo/bar/fizz",
 			},
 			nil,
 		},

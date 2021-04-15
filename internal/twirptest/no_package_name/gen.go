@@ -13,4 +13,4 @@
 
 package no_package_name
 
-//go:generate ../../protoc_gen.sh no_package_name.proto
+//go:generate protoc --go_out=module=github.com/twitchtv/twirp/internal/twirptest/no_package_name:. --twirp_out=module=github.com/twitchtv/twirp/internal/twirptest/no_package_name:. no_package_name.proto

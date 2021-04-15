@@ -13,4 +13,4 @@
 
 package snake_case_names
 
-//go:generate ../../protoc_gen.sh snake_case_names.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. snake_case_names.proto

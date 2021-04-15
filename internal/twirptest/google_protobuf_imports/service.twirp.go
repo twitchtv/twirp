@@ -23,8 +23,8 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf1 "google.golang.org/protobuf/types/known/wrapperspb"
 import google_protobuf "google.golang.org/protobuf/types/known/emptypb"
+import google_protobuf1 "google.golang.org/protobuf/types/known/wrapperspb"
 
 // Imports only used by utility functions:
 import io "io"

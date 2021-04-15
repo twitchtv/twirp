@@ -19,9 +19,10 @@ import (
 )
 
 type commandLineParams struct {
-	importPrefix string            // String to prefix to imported package file names.
 	importMap    map[string]string // Mapping from .proto file name to import path.
-	paths        string            // Paths value, used to control file output directory
+	paths        string            // Paths value, used to control file output directory.
+	module       string            // Go import path prefix that is removed from the output filename.
+	importPrefix string            // prefix added to imported package file names.
 }
 
 // parseCommandLineParams breaks the comma-separated list of key=value pairs
@@ -50,20 +51,33 @@ func parseCommandLineParams(parameter string) (*commandLineParams, error) {
 	}
 	for k, v := range ps {
 		switch {
-		case k == "import_prefix":
-			clp.importPrefix = v
-		// Support import map 'M' prefix per https://github.com/golang/protobuf/blob/6fb5325/protoc-gen-go/generator/generator.go#L497.
+		// Support import map 'M' prefix: https://developers.google.com/protocol-buffers/docs/reference/go-generated
 		case len(k) > 0 && k[0] == 'M':
 			clp.importMap[k[1:]] = v // 1 is the length of 'M'.
-		case len(k) > 0 && strings.HasPrefix(k, "go_import_mapping@"):
+		case len(k) > 0 && strings.HasPrefix(k, "go_import_mapping@"): // twirp specific version of M parameters
 			clp.importMap[k[18:]] = v // 18 is the length of 'go_import_mapping@'.
+
 		case k == "paths":
-			if v != "source_relative" {
-				return nil, fmt.Errorf("paths does not support %q", v)
+			switch v {
+			case "import":
+				// this is the default behavior; the output file is placed in a directory named after the option go_package
+			case "source_relative":
+				// the directory prefix on the option go_package is removed from the output filename (only the last part is used)
+				clp.paths = v
+			default:
+				return nil, fmt.Errorf("invalid parameter paths=%s", v)
 			}
-			clp.paths = v
+
+		// If the module={PREFIX} flag is specified, the prefix is removed from the option go_package on the output filename
+		case k == "module":
+			clp.module = v
+
+		// Deprecated, but may still be useful when working with old versions of protoc-gen-go
+		case k == "import_prefix":
+			clp.importPrefix = v
+
 		default:
-			return nil, fmt.Errorf("unknown parameter %q", k)
+			return nil, fmt.Errorf("invalid command line flag %s=%s", k, v)
 		}
 	}
 	return clp, nil

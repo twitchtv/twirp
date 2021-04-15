@@ -13,4 +13,4 @@
 
 package importable
 
-//go:generate ../../protoc_gen.sh importable.proto
+//  TODO:  go:generate ../../protoc_gen.sh importable.proto

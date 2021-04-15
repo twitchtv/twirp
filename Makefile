@@ -8,15 +8,18 @@ all: setup test_all
 .PHONY: test test_all test_core test_clients test_go_client test_python_client generate release_gen
 
 generate:
-	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-twirp
-	PATH=$(CURDIR)/_tools/bin:$(PATH) GOBIN="${PWD}/bin" go install -v ./protoc-gen-twirp_python
-	GO111MODULE=off $(RETOOL) do go generate ./...
+	GO111MODULE=off GOBIN="$$PWD/bin" go install -v ./protoc-gen-twirp
+	GO111MODULE=off GOBIN="$$PWD/bin" go install -v ./protoc-gen-twirp_python
+	GO111MODULE=off PATH="$$PWD/bin:$$PWD/_tools/bin:$$PATH" go generate ./...
+
+gen:
+	GO111MODULE=off PATH="$$PWD/bin:$$PWD/_tools/bin:$$PATH" go generate ./...
 
 test_all: setup test_core test_clients
 
 test_core: generate
-	$(RETOOL) do errcheck -blank ./internal/twirptest
-	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /_tools/)
+	GO111MODULE=off PATH="$$PWD/bin:$$PWD/_tools/bin:$$PATH" errcheck -blank ./internal/twirptest
+	GO111MODULE=off go test -race $(shell GO111MODULE=off go list ./... | grep -v /vendor/ | grep -v /_tools/)
 
 test_clients: test_go_client test_python_client
 

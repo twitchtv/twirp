@@ -28,25 +28,24 @@ import (
 func goPackageOption(f *descriptor.FileDescriptorProto) (impPath, pkg string, ok bool) {
 	pkg = f.GetOptions().GetGoPackage()
 	if pkg == "" {
-		return
+		return "", "", false
 	}
-	ok = true
 	if bits := strings.Split(pkg, ";"); len(bits) == 2 {
-		return bits[0], bits[1], ok
+		return bits[0], bits[1], true
 	}
 	// The presence of a slash implies there's an import path.
 	slash := strings.LastIndex(pkg, "/")
 	if slash < 0 {
-		return
+		return "", pkg, true
 	}
 	impPath, pkg = pkg, pkg[slash+1:]
 	// A semicolon-delimited suffix overrides the package name.
 	sc := strings.IndexByte(impPath, ';')
 	if sc < 0 {
-		return
+		return impPath, pkg, true
 	}
 	impPath, pkg = impPath[:sc], impPath[sc+1:]
-	return
+	return impPath, pkg, true
 }
 
 // goPackageName returns the Go package name to use in the generated Go file.
@@ -69,18 +68,23 @@ func goPackageName(f *descriptor.FileDescriptorProto) (name string, explicit boo
 
 // goFileName returns the output name for the generated Go file.
 func (t *twirp) goFileName(f *descriptor.FileDescriptorProto) string {
-	name := *f.Name
+	name := *f.Name // proto file name
 	if ext := path.Ext(name); ext == ".proto" || ext == ".protodevel" {
-		name = name[:len(name)-len(ext)]
+		name = name[:len(name)-len(ext)] // remove extension
 	}
-	name += ".twirp.go"
+	name += ".twirp.go" // add twirp extension
+
+	// with paths=source_relative, the directory is the same as the proto file
 	if t.sourceRelativePaths {
 		return name
 	}
-	// Does the file have a "go_package" option? If it does, it may override the
-	// filename.
+	// otherwise, the directory is taken from the option go_package
 	if impPath, _, ok := goPackageOption(f); ok && impPath != "" {
-		// Replace the existing dirname with the declared import path.
+		if t.modulePrefix != "" {
+			impPath = strings.TrimPrefix(impPath, t.modulePrefix)
+		}
+
+		// Replace the existing dirname with the import path from go_package
 		_, name = path.Split(name)
 		name = path.Join(impPath, name)
 		return name

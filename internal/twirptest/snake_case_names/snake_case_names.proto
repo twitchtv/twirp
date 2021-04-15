@@ -3,7 +3,7 @@ syntax = "proto3";
 // Test that protoc-gen-twirp follows the same behavior as protoc-gen-go
 // for converting RPCs and message names from snake case to camel case.
 package twirp.internal.twirptest.snake_case_names;
-option go_package = "./;snake_case_names";
+option go_package = "/;snake_case_names";
 
 message MakeHatArgs_v1 {
     message Hat_v1 {

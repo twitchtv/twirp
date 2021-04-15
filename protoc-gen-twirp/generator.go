@@ -53,6 +53,7 @@ type twirp struct {
 
 	// Package output:
 	sourceRelativePaths bool // instruction on where to write output files
+	modulePrefix        string
 
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
@@ -86,10 +87,10 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	}
 	t.importPrefix = params.importPrefix
 	t.importMap = params.importMap
+	t.sourceRelativePaths = params.paths == "source_relative"
+	t.modulePrefix = params.module
 
 	t.genFiles = gen.FilesToGenerate(in)
-
-	t.sourceRelativePaths = params.paths == "source_relative"
 
 	// Collect information on types.
 	t.reg = typemap.New(in.ProtoFile)

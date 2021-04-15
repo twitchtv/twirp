@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-// Test to make sure that a proto file without a package name doesn't break
+// No package name
 
-option go_package = "./;no_package_name";
+option go_package = "github.com/twitchtv/twirp/internal/twirptest/no_package_name";
 
 message Msg {}
 

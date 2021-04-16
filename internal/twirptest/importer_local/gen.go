@@ -13,5 +13,5 @@
 
 package importer_local
 
-//go:generate ../../protoc_gen_source_relative.sh importer_local_msgdef.proto
-//go:generate ../../protoc_gen_source_relative.sh importer_local.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. importer_local_msgdef.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. importer_local.proto

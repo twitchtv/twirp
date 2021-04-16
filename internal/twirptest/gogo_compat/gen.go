@@ -13,4 +13,6 @@
 
 package gogo_compat
 
-//go:generate ../../gogo_protoc_gen.sh service.proto
+// github.com/gogo/protobuf/protoc-gen-gofast is an alternative generator
+
+//go:generate protoc --gofast_out=paths=source_relative:. --twirp_out=paths=source_relative:. service.proto

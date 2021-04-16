@@ -9,11 +9,11 @@
 
 [[override]]
   name = "github.com/gogo/protobuf"
-  version = "0.5.0"
+  version = "1.3.2"
 
 [[override]]
-  branch = "master"
-  name = "github.com/golang/protobuf"
+  name = "google.golang.org/protobuf"
+  version = "1.26.0"
 
 [[override]]
   name = "github.com/pkg/errors"

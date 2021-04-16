@@ -10,7 +10,7 @@ setup:
 	GOPATH=$(CURDIR)/_tools GOBIN=$(CURDIR)/_tools/bin go get github.com/twitchtv/retool
 	./_tools/bin/retool build
 
-generate:
+gen:
 	# Recompile and install generator
 	GOBIN="$$PWD/bin" go install -v ./protoc-gen-twirp
 	GOBIN="$$PWD/bin" go install -v ./protoc-gen-twirp_python
@@ -19,16 +19,16 @@ generate:
 
 test_all: setup test test_clients
 
-test: generate
+test: gen
 	./_tools/bin/errcheck ./internal/twirptest
 	go test -race $(shell GO111MODULE=off go list ./... | grep -v /vendor/ | grep -v /_tools/)
 
 test_clients: test_go_client test_python_client
 
-test_go_client: generate build/clientcompat build/gocompat
+test_go_client: gen build/clientcompat build/gocompat
 	./build/clientcompat -client ./build/gocompat
 
-test_python_client: generate build/clientcompat build/pycompat
+test_python_client: gen build/clientcompat build/pycompat
 	./build/clientcompat -client ./build/pycompat
 
 

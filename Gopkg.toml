@@ -8,10 +8,6 @@
 # tests and building main packages.
 
 [[override]]
-  name = "github.com/gogo/protobuf"
-  version = "1.3.2"
-
-[[override]]
   name = "google.golang.org/protobuf"
   version = "1.26.0"
 

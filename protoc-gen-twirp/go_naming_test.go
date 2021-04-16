@@ -16,7 +16,7 @@ package main
 import (
 	"testing"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
 func TestParseGoPackageOption(t *testing.T) {

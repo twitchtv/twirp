@@ -31,8 +31,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/jsonpb"
 	pkgerrors "github.com/pkg/errors"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/internal/descriptors"
@@ -119,7 +119,7 @@ func TestServerJSONWithUnknownFields(t *testing.T) {
 		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
 	hat := new(Hat)
-	if err = jsonpb.Unmarshal(bytes.NewReader(respBytes), hat); err != nil {
+	if err = protojson.Unmarshal(respBytes, hat); err != nil {
 		t.Fatalf("Could not unmarshall response as Hat: %s", respBytes)
 	}
 	if hat.Size != 0 {

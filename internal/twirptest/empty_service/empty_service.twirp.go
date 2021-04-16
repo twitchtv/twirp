@@ -10,22 +10,21 @@ It is generated from these files:
 */
 package empty_service
 
-import bytes "bytes"
-import strings "strings"
 import context "context"
 import fmt "fmt"
-import ioutil "io/ioutil"
 import http "net/http"
+import ioutil "io/ioutil"
+import json "encoding/json"
 import strconv "strconv"
+import strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
+import protojson "google.golang.org/protobuf/encoding/protojson"
+import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-// Imports only used by utility functions:
+import bytes "bytes"
 import io "io"
-import json "encoding/json"
 import path "path"
 import url "net/url"
 
@@ -253,7 +252,7 @@ type TwirpServer interface {
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
 	// unmarshalled as a
-	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.
+	// google.golang.org/protobuf/types/descriptorpb.FileDescriptorProto.
 	//
 	// The returned integer is the index of this particular service within that
 	// FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a
@@ -663,16 +662,16 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 
 // doJSONRequest makes a JSON request to the remote Twirp service.
 func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (_ context.Context, err error) {
-	reqBody := bytes.NewBuffer(nil)
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(reqBody, in); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true}
+	reqBytes, err := marshaler.Marshal(in)
+	if err != nil {
 		return ctx, wrapInternal(err, "failed to marshal json request")
 	}
 	if err = ctx.Err(); err != nil {
 		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
-	req, err := newRequest(ctx, url, reqBody, "application/json")
+	req, err := newRequest(ctx, url, bytes.NewReader(reqBytes), "application/json")
 	if err != nil {
 		return ctx, wrapInternal(err, "could not build request")
 	}
@@ -702,8 +701,13 @@ func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHo
 		return ctx, errorFromResponse(resp)
 	}
 
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
+	d := json.NewDecoder(resp.Body)
+	rawRespBody := json.RawMessage{}
+	if err := d.Decode(&rawRespBody); err != nil {
+		return ctx, wrapInternal(err, "failed to unmarshal json response")
+	}
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawRespBody, out); err != nil {
 		return ctx, wrapInternal(err, "failed to unmarshal json response")
 	}
 	if err = ctx.Err(); err != nil {
@@ -774,11 +778,11 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 94 bytes of a gzipped FileDescriptorProto
+	// 92 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4e, 0xcd, 0x2d, 0x28,
 	0xa9, 0x8c, 0x2f, 0x4e, 0x2d, 0x2a, 0xcb, 0x4c, 0x4e, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
 	0x52, 0x2d, 0x29, 0xcf, 0x2c, 0x2a, 0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1,
 	0x03, 0x73, 0x4b, 0x52, 0x8b, 0x4b, 0xf4, 0xc0, 0xaa, 0xa1, 0x8a, 0x8d, 0xd8, 0xb9, 0x58, 0x5d,
-	0x41, 0x7c, 0x27, 0xa1, 0x28, 0x01, 0x3d, 0x7d, 0x6b, 0x14, 0x93, 0x92, 0xd8, 0xc0, 0x46, 0x19,
-	0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x33, 0xf1, 0xc5, 0xbb, 0x61, 0x00, 0x00, 0x00,
+	0x41, 0x7c, 0x27, 0x81, 0x28, 0x3e, 0x7d, 0x14, 0x73, 0x92, 0xd8, 0xc0, 0x06, 0x19, 0x03, 0x02,
+	0x00, 0x00, 0xff, 0xff, 0x08, 0xd8, 0xe5, 0xa8, 0x5f, 0x00, 0x00, 0x00,
 }

@@ -22,9 +22,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"google.golang.org/protobuf/proto"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
+	plugin "google.golang.org/protobuf/types/pluginpb"
+
 	"github.com/twitchtv/twirp/internal/gen"
 	"github.com/twitchtv/twirp/internal/gen/stringutils"
 	"github.com/twitchtv/twirp/internal/gen/typemap"

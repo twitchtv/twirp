@@ -20,8 +20,8 @@ import (
 
 type commandLineParams struct {
 	importMap    map[string]string // Mapping from .proto file name to import path.
-	paths        string            // Paths value, used to control file output directory.
-	module       string            // Go import path prefix that is removed from the output filename.
+	paths        string            // paths flag, used to control file output directory.
+	module       string            // module flag, Go import path prefix that is removed from the output filename.
 	importPrefix string            // prefix added to imported package file names.
 }
 
@@ -63,9 +63,9 @@ func parseCommandLineParams(parameter string) (*commandLineParams, error) {
 				// this is the default behavior; the output file is placed in a directory named after the option go_package
 			case "source_relative":
 				// the directory prefix on the option go_package is removed from the output filename (only the last part is used)
-				clp.paths = v
+				clp.paths = "source_relative"
 			default:
-				return nil, fmt.Errorf("invalid parameter paths=%s", v)
+				return nil, fmt.Errorf("invalid command line flag %s=%s", k, v)
 			}
 
 		// If the module={PREFIX} flag is specified, the prefix is removed from the option go_package on the output filename

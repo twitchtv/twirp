@@ -10,28 +10,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:c3c4251fb1266f70503c2ba3683206a5011d767373cd5e53eb0ac11e1074c47d"
-  name = "github.com/gogo/protobuf"
-  packages = ["proto"]
-  pruneopts = "NUT"
-  revision = "b03c65ea87cdc3521ede29f62fe3ce239267c1bc"
-  version = "v1.3.2"
-
-[[projects]]
-  branch = "master"
-  digest = "1:440a63a8c267dfae1450c7f0dc3f018b2c8680685b6d6489e0a11691d5adb22f"
-  name = "github.com/golang/protobuf"
-  packages = [
-    "jsonpb",
-    "proto",
-    "protoc-gen-go/descriptor",
-    "protoc-gen-go/plugin",
-    "ptypes/struct",
-  ]
-  pruneopts = "NUT"
-  revision = "7716a980bceefe9a0213654823d9ea62d23b87a2"
-
-[[projects]]
   digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -59,15 +37,17 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:15a8e7ca45a213e48ef4c0be57fe6a92e3ad46550fec2b73c402fecd5b397268"
+  digest = "1:acaa96db5d83347d36134c23782eda554b73fb1ac5915bbcb39c67d9a168db00"
   name = "google.golang.org/protobuf"
   packages = [
+    "encoding/protojson",
     "encoding/prototext",
     "encoding/protowire",
     "internal/descfmt",
     "internal/descopts",
     "internal/detrand",
     "internal/encoding/defval",
+    "internal/encoding/json",
     "internal/encoding/messageset",
     "internal/encoding/tag",
     "internal/encoding/text",
@@ -87,8 +67,10 @@
     "reflect/protoregistry",
     "runtime/protoiface",
     "runtime/protoimpl",
+    "types/descriptorpb",
     "types/known/emptypb",
     "types/known/wrapperspb",
+    "types/pluginpb",
   ]
   pruneopts = "NUT"
   revision = "f2d1f6cbe10b90d22296ea09a7217081c2798009"
@@ -98,18 +80,17 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/gogo/protobuf/proto",
-    "github.com/golang/protobuf/jsonpb",
-    "github.com/golang/protobuf/proto",
-    "github.com/golang/protobuf/protoc-gen-go/descriptor",
-    "github.com/golang/protobuf/protoc-gen-go/plugin",
     "github.com/pkg/errors",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
+    "google.golang.org/protobuf/encoding/protojson",
+    "google.golang.org/protobuf/proto",
     "google.golang.org/protobuf/reflect/protoreflect",
     "google.golang.org/protobuf/runtime/protoimpl",
+    "google.golang.org/protobuf/types/descriptorpb",
     "google.golang.org/protobuf/types/known/emptypb",
     "google.golang.org/protobuf/types/known/wrapperspb",
+    "google.golang.org/protobuf/types/pluginpb",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

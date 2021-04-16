@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='service.proto',
   package='twitch.twirp.example',
   syntax='proto3',
-  serialized_options=b'Z\n/.;example',
+  serialized_options=b'Z\010/example',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rservice.proto\x12\x14twitch.twirp.example\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32O\n\x0bHaberdasher\x12@\n\x07MakeHat\x12\x1a.twitch.twirp.example.Size\x1a\x19.twitch.twirp.example.HatB\x0cZ\n/.;exampleb\x06proto3'
+  serialized_pb=b'\n\rservice.proto\x12\x14twitch.twirp.example\"0\n\x03Hat\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\r\n\x05\x63olor\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x16\n\x04Size\x12\x0e\n\x06inches\x18\x01 \x01(\x05\x32O\n\x0bHaberdasher\x12@\n\x07MakeHat\x12\x1a.twitch.twirp.example.Size\x1a\x19.twitch.twirp.example.HatB\nZ\x08/exampleb\x06proto3'
 )
 
 

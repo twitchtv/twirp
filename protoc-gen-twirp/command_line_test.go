@@ -104,23 +104,24 @@ func TestParseCommandLineParams(t *testing.T) {
 			nil,
 		},
 		{
-			"paths=import",
+			"paths import",
 			"paths=import",
 			&commandLineParams{
-				paths: "import",
+				importMap: map[string]string{},
 			},
 			nil,
 		},
 		{
-			"paths=source_relative",
+			"paths source_relative",
 			"paths=source_relative",
 			&commandLineParams{
-				paths: "source_relative",
+				importMap: map[string]string{},
+				paths:     "source_relative",
 			},
 			nil,
 		},
 		{
-			"paths=invalidstuff",
+			"paths invalidstuff",
 			"paths=invalidstuff",
 			nil,
 			errors.New(`invalid command line flag paths=invalidstuff`),
@@ -129,7 +130,8 @@ func TestParseCommandLineParams(t *testing.T) {
 			"module parameter",
 			"module=foo/bar/fizz",
 			&commandLineParams{
-				module: "foo/bar/fizz",
+				importMap: map[string]string{},
+				module:    "foo/bar/fizz",
 			},
 			nil,
 		},
@@ -151,7 +153,7 @@ func TestParseCommandLineParams(t *testing.T) {
 				}
 			}
 			if !reflect.DeepEqual(params, tt.params) {
-				t.Errorf("got params = %v, want %v", params, tt.params)
+				t.Errorf("got params = %+v, want %+v", params, tt.params)
 			}
 		})
 	}

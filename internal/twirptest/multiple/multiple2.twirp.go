@@ -3,16 +3,16 @@
 
 package multiple
 
-import bytes "bytes"
-import strings "strings"
 import context "context"
 import fmt "fmt"
-import ioutil "io/ioutil"
 import http "net/http"
+import ioutil "io/ioutil"
+import json "encoding/json"
 import strconv "strconv"
+import strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
+import protojson "google.golang.org/protobuf/encoding/protojson"
+import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
@@ -431,9 +431,15 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
 	reqContent := new(Msg2)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
 		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
@@ -479,15 +485,14 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
@@ -606,9 +611,15 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
 	reqContent := new(Msg1)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
 		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
@@ -654,15 +665,14 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)

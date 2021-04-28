@@ -29,7 +29,7 @@ definition file, placed in `rpc/haberdasher/service.proto`:
 syntax = "proto3";
 
 package twirp.example.haberdasher;
-option go_package = "haberdasher";
+option go_package = "./;haberdasher";
 
 // Haberdasher service makes hats for clients.
 service Haberdasher {

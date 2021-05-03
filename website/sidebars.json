@@ -15,7 +15,8 @@
             "interceptors",
             "command_line",
             "proto_and_json",
-            "curl"
+            "curl",
+            "version_matrix"
         ],
         "Formal specification": [
             "spec_v5",

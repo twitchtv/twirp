@@ -5,13 +5,13 @@
     "previous": "Previous",
     "tagline": "Simple RPC framework powered by protobuf",
     "docs": {
-      "best_practices": {
-        "title": "Best Practices",
-        "sidebar_label": "Best Practices"
+      "'best_practices'": {
+        "title": "'Best Practices'",
+        "sidebar_label": "'Best Practices'"
       },
-      "command_line": {
-        "title": "Command line parameters",
-        "sidebar_label": "Command line parameters"
+      "'command_line'": {
+        "title": "'Command line parameters'",
+        "sidebar_label": "'Command line parameters'"
       },
       "curl": {
         "title": "cURL",

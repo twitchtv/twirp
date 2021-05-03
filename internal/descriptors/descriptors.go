@@ -20,8 +20,9 @@ import (
 	"compress/gzip"
 	"io/ioutil"
 
-	"github.com/golang/protobuf/proto"
-	protobuf "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/proto"
+	protobuf "google.golang.org/protobuf/types/descriptorpb"
+
 	"github.com/pkg/errors"
 )
 

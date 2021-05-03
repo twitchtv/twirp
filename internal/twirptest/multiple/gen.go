@@ -13,4 +13,4 @@
 
 package multiple
 
-//go:generate ../../protoc_gen.sh multiple1.proto multiple2.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. multiple1.proto multiple2.proto

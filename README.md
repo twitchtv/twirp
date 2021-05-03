@@ -29,22 +29,9 @@ For more on the motivation behind Twirp (and a comparison to REST APIs and gRPC)
 [announcement blog post](https://blog.twitch.tv/en/2018/01/16/twirp-a-sweet-new-rpc-framework-for-go-5f2febbf35f/)
 is a good read.
 
-### Installation
-Use `go get` to install the Go client-and-server generator:
-
-```
-go get github.com/twitchtv/twirp/protoc-gen-twirp
-```
-
-You will also need:
- - [protoc](https://github.com/protocolbuffers/protobuf), the protobuf compiler. You need
-   version 3+.
- - [github.com/golang/protobuf/protoc-gen-go](https://github.com/golang/protobuf/),
-   the Go protobuf generator plugin. Get this with `go get`.
-
 ### Documentation
 
-On the website: https://twitchtv.github.io/twirp/docs/intro.html
+Documentation: https://twitchtv.github.io/twirp/docs/intro.html
 
 Source for this documentation is in the [docs](./docs) subdirectory. The website
 is generated from that folder using [Docusaurus](https://docusaurus.io/).

@@ -20,7 +20,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
+
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/clientcompat/internal/clientcompat"
 )

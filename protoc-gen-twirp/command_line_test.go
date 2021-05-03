@@ -36,9 +36,9 @@ func TestParseCommandLineParams(t *testing.T) {
 		},
 		{
 			"unknown parameter",
-			"k=v",
+			"kkk=vvv",
 			nil,
-			errors.New(`unknown parameter "k"`),
+			errors.New(`invalid command line flag kkk=vvv`),
 		},
 		{
 			"empty parameter value - no equals sign",
@@ -103,6 +103,38 @@ func TestParseCommandLineParams(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"paths import",
+			"paths=import",
+			&commandLineParams{
+				importMap: map[string]string{},
+			},
+			nil,
+		},
+		{
+			"paths source_relative",
+			"paths=source_relative",
+			&commandLineParams{
+				importMap: map[string]string{},
+				paths:     "source_relative",
+			},
+			nil,
+		},
+		{
+			"paths invalidstuff",
+			"paths=invalidstuff",
+			nil,
+			errors.New(`invalid command line flag paths=invalidstuff`),
+		},
+		{
+			"module parameter",
+			"module=foo/bar/fizz",
+			&commandLineParams{
+				importMap: map[string]string{},
+				module:    "foo/bar/fizz",
+			},
+			nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -121,7 +153,7 @@ func TestParseCommandLineParams(t *testing.T) {
 				}
 			}
 			if !reflect.DeepEqual(params, tt.params) {
-				t.Errorf("got params = %v, want %v", params, tt.params)
+				t.Errorf("got params = %+v, want %+v", params, tt.params)
 			}
 		})
 	}

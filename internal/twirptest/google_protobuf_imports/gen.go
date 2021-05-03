@@ -13,4 +13,4 @@
 
 package google_protobuf_imports
 
-//go:generate ../../protoc_gen.sh service.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. service.proto

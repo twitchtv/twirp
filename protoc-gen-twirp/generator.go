@@ -25,9 +25,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"google.golang.org/protobuf/proto"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
+	plugin "google.golang.org/protobuf/types/pluginpb"
+
 	"github.com/pkg/errors"
 	"github.com/twitchtv/twirp/internal/gen"
 	"github.com/twitchtv/twirp/internal/gen/stringutils"
@@ -48,6 +49,7 @@ type twirp struct {
 
 	// Package output:
 	sourceRelativePaths bool // instruction on where to write output files
+	modulePrefix        string
 
 	// Package naming:
 	genPkgName          string // Name of the package that we're generating
@@ -81,10 +83,10 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	}
 	t.importPrefix = params.importPrefix
 	t.importMap = params.importMap
+	t.sourceRelativePaths = params.paths == "source_relative"
+	t.modulePrefix = params.module
 
 	t.genFiles = gen.FilesToGenerate(in)
-
-	t.sourceRelativePaths = params.paths == "source_relative"
 
 	// Collect information on types.
 	t.reg = typemap.New(in.ProtoFile)
@@ -99,7 +101,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	t.registerPackageName("io")
 	t.registerPackageName("ioutil")
 	t.registerPackageName("json")
-	t.registerPackageName("jsonpb")
+	t.registerPackageName("protojson")
 	t.registerPackageName("proto")
 	t.registerPackageName("strconv")
 	t.registerPackageName("twirp")
@@ -288,17 +290,18 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	}
 
 	// stdlib imports
-	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
-	t.P(`import `, t.pkgs["strings"], ` "strings"`)
 	t.P(`import `, t.pkgs["context"], ` "context"`)
 	t.P(`import `, t.pkgs["fmt"], ` "fmt"`)
-	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
 	t.P(`import `, t.pkgs["http"], ` "net/http"`)
+	t.P(`import `, t.pkgs["ioutil"], ` "io/ioutil"`)
+	t.P(`import `, t.pkgs["json"], ` "encoding/json"`)
 	t.P(`import `, t.pkgs["strconv"], ` "strconv"`)
+	t.P(`import `, t.pkgs["strings"], ` "strings"`)
 	t.P()
+
 	// dependency imports
-	t.P(`import `, t.pkgs["jsonpb"], ` "github.com/golang/protobuf/jsonpb"`)
-	t.P(`import `, t.pkgs["proto"], ` "github.com/golang/protobuf/proto"`)
+	t.P(`import `, t.pkgs["protojson"], ` "google.golang.org/protobuf/encoding/protojson"`)
+	t.P(`import `, t.pkgs["proto"], ` "google.golang.org/protobuf/proto"`)
 	t.P(`import `, t.pkgs["twirp"], ` "github.com/twitchtv/twirp"`)
 	t.P(`import `, t.pkgs["ctxsetters"], ` "github.com/twitchtv/twirp/ctxsetters"`)
 	t.P()
@@ -315,21 +318,19 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 				t.reg.MethodOutputDefinition(m),
 			}
 			for _, def := range defs {
-				// By default, import path is the dirname of the Go filename.
-				importPath := path.Dir(t.goFileName(def.File))
-				if importPath == ourImportPath {
-					continue
-				}
-
-				importPathOpt, _ := parseGoPackageOption(def.File.GetOptions().GetGoPackage())
-				if importPathOpt != "" {
-					importPath = importPathOpt
+				importPath, _ := parseGoPackageOption(def.File.GetOptions().GetGoPackage())
+				if importPath == "" { // no option go_package
+					importPath := path.Dir(t.goFileName(def.File)) // use the dirname of the Go filename as import path
+					if importPath == ourImportPath {
+						continue
+					}
 				}
 
 				if substitution, ok := t.importMap[def.File.GetName()]; ok {
 					importPath = substitution
 				}
 				importPath = t.importPrefix + importPath
+
 				pkg := t.goPackageName(def.File)
 				if pkg != t.genPkgName {
 					deps[pkg] = strconv.Quote(importPath)
@@ -345,10 +346,11 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	}
 }
 
+// generateUtilImports are imports that are only used on utility functions.
+// If there are multiple proto files being generated, they are only included in the first one of them.
 func (t *twirp) generateUtilImports() {
-	t.P("// Imports only used by utility functions:")
+	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
 	t.P(`import `, t.pkgs["io"], ` "io"`)
-	t.P(`import `, t.pkgs["json"], ` "encoding/json"`)
 	t.P(`import `, t.pkgs["path"], ` "path"`)
 	t.P(`import `, t.pkgs["url"], ` "net/url"`)
 }
@@ -379,7 +381,7 @@ func (t *twirp) generateUtils() {
 	t.P(`  // ServiceDescriptor returns gzipped bytes describing the .proto file that`)
 	t.P(`  // this service was generated from. Once unzipped, the bytes can be`)
 	t.P(`  // unmarshalled as a`)
-	t.P(`  // github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.`)
+	t.P(`  // google.golang.org/protobuf/types/descriptorpb.FileDescriptorProto.`)
 	t.P(`  //`)
 	t.P(`  // The returned integer is the index of this particular service within that`)
 	t.P(`  // FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a`)
@@ -804,16 +806,16 @@ func (t *twirp) generateUtils() {
 
 	t.P(`// doJSONRequest makes a JSON request to the remote Twirp service.`)
 	t.P(`func doJSONRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, hooks *`, t.pkgs["twirp"], `.ClientHooks, url string, in, out `, t.pkgs["proto"], `.Message) (_ `, t.pkgs["context"], `.Context, err error) {`)
-	t.P(`  reqBody := `, t.pkgs["bytes"], `.NewBuffer(nil)`)
-	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true}`)
-	t.P(`  if err = marshaler.Marshal(reqBody, in); err != nil {`)
+	t.P(`  marshaler := &`, t.pkgs["protojson"], `.MarshalOptions{UseProtoNames: true}`)
+	t.P(`  reqBytes, err := marshaler.Marshal(in)`)
+	t.P(`  if err != nil {`)
 	t.P(`    return ctx, wrapInternal(err, "failed to marshal json request")`)
 	t.P(`  }`)
 	t.P(`  if err = ctx.Err(); err != nil {`)
 	t.P(`    return ctx, wrapInternal(err, "aborted because context was done")`)
 	t.P(`  }`)
 	t.P()
-	t.P(`  req, err := newRequest(ctx, url, reqBody, "application/json")`)
+	t.P(`  req, err := newRequest(ctx, url, `, t.pkgs["bytes"], `.NewReader(reqBytes), "application/json")`)
 	t.P(`  if err != nil {`)
 	t.P(`    return ctx, wrapInternal(err, "could not build request")`)
 	t.P(`  }`)
@@ -843,8 +845,13 @@ func (t *twirp) generateUtils() {
 	t.P(`    return ctx, errorFromResponse(resp)`)
 	t.P(`  }`)
 	t.P()
-	t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
-	t.P(`  if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {`)
+	t.P(`  d := `, t.pkgs["json"], `.NewDecoder(resp.Body)`)
+	t.P(`  rawRespBody := `, t.pkgs["json"], `.RawMessage{}`)
+	t.P(`  if err := d.Decode(&rawRespBody); err != nil {`)
+	t.P(`    return ctx, wrapInternal(err, "failed to unmarshal json response")`)
+	t.P(`  }`)
+	t.P(`  unmarshaler := `, t.pkgs["protojson"], `.UnmarshalOptions{DiscardUnknown: true}`)
+	t.P(`  if err = unmarshaler.Unmarshal(rawRespBody, out); err != nil {`)
 	t.P(`    return ctx, wrapInternal(err, "failed to unmarshal json response")`)
 	t.P(`  }`)
 	t.P(`  if err = ctx.Err(); err != nil {`)
@@ -1281,9 +1288,15 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
+	t.P(`  d := `, t.pkgs["json"], `.NewDecoder(req.Body)`)
+	t.P(`  rawReqBody := `, t.pkgs["json"], `.RawMessage{}`)
+	t.P(`  if err := d.Decode(&rawReqBody); err != nil {`)
+	t.P(`    s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)`)
+	t.P(`    return`)
+	t.P(`  }`)
 	t.P(`  reqContent := new(`, t.goTypeName(method.GetInputType()), `)`)
-	t.P(`  unmarshaler := `, t.pkgs["jsonpb"], `.Unmarshaler{AllowUnknownFields: true}`)
-	t.P(`  if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {`)
+	t.P(`  unmarshaler := `, t.pkgs["protojson"], `.UnmarshalOptions{DiscardUnknown: true}`)
+	t.P(`  if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {`)
 	t.P(`    s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)`)
 	t.P(`    return`)
 	t.P(`  }`)
@@ -1311,15 +1324,14 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P()
 	t.P(`  ctx = callResponsePrepared(ctx, s.hooks)`)
 	t.P()
-	t.P(`  var buf `, t.pkgs["bytes"], `.Buffer`)
-	t.P(`  marshaler := &`, t.pkgs["jsonpb"], `.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}`)
-	t.P(`  if err = marshaler.Marshal(&buf, respContent); err != nil {`)
+	t.P(`  marshaler := &`, t.pkgs["protojson"], `.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}`)
+	t.P(`  respBytes, err := marshaler.Marshal(respContent)`)
+	t.P(`  if err != nil {`)
 	t.P(`    s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))`)
 	t.P(`    return`)
 	t.P(`  }`)
 	t.P()
 	t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithStatusCode(ctx, `, t.pkgs["http"], `.StatusOK)`)
-	t.P(`  respBytes := buf.Bytes()`)
 	t.P(`  resp.Header().Set("Content-Type", "application/json")`)
 	t.P(`  resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))`)
 	t.P(`  resp.WriteHeader(`, t.pkgs["http"], `.StatusOK)`)

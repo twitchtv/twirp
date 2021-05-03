@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='clientcompat.proto',
   package='twirp.clientcompat',
   syntax='proto3',
-  serialized_options=b'Z\014clientcompat',
+  serialized_options=b'Z\026/internal/clientcompat',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x12\x63lientcompat.proto\x12\x12twirp.clientcompat\"\x07\n\x05\x45mpty\"\x10\n\x03Req\x12\t\n\x01v\x18\x01 \x01(\t\"\x11\n\x04Resp\x12\t\n\x01v\x18\x01 \x01(\x05\"\xb9\x01\n\x13\x43lientCompatMessage\x12\x17\n\x0fservice_address\x18\x01 \x01(\t\x12K\n\x06method\x18\x02 \x01(\x0e\x32;.twirp.clientcompat.ClientCompatMessage.CompatServiceMethod\x12\x0f\n\x07request\x18\x03 \x01(\x0c\"+\n\x13\x43ompatServiceMethod\x12\x08\n\x04NOOP\x10\x00\x12\n\n\x06METHOD\x10\x01\x32\x90\x01\n\rCompatService\x12;\n\x06Method\x12\x17.twirp.clientcompat.Req\x1a\x18.twirp.clientcompat.Resp\x12\x42\n\nNoopMethod\x12\x19.twirp.clientcompat.Empty\x1a\x19.twirp.clientcompat.EmptyB\x0eZ\x0c\x63lientcompatb\x06proto3'
+  serialized_pb=b'\n\x12\x63lientcompat.proto\x12\x12twirp.clientcompat\"\x07\n\x05\x45mpty\"\x10\n\x03Req\x12\t\n\x01v\x18\x01 \x01(\t\"\x11\n\x04Resp\x12\t\n\x01v\x18\x01 \x01(\x05\"\xb9\x01\n\x13\x43lientCompatMessage\x12\x17\n\x0fservice_address\x18\x01 \x01(\t\x12K\n\x06method\x18\x02 \x01(\x0e\x32;.twirp.clientcompat.ClientCompatMessage.CompatServiceMethod\x12\x0f\n\x07request\x18\x03 \x01(\x0c\"+\n\x13\x43ompatServiceMethod\x12\x08\n\x04NOOP\x10\x00\x12\n\n\x06METHOD\x10\x01\x32\x90\x01\n\rCompatService\x12;\n\x06Method\x12\x17.twirp.clientcompat.Req\x1a\x18.twirp.clientcompat.Resp\x12\x42\n\nNoopMethod\x12\x19.twirp.clientcompat.Empty\x1a\x19.twirp.clientcompat.EmptyB\x18Z\x16/internal/clientcompatb\x06proto3'
 )
 
 

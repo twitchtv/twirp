@@ -21,11 +21,9 @@ https://github.com/google/protobuf/releases or in MacOS `brew install protobuf`.
 
 ### With go get
 
-Download and install `protoc-gen-go` using the normal Go tools:
-
 ```sh
-$ go get -u github.com/golang/protobuf/protoc-gen-go
-$ go get -u github.com/twitchtv/twirp/protoc-gen-twirp
+$ go get google.golang.org/protobuf/cmd/protoc-gen-go
+$ go get github.com/twitchtv/twirp/protoc-gen-twirp
 ```
 
 The normal Go tools will install `protoc-gen-go` in `$GOBIN`, defaulting to
@@ -33,7 +31,7 @@ The normal Go tools will install `protoc-gen-go` in `$GOBIN`, defaulting to
 to find it, so you might need to explicitly add it to your path:
 
 ```sh
-$ export PATH=$PATH:$GOPATH/bin
+$ export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 You can also add the `export` above to your `.bashrc` file and source it when needed.

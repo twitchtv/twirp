@@ -13,4 +13,4 @@
 
 package service_method_same_name
 
-//go:generate ../../protoc_gen.sh service_method_same_name.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. service_method_same_name.proto

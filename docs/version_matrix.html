@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Version Compatibility · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="## Compatibilty Matrix"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Version Compatibility · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="## Compatibilty Matrix"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v7.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">Routing and Serialization</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/interceptors.html">Interceptors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/version_matrix.html">Version Compatibility</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Previous)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Archived)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v7.html">Version 7 (Current)</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Version Compatibility</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="compatibilty-matrix"></a><a href="#compatibilty-matrix" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Compatibilty Matrix</h2>
+<p>Code generated with the Twirp Generator on the left, is compatible with the runtime, protobuf runtime and generated code, and spec versions on the right.</p>
+<table>
+<thead>
+<tr><th>Twirp Generator</th><th>Twirp Runtime</th><th>Protobuf</th><th>Twirp Spec</th><th>Key feature</th></tr>
+</thead>
+<tbody>
+<tr><td>v8</td><td>v7.1+</td><td>APIV2</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v8.0.0">Protobuf APIV2</a></td></tr>
+<tr><td>v7.1</td><td>v7.1+</td><td>APIV1</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v7.1.0">Interceptors</a></td></tr>
+<tr><td>v7.0</td><td>v7.0+</td><td>APIV1</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v7.0.0">V7 Spec and ServerOptions</a></td></tr>
+<tr><td>v5.11</td><td>v5.10+</td><td>APIV1</td><td>V5, V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.11.0">Unwrap errors</a></td></tr>
+<tr><td>v5.10</td><td>v5.10+</td><td>APIV1</td><td>V5, V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.10.0">ClientHooks</a></td></tr>
+<tr><td>v5.8</td><td>v5.8+</td><td>APIV1</td><td>V5, V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.8.0">Marlformed Error</a></td></tr>
+<tr><td>v5</td><td>v5+</td><td>APIV1</td><td>V5, V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.0.0">First Public Release</a></td></tr>
+</tbody>
+</table>
+<p>This table is not exaustive, see <a href="https://github.com/twitchtv/twirp/releases">Releases</a> for details on each version.</p>
+<h3><a class="anchor" aria-hidden="true" id="go-twirp-and-protobuf"></a><a href="#go-twirp-and-protobuf" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Go Twirp and Protobuf</h3>
+<p>Both Twirp and Protobuf have runtime libraries and code generators. The generated code can have incompatibility issues with different versions of the library.</p>
+<p>Twirp (<a href="https://github.com/twitchtv/twirp">https://github.com/twitchtv/twirp</a>):</p>
+<ul>
+<li>Twirp Generator: <code>github.com/twitchtv/twirp/protoc-gen-twirp</code>. Generates Go code with the <code>.twirp.go</code> file extension, with Twirp clients and servers.</li>
+<li>Twirp Runtime: <code>github.com/twitchtv/twirp</code>. Is the Go library with shared types like <code>twirp.Error</code> and <code>twirp.ServerOptions</code>)</li>
+</ul>
+<p>Protobuf APIV2 (<a href="https://github.com/protocolbuffers/protobuf-go">https://github.com/protocolbuffers/protobuf-go</a>):</p>
+<ul>
+<li>Proto Generator: <code>google.golang.org/protobuf/cmd/protoc-gen-go</code>. Generates Go code with the <code>.pb.go</code> file extension, with Protobuf message types.</li>
+<li>Proto Runtime: <code>google.golang.org/protobuf/proto</code>. Is the Proto library used to serialize Protobuf and JSON messages over the network. The new version (APIV2) is used by new versions of Twirp (v8+). The older version (APIV1) has a different import path (<code>github.com/golang/protobuf/proto</code>) and is used by older versions of Twirp (v5 and v7).</li>
+</ul>
+<p>Protobuf APIV1 (DEPRECATED: <a href="https://github.com/golang/protobuf">https://github.com/golang/protobuf</a>):</p>
+<ul>
+<li>Proto Generator: <code>github.com/golang/protobuf/protoc-gen-go</code>.</li>
+<li>Proto Runtime: <code>github.com/golang/protobuf/proto</code>.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="protocol-spec-compatibility"></a><a href="#protocol-spec-compatibility" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Protocol Spec Compatibility</h3>
+<p>The <a href="https://twitchtv.github.io/twirp/docs/spec_v7.html">Twirp Spec Protocol</a> is the main point of compatibility for Twirp clients and services, across different versions and implementations in different languages. The Spec was first released as v5, and later updated to V7.</p>
+<p>Golang versions of the runtime library and generator labeled with <code>v5.x.x</code> are all compliant with the V5 spec and also with the V7 spec (V7 is backwards compatible). Any old service implementing V5 also works with the V7 spec. See <a href="https://github.com/twitchtv/twirp/releases/tag/v7.0.0">V7 release notes</a> for compatibility details and upgrade instructions.</p>
+<p>Golang versions of the runtime library and generator labeled with <code>v7.x.x</code> and above (<code>v8+</code>), are compliant with the V7 spec.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/curl.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">cURL</span></a><a class="docs-next button" href="/twirp/docs/spec_v5.html"><span>Version 5 (Previous)</span><span class="arrow-next"> →</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2021 Twitch Interactive, Inc.</section></footer></div></body></html>

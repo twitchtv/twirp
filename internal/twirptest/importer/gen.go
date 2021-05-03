@@ -13,4 +13,4 @@
 
 package importer
 
-//go:generate ../../protoc_gen.sh importer.proto
+//go:generate protoc -I=. -I=../importable --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. importer.proto

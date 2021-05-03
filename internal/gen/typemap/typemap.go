@@ -14,8 +14,8 @@
 package typemap
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/pkg/errors"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
 type Registry struct {
@@ -106,7 +106,7 @@ type MessageDefinition struct {
 	Comments DefinitionComments
 
 	// path is the 'SourceCodeInfo' path. See the documentation for
-	// github.com/golang/protobuf/protoc-gen-go/descriptor.SourceCodeInfo for an
+	// google.golang.org/protobuf/types/descriptorpb.SourceCodeInfo for an
 	// explanation of its format.
 	path []int32
 }

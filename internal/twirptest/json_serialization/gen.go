@@ -13,4 +13,4 @@
 
 package json_serialization
 
-//go:generate ../../protoc_gen.sh json_serialization.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. json_serialization.proto

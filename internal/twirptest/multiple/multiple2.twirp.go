@@ -3,16 +3,16 @@
 
 package multiple
 
-import bytes "bytes"
-import strings "strings"
 import context "context"
 import fmt "fmt"
-import ioutil "io/ioutil"
 import http "net/http"
+import ioutil "io/ioutil"
+import json "encoding/json"
 import strconv "strconv"
+import strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
+import protojson "google.golang.org/protobuf/encoding/protojson"
+import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
@@ -431,9 +431,15 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
 	reqContent := new(Msg2)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
 		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
@@ -479,15 +485,14 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
@@ -606,9 +611,15 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 		return
 	}
 
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
 	reqContent := new(Msg1)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
 		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
@@ -654,15 +665,14 @@ func (s *svc2Server) serveSamePackageProtoImportJSON(ctx context.Context, resp h
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
@@ -770,7 +780,7 @@ func (s *svc2Server) PathPrefix() string {
 }
 
 var twirpFileDescriptor1 = []byte{
-	// 152 bytes of a gzipped FileDescriptorProto
+	// 153 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcf, 0x2d, 0xcd, 0x29,
 	0xc9, 0x2c, 0xc8, 0x49, 0x35, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x52, 0x2c, 0x29, 0xcf,
 	0x2c, 0x2a, 0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52,
@@ -779,6 +789,6 @@ var twirpFileDescriptor1 = []byte{
 	0x04, 0xa7, 0xe6, 0xa5, 0x08, 0xa9, 0xeb, 0x11, 0x34, 0x4d, 0x0f, 0xa4, 0x53, 0x8a, 0x58, 0x85,
 	0x42, 0x59, 0x5c, 0x62, 0xc1, 0x89, 0xb9, 0xa9, 0x01, 0x89, 0xc9, 0xd9, 0x89, 0xe9, 0xa9, 0x01,
 	0x20, 0xeb, 0x3d, 0x73, 0x0b, 0xf2, 0x8b, 0x4a, 0x88, 0xb5, 0xcb, 0x90, 0x58, 0xbb, 0x0c, 0x9d,
-	0xb8, 0xa2, 0x38, 0x60, 0x02, 0x49, 0x6c, 0x60, 0x9f, 0x1a, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff,
-	0x2b, 0x66, 0x12, 0x3c, 0x30, 0x01, 0x00, 0x00,
+	0xb8, 0xa3, 0x38, 0xf5, 0x61, 0x22, 0x49, 0x6c, 0x60, 0xaf, 0x1a, 0x03, 0x02, 0x00, 0x00, 0xff,
+	0xff, 0x7b, 0x20, 0x14, 0xe1, 0x31, 0x01, 0x00, 0x00,
 }

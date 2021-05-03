@@ -13,4 +13,4 @@
 
 package empty_service
 
-//go:generate ../../protoc_gen.sh empty_service.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. empty_service.proto

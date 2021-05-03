@@ -10,25 +10,24 @@ It is generated from these files:
 */
 package google_protobuf_imports
 
-import bytes "bytes"
-import strings "strings"
 import context "context"
 import fmt "fmt"
-import ioutil "io/ioutil"
 import http "net/http"
+import ioutil "io/ioutil"
+import json "encoding/json"
 import strconv "strconv"
+import strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
+import protojson "google.golang.org/protobuf/encoding/protojson"
+import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf1 "github.com/golang/protobuf/ptypes/wrappers"
-import google_protobuf "github.com/golang/protobuf/ptypes/empty"
+import google_protobuf1 "google.golang.org/protobuf/types/known/wrapperspb"
+import google_protobuf "google.golang.org/protobuf/types/known/emptypb"
 
-// Imports only used by utility functions:
+import bytes "bytes"
 import io "io"
-import json "encoding/json"
 import path "path"
 import url "net/url"
 
@@ -348,9 +347,15 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 		return
 	}
 
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
 	reqContent := new(google_protobuf1.StringValue)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
 		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
@@ -396,15 +401,14 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
@@ -537,7 +541,7 @@ type TwirpServer interface {
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
 	// unmarshalled as a
-	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.
+	// google.golang.org/protobuf/types/descriptorpb.FileDescriptorProto.
 	//
 	// The returned integer is the index of this particular service within that
 	// FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a
@@ -947,16 +951,16 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 
 // doJSONRequest makes a JSON request to the remote Twirp service.
 func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (_ context.Context, err error) {
-	reqBody := bytes.NewBuffer(nil)
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(reqBody, in); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true}
+	reqBytes, err := marshaler.Marshal(in)
+	if err != nil {
 		return ctx, wrapInternal(err, "failed to marshal json request")
 	}
 	if err = ctx.Err(); err != nil {
 		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
-	req, err := newRequest(ctx, url, reqBody, "application/json")
+	req, err := newRequest(ctx, url, bytes.NewReader(reqBytes), "application/json")
 	if err != nil {
 		return ctx, wrapInternal(err, "could not build request")
 	}
@@ -986,8 +990,13 @@ func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHo
 		return ctx, errorFromResponse(resp)
 	}
 
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
+	d := json.NewDecoder(resp.Body)
+	rawRespBody := json.RawMessage{}
+	if err := d.Decode(&rawRespBody); err != nil {
+		return ctx, wrapInternal(err, "failed to unmarshal json response")
+	}
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawRespBody, out); err != nil {
 		return ctx, wrapInternal(err, "failed to unmarshal json response")
 	}
 	if err = ctx.Err(); err != nil {
@@ -1058,7 +1067,7 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 168 bytes of a gzipped FileDescriptorProto
+	// 169 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x4e, 0x2d, 0x2a,
 	0xcb, 0x4c, 0x4e, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x52, 0x2a, 0x29, 0xcf, 0x2c, 0x2a,
 	0xd0, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52, 0x8b, 0x4b,
@@ -1067,7 +1076,7 @@ var twirpFileDescriptor0 = []byte{
 	0x25, 0xcb, 0x8b, 0x12, 0x0b, 0x0a, 0x52, 0x8b, 0x8a, 0x21, 0xf2, 0x46, 0xce, 0x5c, 0xcc, 0xc1,
 	0x65, 0xc9, 0x42, 0x36, 0x5c, 0x2c, 0xc1, 0xa9, 0x79, 0x29, 0x42, 0x32, 0x7a, 0x10, 0xf5, 0x7a,
 	0x30, 0xf5, 0x7a, 0xc1, 0x25, 0x45, 0x99, 0x79, 0xe9, 0x61, 0x89, 0x39, 0xa5, 0xa9, 0x52, 0x62,
-	0x18, 0xb2, 0xae, 0x20, 0xab, 0x9c, 0x24, 0xa3, 0xc4, 0x21, 0x12, 0xf1, 0x30, 0x89, 0xf8, 0xcc,
-	0xdc, 0x82, 0xfc, 0xa2, 0x92, 0xe2, 0x24, 0x36, 0xb0, 0x88, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff,
-	0xbb, 0x87, 0x86, 0x24, 0xd8, 0x00, 0x00, 0x00,
+	0x18, 0xb2, 0xae, 0x20, 0xab, 0x9c, 0xa4, 0xa2, 0x24, 0xf4, 0x21, 0x32, 0xf1, 0x30, 0x99, 0xf8,
+	0xcc, 0xdc, 0x82, 0xfc, 0xa2, 0x92, 0xe2, 0x24, 0x36, 0xb0, 0x88, 0x31, 0x20, 0x00, 0x00, 0xff,
+	0xff, 0x09, 0x85, 0xee, 0x47, 0xd9, 0x00, 0x00, 0x00,
 }

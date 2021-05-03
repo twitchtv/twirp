@@ -13,4 +13,4 @@
 
 package importable
 
-//go:generate ../../protoc_gen.sh importable.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. importable.proto

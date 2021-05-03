@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package twirp.clientcompat;
-option go_package = "clientcompat";
+option go_package = "/internal/clientcompat";
 
 service CompatService {
   rpc Method(Req) returns (Resp);

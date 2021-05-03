@@ -10,24 +10,23 @@ It is generated from these files:
 */
 package x
 
-import bytes "bytes"
-import strings "strings"
 import context "context"
 import fmt "fmt"
-import ioutil "io/ioutil"
 import http "net/http"
+import ioutil "io/ioutil"
+import json "encoding/json"
 import strconv "strconv"
+import strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
+import protojson "google.golang.org/protobuf/encoding/protojson"
+import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
 import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/internal/twirptest/importmapping/y"
 
-// Imports only used by utility functions:
+import bytes "bytes"
 import io "io"
-import json "encoding/json"
 import path "path"
 import url "net/url"
 
@@ -347,9 +346,15 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 		return
 	}
 
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
 	reqContent := new(twirp_internal_twirptest_importmapping_y.MsgY)
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
 		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
 		return
 	}
@@ -395,15 +400,14 @@ func (s *svc1Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	var buf bytes.Buffer
-	marshaler := &jsonpb.Marshaler{OrigName: true, EmitDefaults: !s.jsonSkipDefaults}
-	if err = marshaler.Marshal(&buf, respContent); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
 		return
 	}
 
 	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
-	respBytes := buf.Bytes()
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
 	resp.WriteHeader(http.StatusOK)
@@ -536,7 +540,7 @@ type TwirpServer interface {
 	// ServiceDescriptor returns gzipped bytes describing the .proto file that
 	// this service was generated from. Once unzipped, the bytes can be
 	// unmarshalled as a
-	// github.com/golang/protobuf/protoc-gen-go/descriptor.FileDescriptorProto.
+	// google.golang.org/protobuf/types/descriptorpb.FileDescriptorProto.
 	//
 	// The returned integer is the index of this particular service within that
 	// FileDescriptorProto's 'Service' slice of ServiceDescriptorProtos. This is a
@@ -946,16 +950,16 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 
 // doJSONRequest makes a JSON request to the remote Twirp service.
 func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHooks, url string, in, out proto.Message) (_ context.Context, err error) {
-	reqBody := bytes.NewBuffer(nil)
-	marshaler := &jsonpb.Marshaler{OrigName: true}
-	if err = marshaler.Marshal(reqBody, in); err != nil {
+	marshaler := &protojson.MarshalOptions{UseProtoNames: true}
+	reqBytes, err := marshaler.Marshal(in)
+	if err != nil {
 		return ctx, wrapInternal(err, "failed to marshal json request")
 	}
 	if err = ctx.Err(); err != nil {
 		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 
-	req, err := newRequest(ctx, url, reqBody, "application/json")
+	req, err := newRequest(ctx, url, bytes.NewReader(reqBytes), "application/json")
 	if err != nil {
 		return ctx, wrapInternal(err, "could not build request")
 	}
@@ -985,8 +989,13 @@ func doJSONRequest(ctx context.Context, client HTTPClient, hooks *twirp.ClientHo
 		return ctx, errorFromResponse(resp)
 	}
 
-	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
-	if err = unmarshaler.Unmarshal(resp.Body, out); err != nil {
+	d := json.NewDecoder(resp.Body)
+	rawRespBody := json.RawMessage{}
+	if err := d.Decode(&rawRespBody); err != nil {
+		return ctx, wrapInternal(err, "failed to unmarshal json response")
+	}
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawRespBody, out); err != nil {
 		return ctx, wrapInternal(err, "failed to unmarshal json response")
 	}
 	if err = ctx.Err(); err != nil {
@@ -1057,13 +1066,15 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 122 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xac, 0xd0, 0xaf, 0xd0,
-	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xd2, 0x28, 0x29, 0xcf, 0x2c, 0x2a, 0xd0, 0xcb, 0xcc, 0x2b,
-	0x49, 0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x03, 0x73, 0x4b, 0x52, 0x8b, 0x4b, 0xf4, 0x32, 0x73, 0x0b,
-	0xf2, 0x8b, 0x4a, 0x72, 0x13, 0x0b, 0x0a, 0x32, 0xf3, 0xd2, 0xf5, 0x2a, 0xa4, 0x38, 0x2b, 0xf5,
-	0x2b, 0x21, 0x9a, 0x8c, 0xf2, 0xb8, 0x58, 0x82, 0xcb, 0x92, 0x0d, 0x85, 0xd2, 0xb8, 0x58, 0x82,
-	0x53, 0xf3, 0x52, 0x84, 0xf4, 0xf4, 0x88, 0x34, 0xa5, 0x52, 0xcf, 0xb7, 0x38, 0x3d, 0x52, 0x8a,
-	0x44, 0xf5, 0x4e, 0xcc, 0x51, 0x8c, 0x15, 0x49, 0x6c, 0x60, 0xbb, 0x8d, 0x01, 0x01, 0x00, 0x00,
-	0xff, 0xff, 0xe6, 0x59, 0x58, 0xe2, 0xbd, 0x00, 0x00, 0x00,
+	// 150 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x8e, 0xb1, 0xaa, 0xc2, 0x40,
+	0x10, 0x45, 0x9b, 0xf0, 0x20, 0x29, 0x53, 0x06, 0x1e, 0xb6, 0x56, 0x33, 0xa8, 0x7f, 0x60, 0x6f,
+	0x95, 0x4a, 0xbb, 0x4d, 0x32, 0x2e, 0x03, 0xbb, 0xb3, 0xc3, 0x66, 0x30, 0xbb, 0x7f, 0x2f, 0xc4,
+	0x1f, 0xd0, 0xf2, 0xc2, 0x3d, 0x87, 0xd3, 0xb5, 0x05, 0x0b, 0x68, 0x4e, 0x96, 0xfa, 0xa3, 0x6d,
+	0x9c, 0x15, 0x58, 0x8c, 0xb2, 0xb8, 0x00, 0xfb, 0x34, 0x5a, 0x0d, 0x38, 0x6a, 0xca, 0x16, 0x9d,
+	0x2a, 0x8b, 0x87, 0x32, 0xb4, 0x15, 0xeb, 0x07, 0x3a, 0x4b, 0xd7, 0x8c, 0xaf, 0xf9, 0xd4, 0x3f,
+	0xbb, 0x66, 0x24, 0x59, 0x7a, 0x80, 0x2f, 0x2d, 0x15, 0x6e, 0xab, 0xbf, 0x0f, 0x3f, 0xfe, 0xaf,
+	0x87, 0xc7, 0x3f, 0x15, 0x17, 0x35, 0x10, 0xcc, 0x29, 0xe2, 0xc6, 0x21, 0xe0, 0x44, 0xc8, 0x5e,
+	0x52, 0xa6, 0x05, 0xcb, 0xf4, 0xb7, 0x77, 0x5d, 0xde, 0x01, 0x00, 0x00, 0xff, 0xff, 0x77, 0x79,
+	0x60, 0xd7, 0xd9, 0x00, 0x00, 0x00,
 }

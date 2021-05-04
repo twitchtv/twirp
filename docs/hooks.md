@@ -1,32 +1,79 @@
 ---
 id: "hooks"
-title: "Server Hooks"
-sidebar_label: "Server Hooks"
+title: "Hooks and Interceptors"
+sidebar_label: "Hooks and Interceptors"
 ---
 
-The service constructor can use the option `twirp.WithServerHooks(hooks *twirp.ServerHooks)`
-to plug in additional functionality:
+Twirp main responsibility is [routing and serialization](routing.md). Extra functionality can be plugged in through Hooks and Interceptors. This is useful to do things like log requests, record response times, report metrics, authenticate requests, and so on.
+
+There are multiple points to inject functionality:
+
+ * [Server Hooks](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHooks): Can be used on the generated server constructor. They provide callbacks for before and after the request is handled. The Error hook is called only if an error was returned by the handler. Every hook receives the request `context.Context` and can return a modified `context.Context` if desired.
+ * [Client Hooks](https://pkg.go.dev/github.com/twitchtv/twirp#ClientHooks): Can be used on the generated client constructor. They provide callbacks for before and after the request is sent over the network. The Error hook is called only if an error was retuned through the network.
+ * [Interceptors](https://pkg.go.dev/github.com/twitchtv/twirp#Interceptor): Can be used to wrap servers and clients. Interceptors are a form of middleware for Twirp requests. Interceptors can mutate the request and responses, which can enable some powerful integrations, but in most cases, it is better to use Hooks for observability at key points during a request. Mutating the request adds complexity to the request lifecycle.
+
+### Example usage
 
 ```go
-server := NewHaberdasherServer(svcImpl, twirp.WithServerHooks(hooks))
+// NewInterceptorMakeSmallHats builds an interceptor that modifies
+// calls to MakeHat ignoring the request, and instead always making small hats.
+func NewInterceptorMakeSmallHats() twirp.Interceptor {
+  return func(next twirp.Method) twirp.Method {
+    return func(ctx context.Context, req interface{}) (interface{}, error) {
+      if twirp.MethodName(ctx) == "MakeHat" {
+        return next(ctx, &haberdasher.Size{Inches: 1})
+      }
+      return next(ctx, req)
+    }
+  }
+}
+
+// NewLoggingServerHooks logs request and errors to stdout in the service
+func NewLoggingServerHooks() *twirp.ServerHooks {
+	return &twirp.ServerHooks{
+        RequestRouted: func(ctx context.Context) (context.Context, error) {
+            method, _ := twirp.MethodName(ctx)
+            log.Println("Method: " + method)
+            return ctx, nil
+        },
+        Error: func(ctx context.Context, twerr twirp.Error) context.Context {
+            log.Println("Error: " + string(twerr.Code()))
+            return ctx
+        },
+	    ResponseSent: func(ctx context.Context) {
+            log.Println("Response Sent (error or success)")
+		},
+	}
+}
+
+// NewLoggingClientHooks logs request and errors to stdout in the client
+func NewLoggingClientHooks() *twirp.ClientHooks {
+	return &twirp.ClientHooks{
+        RequestPrepared: func(ctx context.Context, r *http.Request) (context.Context, error) {
+            fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
+            return ctx, nil
+        },
+        Error: func(ctx context.Context, twerr twirp.Error) {
+            log.Println("Error: " + string(twerr.Code()))
+            return ctx
+        },
+	    ResponseReceived: func(ctx context.Context) {
+            log.Println("Success")
+		},
+	}
+}
 ```
 
-These _hooks_ provide a framework for side-effects at important points while a
-request gets handled. You can do things like log requests, record response times
-in statsd, authenticate requests, and so on.
+Examples using the previous Hooks and Interceptors on a generated client and service:
 
-The `*twirp.ServerHooks` struct holds a pile of callbacks, each of
-which receives the current `context.Context`, and can provide a new
-`context.Context` (possibly including a new value through the
-[`context.WithValue`](https://godoc.org/golang.org/x/net/context#WithValue)
-function).
+To wrap all client requests with the interceptor:
 
-Check out
-[the godoc for `ServerHooks`](http://godoc.org/github.com/twitchtv/twirp#ServerHooks)
-for information on the specific callbacks. For an example hooks implementation,
-[`github.com/twitchtv/twirp/hooks/statsd`](https://github.com/twitchtv/twirp/blob/master/hooks/statsd/)
-is a good tutorial.
+```go
+server := NewHaberdasherServer(svcImpl,
+  twirp.WithServerInterceptors(NewInterceptorMakeSmallHats()),
+  twirp.WithServerHooks(NewLoggingServerHooks()))
 
-On the client side, use `*twirp.ClientHooks`.
-
-For advanced cases, [interceptors](interceptors.md) can be used to plug in extra functionality.
+client := NewHaberdasherProtobufClient(url, &http.Client{},
+  twirp.WithClientInterceptors(NewInterceptorMakeSmallHats()),
+  twirp.WithClientHooks(NewLoggingClientHooks()))
+```

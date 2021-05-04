@@ -1,7 +1,7 @@
 ---
 id: "mux"
-title: "Muxing Twirp services"
-sidebar_label: "Muxing Twirp with other HTTP services"
+title: "Muxing Twirp with other HTTP services"
+sidebar_label: "Muxing Twirp services"
 ---
 
 If you want run your server next to other `http.Handler`s, you'll need to use a

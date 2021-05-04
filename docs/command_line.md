@@ -1,14 +1,16 @@
 ---
 id: "command_line"
-title: "Generator Flags"
-sidebar_label: "Generator Command and Flags"
+title: "Generator Flags for the Protoc Compiler"
+sidebar_label: "Generator Flags"
 ---
 
 The protoc compiler invocation can include optional flags to set the
 import path to be used in generated code.
 
 The compiler flags for Twirp (`--twirp_opt`) match the flags used
-for the protoc-gen-go plugin. See https://developers.google.com/protocol-buffers/docs/reference/go-generated for reference.
+for the protoc-gen-go plugin (`--go_opt`).
+
+See https://developers.google.com/protocol-buffers/docs/reference/go-generated for reference.
 
 
 ### Modifying imports

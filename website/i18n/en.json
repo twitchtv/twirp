@@ -10,8 +10,8 @@
         "sidebar_label": "'Best Practices'"
       },
       "command_line": {
-        "title": "Generator Flags",
-        "sidebar_label": "Generator Command and Flags"
+        "title": "Generator Flags for the Protoc Compiler",
+        "sidebar_label": "Generator Flags"
       },
       "curl": {
         "title": "cURL",

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Server Hooks · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="The service constructor can use the option `twirp.WithServerHooks(hooks *twirp.ServerHooks)`"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Server Hooks · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="The service constructor can use the option `twirp.WithServerHooks(hooks *twirp.ServerHooks)`"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v7.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp with other HTTP services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">Routing and Serialization</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/hooks.html">Server Hooks</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/interceptors.html">Interceptors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/version_matrix.html">Version Compatibility</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Previous)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Archived)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v7.html">Version 7 (Current)</a></li></ul></div></div></section></div><script>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Hooks and Interceptors · Twirp</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Twirp main responsibility is [routing and serialization](/twirp/docs/routing.html). Extra functionality can be plugged in through Hooks and Interceptors. This is useful to do things like log requests, record response times, report metrics, authenticate requests, and so on."/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Hooks and Interceptors · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="Twirp main responsibility is [routing and serialization](/twirp/docs/routing.html). Extra functionality can be plugged in through Hooks and Interceptors. This is useful to do things like log requests, record response times, report metrics, authenticate requests, and so on."/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v7.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">Routing and Serialization</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/hooks.html">Hooks and Interceptors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Generator Command and Flags</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/version_matrix.html">Version Compatibility</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Previous)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Archived)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v7.html">Version 7 (Current)</a></li></ul></div></div></section></div><script>
             var coll = document.getElementsByClassName('collapsible');
             var checkActiveCategory = true;
             for (var i = 0; i < coll.length; i++) {
@@ -54,23 +54,70 @@
                 };
               }
             });
-        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Server Hooks</h1></header><article><div><span><p>The service constructor can use the option <code>twirp.WithServerHooks(hooks *twirp.ServerHooks)</code>
-to plug in additional functionality:</p>
-<pre><code class="hljs css language-go">server := NewHaberdasherServer(svcImpl, twirp.WithServerHooks(hooks))
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Hooks and Interceptors</h1></header><article><div><span><p>Twirp main responsibility is <a href="/twirp/docs/routing.html">routing and serialization</a>. Extra functionality can be plugged in through Hooks and Interceptors. This is useful to do things like log requests, record response times, report metrics, authenticate requests, and so on.</p>
+<p>There are multiple points to inject functionality:</p>
+<ul>
+<li><a href="https://pkg.go.dev/github.com/twitchtv/twirp#ServerHooks">Server Hooks</a>: Can be used on the generated server constructor. They provide callbacks for before and after the request is handled. The Error hook is called only if an error was returned by the handler. Every hook receives the request <code>context.Context</code> and can return a modified <code>context.Context</code> if desired.</li>
+<li><a href="https://pkg.go.dev/github.com/twitchtv/twirp#ClientHooks">Client Hooks</a>: Can be used on the generated client constructor. They provide callbacks for before and after the request is sent over the network. The Error hook is called only if an error was retuned through the network.</li>
+<li><a href="https://pkg.go.dev/github.com/twitchtv/twirp#Interceptor">Interceptors</a>: Can be used to wrap servers and clients. Interceptors are a form of middleware for Twirp requests. Interceptors can mutate the request and responses, which can enable some powerful integrations, but in most cases, it is better to use Hooks for observability at key points during a request. Mutating the request adds complexity to the request lifecycle.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="example-usage"></a><a href="#example-usage" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Example usage</h3>
+<pre><code class="hljs css language-go"><span class="hljs-comment">// NewInterceptorMakeSmallHats builds an interceptor that modifies</span>
+<span class="hljs-comment">// calls to MakeHat ignoring the request, and instead always making small hats.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewInterceptorMakeSmallHats</span><span class="hljs-params">()</span> <span class="hljs-title">twirp</span>.<span class="hljs-title">Interceptor</span></span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(next twirp.Method)</span> <span class="hljs-title">twirp</span>.<span class="hljs-title">Method</span></span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context, req <span class="hljs-keyword">interface</span>{})</span> <span class="hljs-params">(<span class="hljs-keyword">interface</span>{}, error)</span></span> {
+      <span class="hljs-keyword">if</span> twirp.MethodName(ctx) == <span class="hljs-string">"MakeHat"</span> {
+        <span class="hljs-keyword">return</span> next(ctx, &amp;haberdasher.Size{Inches: <span class="hljs-number">1</span>})
+      }
+      <span class="hljs-keyword">return</span> next(ctx, req)
+    }
+  }
+}
+
+<span class="hljs-comment">// NewLoggingServerHooks logs request and errors to stdout in the service</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewLoggingServerHooks</span><span class="hljs-params">()</span> *<span class="hljs-title">twirp</span>.<span class="hljs-title">ServerHooks</span></span> {
+    <span class="hljs-keyword">return</span> &amp;twirp.ServerHooks{
+        RequestRouted: <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context)</span> <span class="hljs-params">(context.Context, error)</span></span> {
+            method, _ := twirp.MethodName(ctx)
+            log.Println(<span class="hljs-string">"Method: "</span> + method)
+            <span class="hljs-keyword">return</span> ctx, <span class="hljs-literal">nil</span>
+        },
+        Error: <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context, twerr twirp.Error)</span> <span class="hljs-title">context</span>.<span class="hljs-title">Context</span></span> {
+            log.Println(<span class="hljs-string">"Error: "</span> + <span class="hljs-keyword">string</span>(twerr.Code()))
+            <span class="hljs-keyword">return</span> ctx
+        },
+        ResponseSent: <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context)</span></span> {
+            log.Println(<span class="hljs-string">"Response Sent (error or success)"</span>)
+        },
+    }
+}
+
+<span class="hljs-comment">// NewLoggingClientHooks logs request and errors to stdout in the client</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewLoggingClientHooks</span><span class="hljs-params">()</span> *<span class="hljs-title">twirp</span>.<span class="hljs-title">ClientHooks</span></span> {
+    <span class="hljs-keyword">return</span> &amp;twirp.ClientHooks{
+        RequestPrepared: <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context, r *http.Request)</span> <span class="hljs-params">(context.Context, error)</span></span> {
+            fmt.Printf(<span class="hljs-string">"Req: %s %s\n"</span>, r.Host, r.URL.Path)
+            <span class="hljs-keyword">return</span> ctx, <span class="hljs-literal">nil</span>
+        },
+        Error: <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context, twerr twirp.Error)</span></span> {
+            log.Println(<span class="hljs-string">"Error: "</span> + <span class="hljs-keyword">string</span>(twerr.Code()))
+            <span class="hljs-keyword">return</span> ctx
+        },
+        ResponseReceived: <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(ctx context.Context)</span></span> {
+            log.Println(<span class="hljs-string">"Success"</span>)
+        },
+    }
+}
 </code></pre>
-<p>These <em>hooks</em> provide a framework for side-effects at important points while a
-request gets handled. You can do things like log requests, record response times
-in statsd, authenticate requests, and so on.</p>
-<p>The <code>*twirp.ServerHooks</code> struct holds a pile of callbacks, each of
-which receives the current <code>context.Context</code>, and can provide a new
-<code>context.Context</code> (possibly including a new value through the
-<a href="https://godoc.org/golang.org/x/net/context#WithValue"><code>context.WithValue</code></a>
-function).</p>
-<p>Check out
-<a href="http://godoc.org/github.com/twitchtv/twirp#ServerHooks">the godoc for <code>ServerHooks</code></a>
-for information on the specific callbacks. For an example hooks implementation,
-<a href="https://github.com/twitchtv/twirp/blob/master/hooks/statsd/"><code>github.com/twitchtv/twirp/hooks/statsd</code></a>
-is a good tutorial.</p>
-<p>On the client side, use <code>*twirp.ClientHooks</code>.</p>
-<p>For advanced cases, <a href="/twirp/docs/interceptors.html">interceptors</a> can be used to plug in extra functionality.</p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/errors.html"><span class="arrow-prev">← </span><span>Errors</span></a><a class="docs-next button" href="/twirp/docs/interceptors.html"><span>Interceptors</span><span class="arrow-next"> →</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2021 Twitch Interactive, Inc.</section></footer></div></body></html>
+<p>Examples using the previous Hooks and Interceptors on a generated client and service:</p>
+<p>To wrap all client requests with the interceptor:</p>
+<pre><code class="hljs css language-go">server := NewHaberdasherServer(svcImpl,
+  twirp.WithServerInterceptors(NewInterceptorMakeSmallHats()),
+  twirp.WithServerHooks(NewLoggingServerHooks()))
+
+client := NewHaberdasherProtobufClient(url, &amp;http.Client{},
+  twirp.WithClientInterceptors(NewInterceptorMakeSmallHats()),
+  twirp.WithClientHooks(NewLoggingClientHooks()))
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/proto_and_json.html"><span class="arrow-prev">← </span><span>Protobuf and JSON</span></a><a class="docs-next button" href="/twirp/docs/mux.html"><span>Muxing Twirp services</span><span class="arrow-next"> →</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2021 Twitch Interactive, Inc.</section></footer></div></body></html>

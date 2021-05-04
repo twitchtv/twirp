@@ -5,14 +5,11 @@ sidebar_label: "Errors"
 ---
 
 Twirp clients always return errors that can be cast to `twirp.Error`.
-Transport-level errors are wrapped as `twirp.Error`.
+Transport-level errors are wrapped as a `twirp.Error` with the `twirp.Internal` code.
 
-Twirp server implementations can return regular errors too, but those
-will be wrapped with `twirp.InternalErrorWith(err)`, so they are also
-`twirp.Error` values when received by the clients.
+Twirp server implementations can return `twirp.Error` or a regular `error`. Regular
+errors are wrapped with the `twirp.Internal` code.
 
-Check the [Errors Spec](spec_v7.md) and the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go)
-for more information on error codes and the wire protocol.
 
 ### twirp.Error interface
 
@@ -31,9 +28,10 @@ type Error interface {
 
 ### Error Codes
 
-Error codes are defined by a constant in the `twirp` package.
-Check the [Errors Spec](spec_v7.md) and the [source code](https://github.com/twitchtv/twirp/blob/master/errors.go)
-for more information on error codes and the wire protocol.
+See [twirp.ErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode)
+for valid types in the `twirp` package.
+
+See [Errors Spec](spec_v7.md#error-codes) for the protocol Error codes and HTTP status mapping.
 
 ### HTTP Errors from Intermediary Proxies
 

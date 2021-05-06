@@ -82,7 +82,7 @@ func main() {
 }
 ```
 
-And voila! Now you can user the auto-generated **Client** to make remote calls to your new service:
+And voila! Now you can use the auto-generated **Client** to make remote calls to your new service:
 
 ```go
 package main

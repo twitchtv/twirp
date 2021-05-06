@@ -4,54 +4,28 @@ title: Installing Twirp
 sidebar_label: Installation
 ---
 
-You'll need a few things to install Twirp:
+Prerequisites
 
- * [Go](https://golang.org/doc/install), Twirp supports the last 3 major versions
- * The protobuf compiler `protoc`
- * Go and Twirp protoc plugins `protoc-gen-go` and `protoc-gen-twirp`
+ * [Go](https://golang.org/): any one of the three latest major [releases of Go](https://golang.org/doc/devel/release.html). For installation instructions, see Go’s [Getting Started](https://golang.org/doc/install) guide.
+ * [Protocol buffer](https://developers.google.com/protocol-buffers) compiler, `protoc` [version 3](https://developers.google.com/protocol-buffers/docs/proto3). For installation instructions, see [Protocol Buffer Compiler Installation](https://grpc.io/docs/protoc-installation/).
 
-## Install protoc
+Install `protoc-gen-go` plugin for the protocol compiler (to generate `.pb.go` files):
 
-[Install Protocol Buffers v3](https://developers.google.com/protocol-buffers/docs/gotutorial),
-the `protoc` compiler that is used to auto-generate code. The simplest way to do
-this is to download pre-compiled binaries for your platform from here:
-https://github.com/google/protobuf/releases or in MacOS `brew install protobuf`.
-
-## Get protoc-gen-go and protoc-gen-twirp plugins
-
-### With go get
-
-```sh
-$ go get google.golang.org/protobuf/cmd/protoc-gen-go
-$ go get github.com/twitchtv/twirp/protoc-gen-twirp
+```
+go get google.golang.org/protobuf/cmd/protoc-gen-go@latest
 ```
 
-The normal Go tools will install `protoc-gen-go` in `$GOBIN`, defaulting to
-`$GOPATH/bin`. It must be in your `$PATH` for the protocol compiler, `protoc`,
-to find it, so you might need to explicitly add it to your path:
+NOTE: Older versions of Twirp v5 and v7 use the older Go plugin: `go get github.com/golang/protobuf/protoc-gen-go`
 
-```sh
-$ export PATH="$PATH:$(go env GOPATH)/bin"
+Install `protoc-gen-twirp` plugin for the protocol compiler (to generate `.twirp.go` files):
+
+```
+go get github.com/twitchtv/twirp/protoc-gen-twirp@latest
 ```
 
-You can also add the `export` above to your `.bashrc` file and source it when needed.
-
-## Updating Twirp
-
-Twirp releases are tagged with semantic versioning and releases are managed by
-Github. See the [releases](https://github.com/twitchtv/twirp/releases) page.
-
-To stay up to date, you update `protoc-gen-twirp` and regenerate your code.
-
-To upgrade you can do a system-wide install with checking
-out the package new version and using `go install`:
+Go get installs the plugins in `$GOBIN` (defaults to `$GOPATH/bin`). They must be in your `$PATH` for the protocol compiler `protoc` to find them. You might need to add it to your path:
 
 ```sh
-$ cd $GOPATH/src/github.com/twitchtv/twirp
-$ git checkout v5.2.0
-$ go install ./protoc-gen-twirp
+export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
-With the new version of `protoc-gen-twirp`, you can re-generate code to update
-your servers. Then, any of the clients of your service can update their vendored
-copy of your service to get the latest version.

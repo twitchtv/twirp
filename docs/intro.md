@@ -1,6 +1,6 @@
 ---
 id: intro
-title: Meet Twirp!
+title: Meet Twirp for Go!
 sidebar_label: Overview
 ---
 
@@ -28,8 +28,8 @@ For example, a HelloWorld **Proto** file:
 
 ```protobuf
 syntax = "proto3";
-package twitch.twirp.example.helloworld;
-option go_package = "helloworld";
+package example.com.my.package.helloworld;
+option go_package = "example.com/my/package/helloworld";
 
 service HelloWorld {
   rpc Hello(HelloReq) returns (HelloResp);
@@ -44,7 +44,7 @@ message HelloResp {
 }
 ```
 
-From which Twirp can auto-generate this **interface** (running the `protoc` command):
+Running the `prococ` compiler with the `--go_out` and `--twirp_out` options will generate `.pb.go` and `.twirp.go` files. The Twirp file contains this **interface**:
 
 ```go
 type HelloWorld interface {
@@ -82,7 +82,7 @@ func main() {
 }
 ```
 
-And voila! Now you can just use the auto-generated **Client** to make remote calls to your new service:
+And voila! Now you can use the auto-generated **Client** to make remote calls to your new service:
 
 ```go
 package main
@@ -107,14 +107,12 @@ func main() {
 
 ## Why this is good
 
-There's no need to worry about JSON serialization or HTTP verbs/routes! Twirp
-[routing and serialization](routing.md) handles that for you, reducing the risk
+Twirp [routing and serialization](routing.md) reduces the risk
 of introducing bugs. Both JSON and Protobuf are supported. The
 [Protobuf protocol](https://developers.google.com/protocol-buffers/docs/proto3)
 is designed to allow backwards compatible changes (unlike JSON, it is trivial to
-rename fields), it is faster than JSON and also works well as documentation for
-your service, because it is easy to tell what a service does by just looking at
-the Proto file.
+rename fields). Protobuf is super fast and the proto file definition
+also works well as documentation for your service.
 
 ## What's next?
 

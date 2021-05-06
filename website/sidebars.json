@@ -7,14 +7,13 @@
             "best_practices"
         ],
         "Beyond the basics": [
-            "mux",
-            "headers",
             "routing",
             "errors",
-            "hooks",
-            "interceptors",
-            "command_line",
             "proto_and_json",
+            "hooks",
+            "mux",
+            "headers",
+            "command_line",
             "curl",
             "version_matrix"
         ],

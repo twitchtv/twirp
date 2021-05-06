@@ -9,9 +9,9 @@
         "title": "'Best Practices'",
         "sidebar_label": "'Best Practices'"
       },
-      "'command_line'": {
-        "title": "'Command line parameters'",
-        "sidebar_label": "'Command line parameters'"
+      "command_line": {
+        "title": "Generator Flags for the Protoc Compiler",
+        "sidebar_label": "Generator Flags"
       },
       "curl": {
         "title": "cURL",
@@ -30,24 +30,20 @@
         "sidebar_label": "Custom HTTP Headers"
       },
       "hooks": {
-        "title": "Server Hooks",
-        "sidebar_label": "Server Hooks"
+        "title": "Hooks and Interceptors",
+        "sidebar_label": "Hooks and Interceptors"
       },
       "install": {
         "title": "Installing Twirp",
         "sidebar_label": "Installation"
       },
-      "interceptors": {
-        "title": "Interceptors",
-        "sidebar_label": "Interceptors"
-      },
       "intro": {
-        "title": "Meet Twirp!",
+        "title": "Meet Twirp for Go!",
         "sidebar_label": "Overview"
       },
       "mux": {
-        "title": "Muxing Twirp services",
-        "sidebar_label": "Muxing Twirp with other HTTP services"
+        "title": "Muxing Twirp with other HTTP services",
+        "sidebar_label": "Muxing Twirp services"
       },
       "proto_and_json": {
         "title": "Twirp's Serialization Schemes",

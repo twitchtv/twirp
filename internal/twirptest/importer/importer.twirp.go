@@ -221,10 +221,11 @@ func (c *svc2JSONClient) callSend(ctx context.Context, in *twirp_internal_twirpt
 
 type svc2Server struct {
 	Svc2
-	interceptor      twirp.Interceptor
-	hooks            *twirp.ServerHooks
-	pathPrefix       string // prefix for routing
-	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	interceptor        twirp.Interceptor
+	hooks              *twirp.ServerHooks
+	pathPrefix         string // prefix for routing
+	jsonSkipDefaults   bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCaseNames bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewSvc2Server builds a TwirpServer that can be used as an http.Handler to handle
@@ -246,11 +247,12 @@ func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	}
 
 	return &svc2Server{
-		Svc2:             svc,
-		pathPrefix:       serverOpts.PathPrefix(),
-		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
-		hooks:            serverOpts.Hooks,
-		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
+		Svc2:               svc,
+		pathPrefix:         serverOpts.PathPrefix(),
+		interceptor:        twirp.ChainInterceptors(serverOpts.Interceptors...),
+		hooks:              serverOpts.Hooks,
+		jsonSkipDefaults:   serverOpts.JSONSkipDefaults,
+		jsonCamelCaseNames: serverOpts.JSONCamelCaseNames,
 	}
 }
 
@@ -403,7 +405,7 @@ func (s *svc2Server) serveSendJSON(ctx context.Context, resp http.ResponseWriter
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCaseNames, EmitUnpopulated: !s.jsonSkipDefaults}
 	respBytes, err := marshaler.Marshal(respContent)
 	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))

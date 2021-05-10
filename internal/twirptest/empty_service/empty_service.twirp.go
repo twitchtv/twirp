@@ -113,10 +113,11 @@ func NewEmptyJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 
 type emptyServer struct {
 	Empty
-	interceptor      twirp.Interceptor
-	hooks            *twirp.ServerHooks
-	pathPrefix       string // prefix for routing
-	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	interceptor        twirp.Interceptor
+	hooks              *twirp.ServerHooks
+	pathPrefix         string // prefix for routing
+	jsonSkipDefaults   bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCaseNames bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewEmptyServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -138,11 +139,12 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 	}
 
 	return &emptyServer{
-		Empty:            svc,
-		pathPrefix:       serverOpts.PathPrefix(),
-		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
-		hooks:            serverOpts.Hooks,
-		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
+		Empty:              svc,
+		pathPrefix:         serverOpts.PathPrefix(),
+		interceptor:        twirp.ChainInterceptors(serverOpts.Interceptors...),
+		hooks:              serverOpts.Hooks,
+		jsonSkipDefaults:   serverOpts.JSONSkipDefaults,
+		jsonCamelCaseNames: serverOpts.JSONCamelCaseNames,
 	}
 }
 

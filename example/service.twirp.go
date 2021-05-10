@@ -218,10 +218,11 @@ func (c *haberdasherJSONClient) callMakeHat(ctx context.Context, in *Size) (*Hat
 
 type haberdasherServer struct {
 	Haberdasher
-	interceptor      twirp.Interceptor
-	hooks            *twirp.ServerHooks
-	pathPrefix       string // prefix for routing
-	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	interceptor        twirp.Interceptor
+	hooks              *twirp.ServerHooks
+	pathPrefix         string // prefix for routing
+	jsonSkipDefaults   bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCaseNames bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewHaberdasherServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -243,11 +244,12 @@ func NewHaberdasherServer(svc Haberdasher, opts ...interface{}) TwirpServer {
 	}
 
 	return &haberdasherServer{
-		Haberdasher:      svc,
-		pathPrefix:       serverOpts.PathPrefix(),
-		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
-		hooks:            serverOpts.Hooks,
-		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
+		Haberdasher:        svc,
+		pathPrefix:         serverOpts.PathPrefix(),
+		interceptor:        twirp.ChainInterceptors(serverOpts.Interceptors...),
+		hooks:              serverOpts.Hooks,
+		jsonSkipDefaults:   serverOpts.JSONSkipDefaults,
+		jsonCamelCaseNames: serverOpts.JSONCamelCaseNames,
 	}
 }
 
@@ -400,7 +402,7 @@ func (s *haberdasherServer) serveMakeHatJSON(ctx context.Context, resp http.Resp
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCaseNames, EmitUnpopulated: !s.jsonSkipDefaults}
 	respBytes, err := marshaler.Marshal(respContent)
 	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))

@@ -11,15 +11,13 @@ Prerequisites
 
 Install `protoc-gen-go` plugin for the protocol compiler (to generate `.pb.go` files):
 
-```
+```sh
 go get google.golang.org/protobuf/cmd/protoc-gen-go@latest
 ```
 
-NOTE: Older versions of Twirp v5 and v7 use the older Go plugin: `go get github.com/golang/protobuf/protoc-gen-go`
-
 Install `protoc-gen-twirp` plugin for the protocol compiler (to generate `.twirp.go` files):
 
-```
+```sh
 go get github.com/twitchtv/twirp/protoc-gen-twirp@latest
 ```
 
@@ -29,3 +27,14 @@ Go get installs the plugins in `$GOBIN` (defaults to `$GOPATH/bin`). They must b
 export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
+### Older versions v5 and v7
+
+Twirp v8 and above depend on the Protobuf APIV2. Older versions depend on Protobuf APIV1. See [Version Compatibility](version_matrix.md).
+
+```sh
+# Protobuf APIV1
+go get github.com/golang/protobuf/protoc-gen-go@latest
+
+# Twirp v5 or v7
+go get github.com/twitchtv/twirp/protoc-gen-twirp@v7.2.0
+```

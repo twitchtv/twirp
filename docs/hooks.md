@@ -9,7 +9,7 @@ Twirp main responsibility is [routing and serialization](routing.md), but extra 
 There are multiple ways to inject functionality:
 
  * [Server Hooks](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHooks): Can be used on the generated server constructor. They provide callbacks for before and after the request is handled. The Error hook is called only if an error was returned by the handler. Every hook receives the request `context.Context` and can return a modified `context.Context` if desired.
- * [Client Hooks](https://pkg.go.dev/github.com/twitchtv/twirp#ClientHooks): Can be used on the generated client constructor. They provide callbacks for before and after the request is sent over the network. The Error hook is called only if an error was retuned through the network.
+ * [Client Hooks](https://pkg.go.dev/github.com/twitchtv/twirp#ClientHooks): Can be used on the generated client constructor. They provide callbacks for before and after the request is sent over the network. The Error hook is called only if an error was returned through the network.
  * [Interceptors](https://pkg.go.dev/github.com/twitchtv/twirp#Interceptor): Can be used to wrap servers and clients. Interceptors are a form of middleware for Twirp requests. Interceptors can mutate the request and responses, which can enable some powerful integrations, but in most cases, it is better to use Hooks for observability at key points during a request. Mutating the request adds complexity to the request lifecycle.
 
 ### Examples

@@ -4,7 +4,7 @@ title: Version Compatibility
 sidebar_label: Version Compatibility
 ---
 
-## Compatibilty Matrix
+## Compatibility Matrix
 
 Code generated with the Twirp Generator on the left, is compatible with the runtime, protobuf runtime and generated code, and spec versions on the right.
 
@@ -18,7 +18,8 @@ Code generated with the Twirp Generator on the left, is compatible with the runt
 | v5.8             | v5.8+         | APIV1    | V5, V7     | [Marlformed Error](https://github.com/twitchtv/twirp/releases/tag/v5.8.0)
 | v5               | v5+           | APIV1    | V5, V7     | [First Public Release](https://github.com/twitchtv/twirp/releases/tag/v5.0.0)
 
-This table is not exaustive, see [Releases](https://github.com/twitchtv/twirp/releases) for details on each version.
+This table only includes versions that have potential breaking changes. See [Releases](https://github.com/twitchtv/twirp/releases) for all other versions.
+
 
 ### Go Twirp and Protobuf
 
@@ -39,12 +40,14 @@ Protobuf APIV1 (DEPRECATED: https://github.com/golang/protobuf):
   * Proto Generator: `github.com/golang/protobuf/protoc-gen-go`.
   * Proto Runtime: `github.com/golang/protobuf/proto`.
 
+Protobuf has breaking changes too. Please check their releases page when upgrading the protobuf generator.
+
 
 ### Protocol Spec Compatibility
 
 The [Twirp Spec Protocol](https://twitchtv.github.io/twirp/docs/spec_v7.html) is the main point of compatibility for Twirp clients and services, across different versions and implementations in different languages. The Spec was first released as v5, and later updated to V7.
 
-Golang versions of the runtime library and generator labeled with `v5.x.x` are all compliant with the V5 spec and also with the V7 spec (V7 is backwards compatible). Any old service implementing V5 also works with the V7 spec. See [V7 release notes](https://github.com/twitchtv/twirp/releases/tag/v7.0.0) for compatibility details and upgrade instructions.
+Twirp (for Go) versions of the runtime library and generator labeled with `v5.x.x` are all compliant with the V5 spec and also with the V7 spec (V7 is backwards compatible). Any old service implementing V5 also works with the V7 spec. See [V7 release notes](https://github.com/twitchtv/twirp/releases/tag/v7.0.0) for compatibility details and upgrade instructions.
 
 Golang versions of the runtime library and generator labeled with `v7.x.x` and above (`v8+`), are compliant with the V7 spec.
 

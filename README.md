@@ -21,9 +21,9 @@ is a good read.
 
 ### Documentation
 
-Docs: https://twitchtv.github.io/twirp/
-
-[Getting Started](https://twitchtv.github.io/twirp/docs/intro.html) and [Usage Example](https://twitchtv.github.io/twirp/docs/example.html) are good places to start.
+ * [Getting Started](https://twitchtv.github.io/twirp/docs/intro.html)
+ * [Usage Example](https://twitchtv.github.io/twirp/docs/example.html)
+ * Docs: https://twitchtv.github.io/twirp/
 
 ### Implementations in other languages
 

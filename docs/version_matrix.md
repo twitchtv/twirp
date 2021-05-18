@@ -40,7 +40,7 @@ Protobuf APIv1 (DEPRECATED) (https://github.com/golang/protobuf):
   * Proto Generator: `github.com/golang/protobuf/protoc-gen-go`.
   * Proto Runtime: `github.com/golang/protobuf/proto`.
 
-Different versions of Protobuf APIv1 have breaking changes, make sure to check their releases when upgrading.
+NOTE: Different versions of Protobuf APIv1 can breaking changes, make sure to check their release notes when upgrading.
 
 
 ### Protocol Spec Compatibility

@@ -23,7 +23,7 @@ is a good read.
 
  * [Getting Started](https://twitchtv.github.io/twirp/docs/intro.html)
  * [Usage Example](https://twitchtv.github.io/twirp/docs/example.html)
- * Docs: https://twitchtv.github.io/twirp/
+ * More: https://twitchtv.github.io/twirp/
 
 ### Implementations in other languages
 

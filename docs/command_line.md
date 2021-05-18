@@ -9,9 +9,7 @@ sidebar_label: "Generator Flags"
 
 Make sure to [Install Twirp and Protobuf](install.md) generators first.
 
-The `protoc` compiler uses the flag  `--twirp_out` to generate `twirp.go` files, and `--go_out` to generate `.pb.go` files. See [Protobuf Docs](https://developers.google.com/protocol-buffers/docs/reference/go-generated) for details on how to use the protoc compiler with `--go-out`.
-
-The Twirp flag `--twirp_out` supports the same parameters.
+The `protoc` compiler uses the flag  `--twirp_out` to generate `twirp.go` files, and `--go_out` to generate `.pb.go` files. See [Protobuf Docs](https://developers.google.com/protocol-buffers/docs/reference/go-generated) for details on how to use the protoc compiler with `--go-out`, the Twirp flag `--twirp_out` supports the same parameters.
 
 For example, invoke the protoc compiler with default parameters to generate code for `rpc/haberdasher/service.proto`:
 

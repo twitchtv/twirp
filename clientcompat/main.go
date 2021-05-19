@@ -17,11 +17,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"google.golang.org/protobuf/proto"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 
 	"github.com/twitchtv/twirp"
 	"github.com/twitchtv/twirp/clientcompat/internal/clientcompat"
@@ -161,7 +161,7 @@ func testMethod(cc *clientCompat, s *httptest.Server, clientBin string) {
 			return
 		}
 
-		if !reflect.DeepEqual(resp, wantResp) {
+		if !proto.Equal(resp, wantResp) {
 			fail("client has wrong response, have %+v want %+v", resp, wantResp)
 			return
 		}

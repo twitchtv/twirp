@@ -1,6 +1,6 @@
 ---
 id: intro
-title: Meet Twirp for Go!
+title: Meet Twirp!
 sidebar_label: Overview
 ---
 
@@ -14,7 +14,7 @@ away.
 This doc is an overview of how you use Twirp - how you interact with it, what
 you write, and what it generates. Using the Go implementation as example: https://github.com/twitchtv/twirp
 
-## Making a Twirp Service
+## Making a Twirp Service in Go
 
 To make a Twirp service:
 

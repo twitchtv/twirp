@@ -22,7 +22,7 @@ type Error interface {
     Meta(key string) string                // get metadata value
     MetaMap() map[string]string            // see all metadata
 
-    Error() string // as an error returns "twirp error <Code>: <Msg>"
+    Error() string // as an error, should return "twirp error <Code>: <Msg>"
 }
 ```
 
@@ -94,7 +94,7 @@ part of the Protobuf messages (add an error field to proto messages).
 ### Writing HTTP Errors outside Twirp services
 
 Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses
-and error codes _outside_ Twirp servers, such as http middlewares, you can call `twirp.WriteError`.
+and error codes _outside_ Twirp servers, such as HTTP middleware, you can call `twirp.WriteError`.
 
 The error is expected to satisfy a `twirp.Error`, otherwise it is wrapped with `twirp.InternalError`.
 

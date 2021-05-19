@@ -43,7 +43,6 @@ Here is a list of some third-party implementations in other languages.
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
 | **Scala**      |    ✓    |    ✓    | [github.com/soundcloud/twinagle](https://github.com/soundcloud/twinagle)
 | **Swagger**    |    ✓    |    ✓    | [github.com/go-bridget/twirp-swagger-gen](https://github.com/go-bridget/twirp-swagger-gen)
-| **Swagger**    |    ✓    |    ✓    | [github.com/elliots/protoc-gen-twirp_swagger](https://github.com/elliots/protoc-gen-twirp_swagger) (defunct)
 | **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
 | **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)

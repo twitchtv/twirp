@@ -44,7 +44,7 @@ message HelloResp {
 }
 ```
 
-Running the `prococ` compiler with the `--go_out` and `--twirp_out` options will generate `.pb.go` and `.twirp.go` files. The Twirp file contains this **interface**:
+Running the `protoc` compiler with the `--go_out` and `--twirp_out` options will generate `.pb.go` and `.twirp.go` files. The Twirp file contains this **interface**:
 
 ```go
 type HelloWorld interface {

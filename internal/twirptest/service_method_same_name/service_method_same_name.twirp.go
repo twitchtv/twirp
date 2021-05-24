@@ -226,26 +226,22 @@ type echoServer struct {
 // HTTP requests that are routed to the right method in the provided svc implementation.
 // The opts are twirp.ServerOption modifiers, for example twirp.WithServerHooks(hooks).
 func NewEchoServer(svc Echo, opts ...interface{}) TwirpServer {
-	serverOpts := twirp.ServerOptions{}
-	for _, opt := range opts {
-		switch o := opt.(type) {
-		case twirp.ServerOption:
-			o(&serverOpts)
-		case *twirp.ServerHooks: // backwards compatibility, allow to specify hooks as an argument
-			twirp.WithServerHooks(o)(&serverOpts)
-		case nil: // backwards compatibility, allow nil value for the argument
-			continue
-		default:
-			panic(fmt.Sprintf("Invalid option type %T on NewEchoServer", o))
-		}
+	serverOpts := newServerOpts(opts)
+
+	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	jsonSkipDefaults := false
+	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	var pathPrefix string
+	if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {
+		pathPrefix = "/twirp" // default prefix
 	}
 
 	return &echoServer{
 		Echo:             svc,
-		pathPrefix:       serverOpts.PathPrefix(),
-		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		hooks:            serverOpts.Hooks,
-		jsonSkipDefaults: serverOpts.JSONSkipDefaults,
+		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
+		pathPrefix:       pathPrefix,
+		jsonSkipDefaults: jsonSkipDefaults,
 	}
 }
 
@@ -554,6 +550,23 @@ type TwirpServer interface {
 	// The path prefix is in the form: "/<prefix>/<package>.<Service>/"
 	// that is, everything in a Twirp route except for the <Method> at the end.
 	PathPrefix() string
+}
+
+func newServerOpts(opts []interface{}) *twirp.ServerOptions {
+	serverOpts := &twirp.ServerOptions{}
+	for _, opt := range opts {
+		switch o := opt.(type) {
+		case twirp.ServerOption:
+			o(serverOpts)
+		case *twirp.ServerHooks: // backwards compatibility, allow to specify hooks as an argument
+			twirp.WithServerHooks(o)(serverOpts)
+		case nil: // backwards compatibility, allow nil value for the argument
+			continue
+		default:
+			panic(fmt.Sprintf("Invalid option type %T, please use a twirp.ServerOption", o))
+		}
+	}
+	return serverOpts
 }
 
 // WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).

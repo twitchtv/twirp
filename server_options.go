@@ -165,14 +165,12 @@ func ChainHooks(hooks ...*ServerHooks) *ServerHooks {
 	}
 }
 
-// ServerOptions encapsulate the configurable parameters on a Twirp client.
+// ServerOptions encapsulate the configurable parameters on a Twirp server.
 // This type is meant to be used only by generated code.
 type ServerOptions struct {
 	// Untyped options map. The methods setOpt and ReadOpt are used to set
-	// and read options. The options are untyped so when a new option is
-	// added, new clients can still work with older versions of the runtime.
-	// New clients should always consider the possibility of reading a
-	// zero value from older versions of the runtime.
+	// and read options. The options are untyped so when a new option is added,
+	// newly generated code can still work with older versions of the runtime.
 	m map[string]interface{}
 
 	Hooks        *ServerHooks

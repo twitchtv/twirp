@@ -14,4 +14,3 @@
 package main
 
 //go:generate protoc --twirp_out=. --go_out=. clientcompat.proto
-//go:generate protoc --twirp_python_out=./pycompat --python_out=./pycompat clientcompat.proto

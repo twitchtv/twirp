@@ -13,4 +13,4 @@
 
 package example
 
-//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. --python_out=. --twirp_python_out=. service.proto
+//go:generate protoc --go_out=paths=source_relative:. --twirp_out=paths=source_relative:. service.proto

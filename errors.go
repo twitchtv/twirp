@@ -72,6 +72,15 @@ type Error interface {
 	Error() string
 }
 
+// Erroer is an interface that can be implemented by service errors
+// as an alternative to implementing the Error interface.
+// This may be useful if implementing all of the required methods for
+// twirp.Error is too difficult or not possible.
+// See https://github.com/twitchtv/twirp/issues/300 for reasoning.
+type Erroer interface {
+	TwirpError() Error
+}
+
 // WrapError allows Twirp errors to wrap other errors.
 // The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
 // or errors.Is from the standard errors package on Go 1.13+.

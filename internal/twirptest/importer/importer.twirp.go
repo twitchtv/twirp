@@ -29,6 +29,7 @@ import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 import twirp_internal_twirptest_importable "github.com/twitchtv/twirp/internal/twirptest/importable"
 
 import bytes "bytes"
+import errors "errors"
 import io "io"
 import path "path"
 import url "net/url"
@@ -568,13 +569,26 @@ func WriteError(resp http.ResponseWriter, err error) {
 	writeError(context.Background(), resp, err, nil)
 }
 
+// newTwirpError casts an error into the twirp.Error interface,
+// or calls .TwirpError() if it implements twirp.Erroer.
+// Otherwise it wraps the error as a twirp.Internal error.
+func newTwirpError(err error) twirp.Error {
+	if twerr, ok := err.(twirp.Error); ok {
+		return twerr
+	}
+
+	var erroer twirp.Erroer
+	if errors.As(err, &erroer) {
+		return erroer.TwirpError()
+	}
+
+	return twirp.InternalErrorWith(err)
+}
+
 // writeError writes Twirp errors in the response and triggers hooks.
 func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks *twirp.ServerHooks) {
-	// Non-twirp errors are wrapped as Internal (default)
-	twerr, ok := err.(twirp.Error)
-	if !ok {
-		twerr = twirp.InternalErrorWith(err)
-	}
+	// Cast to twirp.Error. Non-twirp errors are wrapped as Internal errors.
+	twerr := newTwirpError(err)
 
 	statusCode := twirp.ServerHTTPStatusFromErrorCode(twerr.Code())
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)

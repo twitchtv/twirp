@@ -35,19 +35,17 @@ Twirp uses github pull requests. Fork, hack away at your changes and submit. Mos
  * Add tests that cover your contribution. Overall code coverage should not decrease.
  * Twirp officially supports the last 3 releases of Go.
  * Protobuf version 3.x.x to generate code with the protoc command.
- * The Python implementation uses Python 2.7. As such, it is not suitable for production use in its current form.
  * For linters and other tools, we use [retool](https://github.com/twitchtv/retool). If `make setup` is not able to install it, you can install it in your path with `go get github.com/twitchtv/retool` and then install tools with `retool build`.
 
 ### Running tests
 
 Generally you want to make changes and run `make`, which will install all
-dependencies we know about, build the core, and run all of the tests that we
-have against Go and Python code. A few notes:
+dependencies we know about, build the core, and run tests. A few notes:
 
  * Clone the repo on `$GOPATH/src/github.com/twitchtv/twirp` (go modules not supported yet).
  * Run Go unit tests with `make test`.
  * Most tests of the Go server are in `internal/twirptest/service_test.go`.
- * Integration tests running the full stack in both Go and Python auto-generated clients are in the [clientcompat](./clientcompat) directory.
+ * Integration tests running the full stack in Go are in the [clientcompat](./clientcompat) directory.
 
 ## Contributing Documentation
 

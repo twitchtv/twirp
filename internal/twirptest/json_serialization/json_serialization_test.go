@@ -235,7 +235,7 @@ func TestJSONSerializationCamelCase(t *testing.T) {
 	}
 	buf := new(bytes.Buffer)
 	_, _ = buf.ReadFrom(resp.Body)
-	want := `{"query":"","pageNumber":123,"hell":0,"foobar":"FOO","snippets":[],"allEmpty":false}`
+	want := `{"query":"", "pageNumber":123, "hell":0, "foobar":"FOO", "snippets":[], "allEmpty":false}`
 	if buf.String() != want {
 		t.Fatalf(`manual EchoJSON response with JSONCamelCaseNames expected to be '%q'. But it is=%q`, want, buf.String())
 	}

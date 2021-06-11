@@ -362,9 +362,11 @@ func (t *twirp) generateUtilImports() {
 }
 
 // Generate utility functions used in Twirp code.
-// These should be generated just once per package.
+// These functions are generated only once per package; when generating for
+// multiple services they are declared only once.
 func (t *twirp) generateUtils() {
 	t.sectionComment(`Utils`)
+
 	t.P(`// HTTPClient is the interface used by generated clients to send HTTP requests.`)
 	t.P(`// It is fulfilled by *(net/http).Client, which is sufficient for most users.`)
 	t.P(`// Users can provide their own implementation for special retry policies.`)
@@ -377,6 +379,7 @@ func (t *twirp) generateUtils() {
 	t.P(`	Do(req *`, t.pkgs["http"], `.Request) (*`, t.pkgs["http"], `.Response, error)`)
 	t.P(`}`)
 	t.P()
+
 	t.P(`// TwirpServer is the interface generated server structs will support: they're`)
 	t.P(`// HTTP handlers with additional methods for accessing metadata about the`)
 	t.P(`// service. Those accessors are a low-level API for building reflection tools.`)
@@ -384,6 +387,7 @@ func (t *twirp) generateUtils() {
 	t.P(`type TwirpServer interface {`)
 	t.P(`  `, t.pkgs["http"], `.Handler`)
 	t.P()
+
 	t.P(`  // ServiceDescriptor returns gzipped bytes describing the .proto file that`)
 	t.P(`  // this service was generated from. Once unzipped, the bytes can be`)
 	t.P(`  // unmarshalled as a`)
@@ -403,6 +407,24 @@ func (t *twirp) generateUtils() {
 	t.P(`  // The path prefix is in the form: "/<prefix>/<package>.<Service>/"`)
 	t.P(`  // that is, everything in a Twirp route except for the <Method> at the end.`)
 	t.P(`  PathPrefix() string`)
+	t.P(`}`)
+	t.P()
+
+	t.P(`func newServerOpts(opts []interface{}) *`, t.pkgs["twirp"], `.ServerOptions {`)
+	t.P(`  serverOpts := &`, t.pkgs["twirp"], `.ServerOptions{}`)
+	t.P(`  for _, opt := range opts {`)
+	t.P(`    switch o := opt.(type) {`)
+	t.P(`    case `, t.pkgs["twirp"], `.ServerOption:`)
+	t.P(`      o(serverOpts)`)
+	t.P(`    case *`, t.pkgs["twirp"], `.ServerHooks: // backwards compatibility, allow to specify hooks as an argument`)
+	t.P(`      twirp.WithServerHooks(o)(serverOpts)`)
+	t.P(`    case nil: // backwards compatibility, allow nil value for the argument`)
+	t.P(`      continue`)
+	t.P(`    default:`)
+	t.P(`      panic(`, t.pkgs["fmt"], `.Sprintf("Invalid option type %T, please use a twirp.ServerOption", o))`)
+	t.P(`    }`)
+	t.P(`  }`)
+	t.P(`  return serverOpts`)
 	t.P(`}`)
 	t.P()
 
@@ -1001,16 +1023,26 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`    o(&clientOpts)`)
 	t.P(`  }`)
 	t.P()
+
+	t.P(`  // Using ReadOpt allows backwards and forwads compatibility with new options in the future`)
+	t.P(`  literalURLs := false`)
+	t.P(`  _ = clientOpts.ReadOpt("literalURLs", &literalURLs)`)
+	t.P(`  var pathPrefix string`)
+	t.P(`  if ok := clientOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {`)
+	t.P(`    pathPrefix = "/twirp" // default prefix`)
+	t.P(`  }`)
+
+	t.P()
 	if len(service.Method) > 0 {
 		t.P(`  // Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>`)
 		t.P(`  serviceURL := sanitizeBaseURL(baseURL)`)
 		if servNameLit == servNameCc {
-			t.P(`  serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameCc, `")`)
+			t.P(`  serviceURL += baseServicePath(pathPrefix, "`, servPkg, `", "`, servNameCc, `")`)
 		} else { // proto service name is not CamelCased, then it needs to check client option to decide if needs to change case
-			t.P(`  if clientOpts.LiteralURLs {`)
-			t.P(`    serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameLit, `")`)
+			t.P(`  if literalURLs {`)
+			t.P(`    serviceURL += baseServicePath(pathPrefix, "`, servPkg, `", "`, servNameLit, `")`)
 			t.P(`  } else {`)
-			t.P(`    serviceURL += baseServicePath(clientOpts.PathPrefix(), "`, servPkg, `", "`, servNameCc, `")`)
+			t.P(`    serviceURL += baseServicePath(pathPrefix, "`, servPkg, `", "`, servNameCc, `")`)
 			t.P(`  }`)
 		}
 	}
@@ -1030,7 +1062,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		}
 	}
 	if !allMethodsCamelCased {
-		t.P(`  if clientOpts.LiteralURLs {`)
+		t.P(`  if literalURLs {`)
 		t.P(`    urls = [`, methCnt, `]string{`)
 		for _, method := range service.Method {
 			t.P(`    serviceURL + "`, methodNameLiteral(method), `",`)
@@ -1127,26 +1159,22 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`// HTTP requests that are routed to the right method in the provided svc implementation.`)
 	t.P(`// The opts are twirp.ServerOption modifiers, for example twirp.WithServerHooks(hooks).`)
 	t.P(`func New`, servName, `Server(svc `, servName, `, opts ...interface{}) TwirpServer {`)
-	t.P(`  serverOpts := `, t.pkgs["twirp"], `.ServerOptions{}`)
-	t.P(`  for _, opt := range opts {`)
-	t.P(`    switch o := opt.(type) {`)
-	t.P(`    case `, t.pkgs["twirp"], `.ServerOption:`)
-	t.P(`      o(&serverOpts)`)
-	t.P(`    case *`, t.pkgs["twirp"], `.ServerHooks: // backwards compatibility, allow to specify hooks as an argument`)
-	t.P(`      twirp.WithServerHooks(o)(&serverOpts)`)
-	t.P(`    case nil: // backwards compatibility, allow nil value for the argument`)
-	t.P(`      continue`)
-	t.P(`    default:`)
-	t.P(`      panic(`, t.pkgs["fmt"], `.Sprintf("Invalid option type %T on New`, servName, `Server", o))`)
-	t.P(`    }`)
+	t.P(`  serverOpts := newServerOpts(opts)`)
+	t.P()
+	t.P(`  // Using ReadOpt allows backwards and forwads compatibility with new options in the future`)
+	t.P(`  jsonSkipDefaults := false`)
+	t.P(`  _ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)`)
+	t.P(`  var pathPrefix string`)
+	t.P(`  if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {`)
+	t.P(`    pathPrefix = "/twirp" // default prefix`)
 	t.P(`  }`)
 	t.P()
 	t.P(`  return &`, servStruct, `{`)
 	t.P(`    `, servName, `: svc,`)
-	t.P(`    pathPrefix: serverOpts.PathPrefix(),`)
-	t.P(`    interceptor: `, t.pkgs["twirp"], `.ChainInterceptors(serverOpts.Interceptors...),`)
 	t.P(`    hooks: serverOpts.Hooks,`)
-	t.P(`    jsonSkipDefaults: serverOpts.JSONSkipDefaults,`)
+	t.P(`    interceptor: `, t.pkgs["twirp"], `.ChainInterceptors(serverOpts.Interceptors...),`)
+	t.P(`    pathPrefix: pathPrefix,`)
+	t.P(`    jsonSkipDefaults: jsonSkipDefaults,`)
 	t.P(`  }`)
 	t.P(`}`)
 	t.P()
@@ -1191,9 +1219,9 @@ func (t *twirp) generateServerRouting(servStruct string, file *descriptor.FileDe
 	pkgServNameLit := pkgServiceNameLiteral(file, service)
 	pkgServNameCc := pkgServiceNameCamelCased(file, service)
 
-	t.P(`// `, servName, `PathPrefix is a convenience constant that could used to identify URL paths.`)
+	t.P(`// `, servName, `PathPrefix is a convenience constant that may identify URL paths.`)
 	t.P(`// Should be used with caution, it only matches routes generated by Twirp Go clients,`)
-	t.P(`// that add a "/twirp" prefix by default, and use CamelCase service and method names.`)
+	t.P(`// with the default "/twirp" prefix and default CamelCase service and method names.`)
 	t.P(`// More info: https://twitchtv.github.io/twirp/docs/routing.html`)
 	t.P(`const `, servName, `PathPrefix = "/twirp/`, pkgServNameCc, `/"`)
 	t.P()

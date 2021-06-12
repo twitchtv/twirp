@@ -593,17 +593,14 @@ func WriteError(resp http.ResponseWriter, err error) {
 	writeError(context.Background(), resp, err, nil)
 }
 
-// newTwirpError casts an error into the twirp.Error interface,
-// or calls .TwirpError() if it implements twirp.Erroer.
-// Otherwise it wraps the error as a twirp.Internal error.
-func newTwirpError(err error) twirp.Error {
-	if twerr, ok := err.(twirp.Error); ok {
+// asTwirpError ensures that the error is returned as a twirp.Error.
+// If the error is a twirp.Error, returns the same error cated to the twirp.Error interface.
+// If the error is wrapping a twirp.Error, returns the wrapped twirp.Error.
+// If the error is NOT a twirp.Error, returns a new internal twirp.Error wrapping the original error.
+func asTwirpError(err error) twirp.Error {
+	var twerr twirp.Error
+	if errors.As(err, &twerr) {
 		return twerr
-	}
-
-	var erroer twirp.Erroer
-	if errors.As(err, &erroer) {
-		return erroer.TwirpError()
 	}
 
 	return twirp.InternalErrorWith(err)
@@ -611,8 +608,7 @@ func newTwirpError(err error) twirp.Error {
 
 // writeError writes Twirp errors in the response and triggers hooks.
 func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks *twirp.ServerHooks) {
-	// Cast to twirp.Error. Non-twirp errors are wrapped as Internal errors.
-	twerr := newTwirpError(err)
+	twerr := asTwirpError(err)
 
 	statusCode := twirp.ServerHTTPStatusFromErrorCode(twerr.Code())
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)

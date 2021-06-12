@@ -20,17 +20,14 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Debug stuff
-      run: |
-        cd ${{ env.GOPATH }}/src/github.com/twitchtv/twirp
-        ls -lisa
-        pwd
-        cat Makefile
     - name: Run Go Tests
       run: |
         cd ${{ env.GOPATH }}/src/github.com/twitchtv/twirp
-        make test
+        go test -race ./...
     - name: Run clientcompat Tests
       run: |
         cd ${{ env.GOPATH }}/src/github.com/twitchtv/twirp
-        make test_clientcompat
+        mkdir -p clientcompat/bin
+        go build -o clientcompat/bin/clientcompat ./clientcompat/.
+        go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
+        ./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat

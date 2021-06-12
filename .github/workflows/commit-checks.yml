@@ -20,9 +20,11 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Run Go Tests
       run: |
+        export GOPATH=$GITHUB_WORKSPACE/go
         go test -race ./...
     - name: Run clientcompat Tests
       run: |
+        export GOPATH=$GITHUB_WORKSPACE/go
         mkdir -p build
         go build -o build/gocompat ./clientcompat/gocompat
         go build -o build/clientcompat ./clientcompat

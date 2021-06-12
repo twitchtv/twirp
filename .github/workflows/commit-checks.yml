@@ -27,7 +27,6 @@ jobs:
     - name: Run clientcompat Tests
       run: |
         cd ${{ env.GOPATH }}/src/github.com/twitchtv/twirp
-        mkdir -p clientcompat/bin
-        go build -o clientcompat/bin/clientcompat ./clientcompat/.
-        go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
-        ./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat
+        GOBIN="$$PWD/bin" go install ./clientcompat
+        GOBIN="$$PWD/bin" go install ./clientcompat/gocompat
+        ./bin/clientcompat -client ./bin/gocompat

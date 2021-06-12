@@ -3,7 +3,7 @@ export GO111MODULE=off
 
 all: setup test_all
 
-.PHONY: setup generate test_all test test_clientcompat build_clientcompact
+.PHONY: setup generate test_all test test_clientcompat
 
 setup:
 	./check_protoc_version.sh
@@ -22,8 +22,7 @@ test: generate
 	./_tools/bin/errcheck ./internal/twirptest
 	go test -race ./...
 
-test_clientcompat: generate build_clientcompact
-	mkdir -p clientcompat/bin
-	go build -o clientcompat/bin/clientcompat ./clientcompat/.
-	go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
-	./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat
+test_clientcompat: generate
+	GOBIN="$$PWD/bin" go install ./clientcompat
+	GOBIN="$$PWD/bin" go install ./clientcompat/gocompat
+	./bin/clientcompat -client ./bin/gocompat

@@ -22,6 +22,11 @@ jobs:
     - name: Run Go Tests
       run: |
         go test -race ./...
+    - name: Show stuff in console
+      run: |
+        ls -lisa
+        pwd
+        cat Makefile
     - name: Build clientcompat Tests
       run: |
         mkdir -p clientcompat/bin
@@ -30,11 +35,3 @@ jobs:
     - name: Run clientcompat Tests
       run: |
         ./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat
-    - name: Do I have a makefile
-      run: |
-        ls -lisa
-        cat Makefile
-    - name: Try makefile
-      run: |
-        make test
-        make test_clientcompat

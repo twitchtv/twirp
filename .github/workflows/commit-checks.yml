@@ -11,7 +11,7 @@ jobs:
     env:
       GO111MODULE: 'off'
       GOPATH: ${{ github.workspace }}/go
-      REPO_PATH: ${{ env.GOPATH }}/src/github.com/twitchtv/twirp
+      REPO_PATH: ${{ github.workspace }}/go/src/github.com/twitchtv/twirp
     steps:
     - uses: actions/checkout@v2
       with:

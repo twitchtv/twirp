@@ -24,10 +24,7 @@ jobs:
         go test -race ./...
     - name: Run clientcompat Tests
       run: |
-        mkdir -p build
-        go build -o build/gocompat ./clientcompat/gocompat
-        go build -o build/clientcompat ./clientcompat
-        ./build/clientcompat -client ./build/gocompat
+        ./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat
     - name: Do I have a makefile
       run: |
         ls -lisa

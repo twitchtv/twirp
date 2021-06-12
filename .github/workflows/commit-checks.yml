@@ -14,7 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        path: go/src/github.com/twitchtv/
+        # Relative path under github.workspace to place the repository
+        path: ./go/src/github.com/twitchtv/twirp
     - name: Install Go
       uses: actions/setup-go@v2
       with:

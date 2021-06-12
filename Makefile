@@ -1,4 +1,4 @@
-PATH := ${PWD}/_tools/bin:${PWD}/bin:${PWD}/ENV/bin:${PATH}
+PATH := ${PWD}/_tools/bin:${PWD}/bin:${PATH}
 export GO111MODULE=off
 
 all: setup test_all
@@ -7,7 +7,7 @@ all: setup test_all
 
 setup:
 	./check_protoc_version.sh
-	GOPATH=$(CURDIR)/_tools GOBIN=$(CURDIR)/_tools/bin go get github.com/twitchtv/retool
+	GOPATH="$$PWD/_tools" GOBIN="$$PWD/_tools/bin" go get github.com/twitchtv/retool
 	./_tools/bin/retool build
 
 generate:

@@ -22,6 +22,11 @@ jobs:
     - name: Run Go Tests
       run: |
         go test -race ./...
+    - name: Build clientcompat Tests
+      run: |
+        mkdir -p clientcompat/bin
+        go build -o clientcompat/bin/clientcompat ./clientcompat
+        go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
     - name: Run clientcompat Tests
       run: |
         ./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat

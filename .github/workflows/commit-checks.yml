@@ -20,5 +20,18 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Run Go Tests
       run: |
-        export GOPATH=$GITHUB_WORKSPACE/go
-        go test -race -coverprofile=cover.out ./...
+        go test -race ./...
+    - name: Run clientcompat Tests
+      run: |
+        mkdir -p build
+        go build -o build/gocompat ./clientcompat/gocompat
+        go build -o build/clientcompat ./clientcompat
+        ./build/clientcompat -client ./build/gocompat
+    - name: Do I have a makefile
+      run: |
+        ls -lisa
+        cat Makefile
+    - name: Try makefile
+      run: |
+        make test
+        make test_clientcompat

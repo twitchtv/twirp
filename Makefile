@@ -20,16 +20,10 @@ test_all: setup test test_clientcompat
 
 test: generate
 	./_tools/bin/errcheck ./internal/twirptest
-	go test -race $(shell GO111MODULE=off go list ./... | grep -v /vendor/ | grep -v /_tools/)
+	go test -race ./...
 
-test_clientcompat: generate build/clientcompat build/gocompat
-	./build/clientcompat -client ./build/gocompat
-
-./build:
-	mkdir build
-
-./build/gocompat: ./build
+test_clientcompat: generate
+	mkdir -p build
 	go build -o build/gocompat ./clientcompat/gocompat
-
-./build/clientcompat: ./build
 	go build -o build/clientcompat ./clientcompat
+	./build/clientcompat -client ./build/gocompat

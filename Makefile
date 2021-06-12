@@ -22,10 +22,8 @@ test: generate
 	./_tools/bin/errcheck ./internal/twirptest
 	go test -race ./...
 
-build_clientcompact:
-	mkdir -p clientcompat/bin
-	go build -o clientcompat/bin/clientcompat ./clientcompat
-	go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
-
 test_clientcompat: generate build_clientcompact
+	mkdir -p clientcompat/bin
+	go build -o clientcompat/bin/clientcompat ./clientcompat/.
+	go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
 	./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat

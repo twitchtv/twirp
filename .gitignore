@@ -1,9 +1,7 @@
 *.test
+npm-debug.log
+
 /bin
 /clientcompat/bin
 /release
-build
-
-npm-debug.log
-
-
+/build

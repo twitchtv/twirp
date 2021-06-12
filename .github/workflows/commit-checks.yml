@@ -14,24 +14,22 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        path: ./go/src/github.com/${{ github.repository }}
+        path: go/src/github.com/twitchtv/
     - name: Install Go
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
     - name: Run Go Tests
       run: |
-        go test -race ./...
+        cd go/src/github.com/twitchtv/twirp
+        make test
     - name: Show stuff in console
       run: |
+        cd go/src/github.com/twitchtv/twirp
         ls -lisa
         pwd
         cat Makefile
-    - name: Build clientcompat Tests
-      run: |
-        mkdir -p clientcompat/bin
-        go build -o clientcompat/bin/clientcompat ./clientcompat
-        go build -o clientcompat/bin/gocompat ./clientcompat/gocompat
     - name: Run clientcompat Tests
       run: |
-        ./clientcompat/bin/clientcompat -client ./clientcompat/bin/gocompat
+        cd go/src/github.com/twitchtv/twirp
+        make test_clientcompat

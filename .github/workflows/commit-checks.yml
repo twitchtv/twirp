@@ -10,6 +10,7 @@ jobs:
         go-version: ['^1.16.0', '^1.15.0', '^1.14.0']
     env:
       GO111MODULE: 'off'
+      GOPATH: '$GITHUB_WORKSPACE/go'
     steps:
     - uses: actions/checkout@v2
       with:
@@ -20,14 +21,14 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Run Go Tests
       run: |
-        export GOPATH=$GITHUB_WORKSPACE/go
         go test -race ./...
+    - name: Build clientcompat Tests
+      run: |
+        mkdir -p build
+        go build -o build/clientcompat ./clientcompat
+        go build -o build/gocompat ./clientcompat/gocompat
     - name: Run clientcompat Tests
       run: |
-        export GOPATH=$GITHUB_WORKSPACE/go
-        mkdir -p build
-        go build -o build/gocompat ./clientcompat/gocompat
-        go build -o build/clientcompat ./clientcompat
         ./build/clientcompat -client ./build/gocompat
     - name: Do I have a makefile
       run: |

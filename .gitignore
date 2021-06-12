@@ -1,11 +1,6 @@
 *.test
-/bin
-
-clientcompat/pycompat/ENV
-*.pyc
-
-build
-
 npm-debug.log
 
+/bin
 /release
+/build

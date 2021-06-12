@@ -1,4 +1,4 @@
-PATH := ${PWD}/_tools/bin:${PWD}/bin:${PWD}/ENV/bin:${PATH}
+PATH := ${PWD}/_tools/bin:${PWD}/bin:${PATH}
 export GO111MODULE=off
 
 all: setup test_all
@@ -7,7 +7,7 @@ all: setup test_all
 
 setup:
 	./check_protoc_version.sh
-	GOPATH=$(CURDIR)/_tools GOBIN=$(CURDIR)/_tools/bin go get github.com/twitchtv/retool
+	GOPATH="$$PWD/_tools" GOBIN="$$PWD/_tools/bin" go get github.com/twitchtv/retool
 	./_tools/bin/retool build
 
 generate:
@@ -20,16 +20,9 @@ test_all: setup test test_clientcompat
 
 test: generate
 	./_tools/bin/errcheck ./internal/twirptest
-	go test -race $(shell GO111MODULE=off go list ./... | grep -v /vendor/ | grep -v /_tools/)
+	go test -race ./...
 
-test_clientcompat: generate build/clientcompat build/gocompat
-	./build/clientcompat -client ./build/gocompat
-
-./build:
-	mkdir build
-
-./build/gocompat: ./build
-	go build -o build/gocompat ./clientcompat/gocompat
-
-./build/clientcompat: ./build
-	go build -o build/clientcompat ./clientcompat
+test_clientcompat: generate
+	GOBIN="$$PWD/bin" go install ./clientcompat
+	GOBIN="$$PWD/bin" go install ./clientcompat/gocompat
+	./bin/clientcompat -client ./bin/gocompat

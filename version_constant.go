@@ -13,7 +13,10 @@
 
 package twirp
 
-// TwirpPackageIsVersion7 is a constant referenced from generated code that
-// requires features on this version of the twirp package. Older versions
-// don't have this constant defined, causing a compile-time assetion error.
+// TwirpPackageIsVersion7 is a constant referenced from generated code to
+// assert version compatibility at compile time.
 const TwirpPackageIsVersion7 = true
+
+// TwirpPackageMinVersion_8_1_0 is required from generated code to
+// assert version compatibility at compile time.
+const TwirpPackageMinVersion_8_1_0 = true

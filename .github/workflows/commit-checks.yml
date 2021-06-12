@@ -10,15 +10,24 @@ jobs:
         go-version: ['^1.16.0', '^1.15.0', '^1.14.0']
     env:
       GO111MODULE: 'off'
+      GOPATH: ${{ github.workspace }}/go
+      REPO_PATH: ${{ github.workspace }}/go/src/github.com/twitchtv/twirp
     steps:
     - uses: actions/checkout@v2
       with:
-        path: ./go/src/github.com/${{ github.repository }}
+        # Relative path under github.workspace to place the repository
+        path: ./go/src/github.com/twitchtv/twirp
     - name: Install Go
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
     - name: Run Go Tests
       run: |
-        export GOPATH=$GITHUB_WORKSPACE/go
-        go test -race -coverprofile=cover.out ./...
+        cd ${{ env.REPO_PATH }}
+        go test -race ./...
+    - name: Run clientcompat Tests
+      run: |
+        cd ${{ env.REPO_PATH }}
+        GOBIN="${{env.REPO_PATH}}/bin" go install ./clientcompat
+        GOBIN="${{env.REPO_PATH}}/bin" go install ./clientcompat/gocompat
+        ./bin/clientcompat -client ./bin/gocompat

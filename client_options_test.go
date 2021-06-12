@@ -20,6 +20,41 @@ import (
 	"testing"
 )
 
+func TestClientOptionsReadOpt(t *testing.T) {
+	opts := &ClientOptions{}
+	ok := false
+
+	var fooNum int
+	ok = opts.ReadOpt("fooNum", &fooNum)
+	if ok {
+		t.Errorf("option 'fooNum' does not exist, opts.ReadOpt should have returned false")
+	}
+
+	opts.setOpt("fooNum", 455)
+	ok = opts.ReadOpt("fooNum", &fooNum)
+	if !ok || fooNum != 455 {
+		t.Errorf("option 'fooNum' expected to be 455")
+	}
+
+	var literalURLs bool
+	ok = opts.ReadOpt("literalURLs", &literalURLs)
+	if ok {
+		t.Errorf("option 'literalURLs' does not exist, opts.ReadOpt should have returned false")
+	}
+
+	WithClientLiteralURLs(true)(opts)
+	ok = opts.ReadOpt("literalURLs", &literalURLs)
+	if !ok || !literalURLs {
+		t.Errorf("option 'literalURLs' expected to be true, ok: %v, val: %v", ok, literalURLs)
+	}
+
+	WithClientLiteralURLs(false)(opts)
+	ok = opts.ReadOpt("literalURLs", &literalURLs)
+	if !ok || literalURLs {
+		t.Errorf("option 'literalURLs' expected to be false, ok: %v, val: %v", ok, literalURLs)
+	}
+}
+
 func TestChainClientHooks(t *testing.T) {
 	var (
 		hook1 = new(ClientHooks)

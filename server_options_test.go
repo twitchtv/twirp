@@ -19,6 +19,41 @@ import (
 	"testing"
 )
 
+func TestServerOptionsReadOpt(t *testing.T) {
+	opts := &ServerOptions{}
+	ok := false
+
+	var fooNum int
+	ok = opts.ReadOpt("fooNum", &fooNum)
+	if ok {
+		t.Errorf("option 'fooNum' does not exist, opts.ReadOpt should have returned false")
+	}
+
+	opts.setOpt("fooNum", 455)
+	ok = opts.ReadOpt("fooNum", &fooNum)
+	if !ok || fooNum != 455 {
+		t.Errorf("option 'fooNum' expected to be 455")
+	}
+
+	var jsonSkipDefaults bool
+	ok = opts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	if ok {
+		t.Errorf("option 'jsonSkipDefaults' does not exist, opts.ReadOpt should have returned false")
+	}
+
+	WithServerJSONSkipDefaults(true)(opts)
+	ok = opts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	if !ok || !jsonSkipDefaults {
+		t.Errorf("option 'jsonSkipDefaults' expected to be true, ok: %v, val: %v", ok, jsonSkipDefaults)
+	}
+
+	WithServerJSONSkipDefaults(false)(opts)
+	ok = opts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	if !ok || jsonSkipDefaults {
+		t.Errorf("option 'jsonSkipDefaults' expected to be false, ok: %v, val: %v", ok, jsonSkipDefaults)
+	}
+}
+
 func TestChainHooks(t *testing.T) {
 	var (
 		hook1 = new(ServerHooks)

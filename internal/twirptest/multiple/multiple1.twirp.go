@@ -590,13 +590,6 @@ func newServerOpts(opts []interface{}) *twirp.ServerOptions {
 	return serverOpts
 }
 
-// WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).
-// Useful outside of the Twirp server (e.g. http middleware), but does not trigger hooks.
-// If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
-func WriteError(resp http.ResponseWriter, err error) {
-	writeError(context.Background(), resp, err, nil)
-}
-
 // asTwirpError ensures that the error is returned as a twirp.Error.
 // If the error is a twirp.Error, returns the same error cated to the twirp.Error interface.
 // If the error is wrapping a twirp.Error, returns the wrapped twirp.Error.
@@ -606,8 +599,14 @@ func asTwirpError(err error) twirp.Error {
 	if errors.As(err, &twerr) {
 		return twerr
 	}
-
 	return twirp.InternalErrorWith(err)
+}
+
+// WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).
+// Useful outside of the Twirp server (e.g. http middleware), but does not trigger hooks.
+// If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
+func WriteError(resp http.ResponseWriter, err error) {
+	writeError(context.Background(), resp, err, nil)
 }
 
 // writeError writes Twirp errors in the response and triggers hooks.

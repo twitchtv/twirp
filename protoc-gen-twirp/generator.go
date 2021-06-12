@@ -439,7 +439,6 @@ func (t *twirp) generateUtils() {
 	t.P(`  if `, t.pkgs["errors"], `.As(err, &twerr) {`)
 	t.P(`    return twerr`)
 	t.P(`  }`)
-	t.P(`  `)
 	t.P(`  return `, t.pkgs["twirp"], `.InternalErrorWith(err)`)
 	t.P(`}`)
 

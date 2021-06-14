@@ -332,6 +332,7 @@ type compatServiceServer struct {
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCase    bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewCompatServiceServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -343,6 +344,8 @@ func NewCompatServiceServer(svc CompatService, opts ...interface{}) TwirpServer 
 	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	jsonCamelCase := false
+	_ = serverOpts.ReadOpt("jsonCamelCase", &jsonCamelCase)
 	var pathPrefix string
 	if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {
 		pathPrefix = "/twirp" // default prefix
@@ -354,6 +357,7 @@ func NewCompatServiceServer(svc CompatService, opts ...interface{}) TwirpServer 
 		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		pathPrefix:       pathPrefix,
 		jsonSkipDefaults: jsonSkipDefaults,
+		jsonCamelCase:    jsonCamelCase,
 	}
 }
 
@@ -509,7 +513,7 @@ func (s *compatServiceServer) serveMethodJSON(ctx context.Context, resp http.Res
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
 	respBytes, err := marshaler.Marshal(respContent)
 	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
@@ -689,7 +693,7 @@ func (s *compatServiceServer) serveNoopMethodJSON(ctx context.Context, resp http
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
 	respBytes, err := marshaler.Marshal(respContent)
 	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))

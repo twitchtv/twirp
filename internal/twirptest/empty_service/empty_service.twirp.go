@@ -133,6 +133,7 @@ type emptyServer struct {
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCase    bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewEmptyServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -144,6 +145,8 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	jsonCamelCase := false
+	_ = serverOpts.ReadOpt("jsonCamelCase", &jsonCamelCase)
 	var pathPrefix string
 	if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {
 		pathPrefix = "/twirp" // default prefix
@@ -155,6 +158,7 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		pathPrefix:       pathPrefix,
 		jsonSkipDefaults: jsonSkipDefaults,
+		jsonCamelCase:    jsonCamelCase,
 	}
 }
 

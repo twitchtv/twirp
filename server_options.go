@@ -61,6 +61,18 @@ func WithServerJSONSkipDefaults(skipDefaults bool) ServerOption {
 	}
 }
 
+// WithServerJSONCamelCaseNames configures JSON serialization to use
+// lowerCamelCase field names rather than the original proto field names.
+// It is disabled by default, because JSON is commonly used for manual
+// debugging, but sometimes converting to lowerCamelCase is needed
+// to match the default canonical encoding on other proto-json parsers.
+// See: https://developers.google.com/protocol-buffers/docs/proto3#json
+func WithServerJSONCamelCaseNames(jsonCamelCase bool) ServerOption {
+	return func(opts *ServerOptions) {
+		opts.setOpt("jsonCamelCase", jsonCamelCase)
+	}
+}
+
 // ServerHooks is a container for callbacks that can instrument a
 // Twirp-generated server. These callbacks all accept a context and return a
 // context. They can use this to add to the request context as it threads

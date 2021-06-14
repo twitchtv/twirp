@@ -236,6 +236,7 @@ type echoServer struct {
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCase    bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewEchoServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -247,6 +248,8 @@ func NewEchoServer(svc Echo, opts ...interface{}) TwirpServer {
 	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	jsonCamelCase := false
+	_ = serverOpts.ReadOpt("jsonCamelCase", &jsonCamelCase)
 	var pathPrefix string
 	if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {
 		pathPrefix = "/twirp" // default prefix
@@ -258,6 +261,7 @@ func NewEchoServer(svc Echo, opts ...interface{}) TwirpServer {
 		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		pathPrefix:       pathPrefix,
 		jsonSkipDefaults: jsonSkipDefaults,
+		jsonCamelCase:    jsonCamelCase,
 	}
 }
 
@@ -410,7 +414,7 @@ func (s *echoServer) serveEchoJSON(ctx context.Context, resp http.ResponseWriter
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
 	respBytes, err := marshaler.Marshal(respContent)
 	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))

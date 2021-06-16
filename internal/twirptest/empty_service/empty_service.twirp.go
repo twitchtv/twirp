@@ -309,7 +309,11 @@ func WriteError(resp http.ResponseWriter, err error) {
 
 // writeError writes Twirp errors in the response and triggers hooks.
 func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks *twirp.ServerHooks) {
-	twerr := asTwirpError(err)
+	// Convert to a twirp.Error. Non-twirp errors are converted to internal errors.
+	var twerr twirp.Error
+	if !errors.As(err, &twerr) {
+		twerr = twirp.InternalErrorWith(err)
+	}
 
 	statusCode := twirp.ServerHTTPStatusFromErrorCode(twerr.Code())
 	ctx = ctxsetters.WithStatusCode(ctx, statusCode)
@@ -341,18 +345,6 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 	}
 
 	callResponseSent(ctx, hooks)
-}
-
-// asTwirpError ensures that the error is returned as a twirp.Error.
-//  * If the error is already a twirp.Error, returns the same error (casted).
-//  * If the error is wrapping a twirp.Error, returns the wrapped twirp.Error.
-//  * If the error is NOT a twirp.Error, returns a new internal twirp.Error wrapping the original error.
-func asTwirpError(err error) twirp.Error {
-	var twerr twirp.Error
-	if errors.As(err, &twerr) {
-		return twerr
-	}
-	return twirp.InternalErrorWith(err)
 }
 
 // sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.

@@ -250,11 +250,11 @@ func (t *twirp) generate(file *descriptor.FileDescriptorProto) *plugin.CodeGener
 }
 
 func (t *twirp) generateVersionCheck(file *descriptor.FileDescriptorProto) {
-	t.P(`// This is a compile-time assertion to ensure that this generated file`)
-	t.P(`// is compatible with the twirp package used in your project.`)
-	t.P(`// A compilation error at this line likely means your copy of the`)
-	t.P(`// twirp package needs to be updated.`)
-	t.P(`const _ = `, t.pkgs["twirp"], `.TwirpPackageIsVersion7`)
+	t.P(`// Version compatibility assertion.`)
+	t.P(`// If the constant is not defined in the package, that likely means`)
+	t.P(`// the package needs to be updated to work with this generated code.`)
+	t.P(`// See https://twitchtv.github.io/twirp/docs/version_matrix.html`)
+	t.P(`const _ = `, t.pkgs["twirp"], `.TwirpPackageMinVersion_8_1_0`)
 }
 
 func (t *twirp) generateFileHeader(file *descriptor.FileDescriptorProto) {

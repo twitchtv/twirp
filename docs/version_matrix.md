@@ -6,22 +6,25 @@ sidebar_label: Version Compatibility
 
 ## Compatibility Matrix
 
-Code generated with the Twirp Generator on the left, is compatible with the runtime, protobuf runtime, protobuf generated code, and spec versions on the right.
+Generally speaking, code generated with newer versions of the generator require newer versions of the runtime, but runtime library is backwards compatible and works with older clients. This allows importing multiple clients generated at different versions into the same service, as long as the service is running the latest runtime.
+
+Read the matrix from left to right: Code generated with the Twirp Generator version on the left, is compatible with the runtime, protobuf runtime, protobuf generated code, and spec versions on the right.
 
 | Twirp Generator  | Twirp Runtime | Protobuf | Twirp Spec | Key feature |
 | ---------------- |---------------| ---------| ---------- | ------------|
-| v8               | v7.1+         | APIv2    | V7         | [Protobuf APIv2](https://github.com/twitchtv/twirp/releases/tag/v8.0.0)
-| v7.1             | v7.1+         | APIv1    | V7         | [Interceptors](https://github.com/twitchtv/twirp/releases/tag/v7.1.0)
-| v7.0             | v7.0+         | APIv1    | V7         | [V7 Spec and ServerOptions](https://github.com/twitchtv/twirp/releases/tag/v7.0.0)
-| v5.11            | v5.10+        | APIv1    | V7, V5     | [Unwrap errors](https://github.com/twitchtv/twirp/releases/tag/v5.11.0)
-| v5.10            | v5.10+        | APIv1    | V7, V5     | [ClientHooks](https://github.com/twitchtv/twirp/releases/tag/v5.10.0)
-| v5.8             | v5.8+         | APIv1    | V7, V5     | [Marlformed Error](https://github.com/twitchtv/twirp/releases/tag/v5.8.0)
-| v5               | v5+           | APIv1    | V7, V5     | [First Public Release](https://github.com/twitchtv/twirp/releases/tag/v5.0.0)
+| **v8.1**         | v8.1+         | APIv2    | V7         | [Error matching with errors.As](https://github.com/twitchtv/twirp/releases/tag/v8.1.0)
+| **v8.0**         | v7.1+         | APIv2    | V7         | [Protobuf APIv2](https://github.com/twitchtv/twirp/releases/tag/v8.0.0)
+| **v7.1**         | v7.1+         | APIv1    | V7         | [Interceptors](https://github.com/twitchtv/twirp/releases/tag/v7.1.0)
+| **v7.0**         | v7.0+         | APIv1    | V7         | [V7 Spec and ServerOptions](https://github.com/twitchtv/twirp/releases/tag/v7.0.0)
+| **v5.11**        | v5.10+        | APIv1    | V7, V5     | [Unwrap errors](https://github.com/twitchtv/twirp/releases/tag/v5.11.0)
+| **v5.10**        | v5.10+        | APIv1    | V7, V5     | [ClientHooks](https://github.com/twitchtv/twirp/releases/tag/v5.10.0)
+| **v5.8**         | v5.8+         | APIv1    | V7, V5     | [Marlformed Error](https://github.com/twitchtv/twirp/releases/tag/v5.8.0)
+| **v5**           | v5+           | APIv1    | V7, V5     | [First Public Release](https://github.com/twitchtv/twirp/releases/tag/v5.0.0)
 
-This table includes only versions that have potential breaking changes. See [Releases](https://github.com/twitchtv/twirp/releases) for notes on all versions.
+This table includes only versions that have potential breaking changes. Please read the [Release Notes](https://github.com/twitchtv/twirp/releases) to ensure upgrading without issues.
 
 
-### Go Twirp and Protobuf
+### Go Twirp and Protobuf compatibility
 
 Both Twirp and Protobuf contain a runtime library and a code generator plugin. The generated code can have incompatibility issues with different versions of the library.
 

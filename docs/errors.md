@@ -80,7 +80,7 @@ Errors that can be matched as `twirp.Error` are sent through the wire and return
 
 Regular non-twirp errors are automatically wrapped as internal errors (using [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith)). The original error is accessible in service hooks and middleware (e.g. using `errors.Unwrap`). But the original error is NOT serialized through the network; clients cannot access the original error, and will instead receive a `twirp.Error` with code `twirp.Internal`.
 
-Example implementation returnin non-twirp errors:
+Example returning a non-twirp error:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
@@ -88,9 +88,9 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
-Twirp uses `errors.As(err, &twerr)` to know if a returned error is a `twirp.Error` or not.
+Twirp matches with `errors.As(err, &twerr)` to know if a returned error is a `twirp.Error` or not.
 
-**NOTE**: services generated with Twirp versions older than `v8.1.0` match withtype cast `err.(twirp.Error)` instead of `errors.As(err, &twerr)`. This means that wrapped Twirp errors or custom implementations that respond to `As(interface{}) bool` are still returned as internal errors, instead of being returned as the appropriate Twirp error. See release `v8.1.0` or PR [#323](https://github.com/twitchtv/twirp/pull/323) for details.
+**NOTE**: versions older than `v8.1.0` do a type cast `err.(twirp.Error)` instead of matching with `errors.As(err, &twerr)`. This means that wrapped Twirp errors or custom implementations that respond to `As(interface{}) bool` are returned as internal errors, instead of being returned as the appropriate Twirp error. See release [v8.1.0](https://github.com/twitchtv/twirp/releases/tag/v8.1.0) for more details.
 
 
 ### HTTP Errors from Intermediary Proxies

@@ -8,34 +8,19 @@ Twirp errors are JSON responses with `code`, `msg` and (optional) `meta` keys:
 
 ```json
 {
-  "code": "permission_denied",
-  "msg": "Thou shall not pass",
-  "meta": { "foo": "bar" }
+  "code": "internal",
+  "msg": "something went wrong",
 }
 ```
 
-See [Errors Spec](spec_v7.md#error-codes) for the protocol, error codes and HTTP status mapping.
+Common error codes are `internal`, `not_found`, `invalid_argument` and `permission_denied`. See [twirp.ErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode) for the full list of available codes.
 
-In Go, Twirp errors satisfy the `twirp.Error` interface:
+The [Errors Spec](spec_v7.md#error-codes) has more details about the protocol and HTTP status mapping.
 
-```go
-type Error interface {
-    Code() ErrorCode // identifies a valid error type
-    Msg() string     // free-form human-readable message
+In Go, Twirp errors satisfy the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface. An easy way to instantiate Twirp errors is using the [twirp.NewError](https://pkg.go.dev/github.com/twitchtv/twirp#NewError) constructor.
 
-    WithMeta(key string, val string) Error // set metadata
-    Meta(key string) string                // get metadata value
-    MetaMap() map[string]string            // get all metadata
 
-    Error() string // should return "twirp error <Code>: <Msg>"
-}
-```
-
-### Error codes
-
-Common codes are `internal`, `not_found`, `invalid_argument` and `permission_denied`. See [twirp.ErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode) for the full list of available codes.
-
-### Errors returned by Go Clients
+### Go Clients
 
 Twirp clients always return errors that can be cast to the `twirp.Error` interface.
 
@@ -50,7 +35,7 @@ if err != nil {
 }
 ```
 
-Transport-level (non-twirp) errors are also returned as `twirp.Error` with code `internal`. If desired, the original error can be unwrapped:
+Transport-level errors (like connection errors) are returned as internal errors by default. If desired, the original client-side error can be unwrapped:
 
 ```go
 resp, err := client.MakeHat(ctx, req)
@@ -65,9 +50,7 @@ if err != nil {
 }
 ```
 
-### Returning Errors from Go Twirp services
-
-Returned errors that implement or can be matched (with `errors.As`) as the `twirp.Error` interface are serialized with the same code, message and metadata.
+### Go Services
 
 Example implementation returning Twirp errors:
 
@@ -93,17 +76,21 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
+Errors that can be matched as `twirp.Error` are sent through the wire and returned with the same code in the client.
+
 Regular non-twirp errors are automatically wrapped as internal errors (using [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith)). The original error is accessible in service hooks and middleware (e.g. using `errors.Unwrap`). But the original error is NOT serialized through the network; clients cannot access the original error, and will instead receive a `twirp.Error` with code `twirp.Internal`.
 
 Example implementation returnin non-twirp errors:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
-    return nil, fmt.Errorf("this non-twirp error will be serialized as a twirp.Internal error")
+    return nil, errors.New("this non-twirp error will be serialized as a twirp.Internal error")
 }
 ```
 
-**NOTE**: services generated with Twirp versions older than `v8.1.0` do the type check with a type cast `err.(twirp.Error)` instead of `errors.As(err, &twerr)`. This means that wrapped Twirp errors or custom implementations that respond to `As(interface{}) bool` are still returned as internal errors, instead of being returned as the appropriate Twirp error. See release `v8.1.0` or PR [#323](https://github.com/twitchtv/twirp/pull/323) for details.
+Twirp uses `errors.As(err, &twerr)` to know if a returned error is a `twirp.Error` or not.
+
+**NOTE**: services generated with Twirp versions older than `v8.1.0` match withtype cast `err.(twirp.Error)` instead of `errors.As(err, &twerr)`. This means that wrapped Twirp errors or custom implementations that respond to `As(interface{}) bool` are still returned as internal errors, instead of being returned as the appropriate Twirp error. See release `v8.1.0` or PR [#323](https://github.com/twitchtv/twirp/pull/323) for details.
 
 
 ### HTTP Errors from Intermediary Proxies
@@ -118,7 +105,7 @@ depending on the HTTP status of the invalid response:
 
 | HTTP status code         |  Twirp Error Code
 | ------------------------ | ------------------
-| 3xx (redirects)          | Internal
+| 3xx (redirects)          | Internalreturn nil, fmt.Errorf("this non-twirp error will
 | 400 Bad Request          | Internal
 | 401 Unauthorized         | Unauthenticated
 | 403 Forbidden            | PermissionDenied

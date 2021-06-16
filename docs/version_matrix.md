@@ -12,6 +12,7 @@ Read the matrix from left to right: Code generated with the Twirp Generator vers
 
 | Twirp Generator  | Twirp Runtime | Protobuf | Twirp Spec | Key feature |
 | ---------------- |---------------| ---------| ---------- | ------------|
+| **v8.1**         | v8.1+         | APIv2    | V7         | [Error matching with errors.As](https://github.com/twitchtv/twirp/releases/tag/v8.1.0)
 | **v8.0**         | v7.1+         | APIv2    | V7         | [Protobuf APIv2](https://github.com/twitchtv/twirp/releases/tag/v8.0.0)
 | **v7.1**         | v7.1+         | APIv1    | V7         | [Interceptors](https://github.com/twitchtv/twirp/releases/tag/v7.1.0)
 | **v7.0**         | v7.0+         | APIv1    | V7         | [V7 Spec and ServerOptions](https://github.com/twitchtv/twirp/releases/tag/v7.0.0)

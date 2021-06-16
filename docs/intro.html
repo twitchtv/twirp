@@ -88,7 +88,7 @@ easily start an http listener).</li>
   <span class="hljs-built_in">string</span> text = <span class="hljs-number">1</span>;
 }
 </code></pre>
-<p>Running the <code>prococ</code> compiler with the <code>--go_out</code> and <code>--twirp_out</code> options will generate <code>.pb.go</code> and <code>.twirp.go</code> files. The Twirp file contains this <strong>interface</strong>:</p>
+<p>Running the <code>protoc</code> compiler with the <code>--go_out</code> and <code>--twirp_out</code> options will generate <code>.pb.go</code> and <code>.twirp.go</code> files. The Twirp file contains this <strong>interface</strong>:</p>
 <pre><code class="hljs css language-go"><span class="hljs-keyword">type</span> HelloWorld <span class="hljs-keyword">interface</span> {
     Hello(context.Context, *HelloReq) (*HelloResp, error)
 }

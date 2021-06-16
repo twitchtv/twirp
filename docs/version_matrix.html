@@ -55,23 +55,25 @@
               }
             });
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Version Compatibility</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="compatibility-matrix"></a><a href="#compatibility-matrix" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Compatibility Matrix</h2>
-<p>Code generated with the Twirp Generator on the left, is compatible with the runtime, protobuf runtime, protobuf generated code, and spec versions on the right.</p>
+<p>Generally speaking, code generated with newer versions of the generator require newer versions of the runtime, but runtime library is backwards compatible and works with older clients. This allows importing multiple clients generated at different versions into the same service, as long as the service is running the latest runtime.</p>
+<p>Read the matrix from left to right: Code generated with the Twirp Generator version on the left, is compatible with the runtime, protobuf runtime, protobuf generated code, and spec versions on the right.</p>
 <table>
 <thead>
 <tr><th>Twirp Generator</th><th>Twirp Runtime</th><th>Protobuf</th><th>Twirp Spec</th><th>Key feature</th></tr>
 </thead>
 <tbody>
-<tr><td>v8</td><td>v7.1+</td><td>APIv2</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v8.0.0">Protobuf APIv2</a></td></tr>
-<tr><td>v7.1</td><td>v7.1+</td><td>APIv1</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v7.1.0">Interceptors</a></td></tr>
-<tr><td>v7.0</td><td>v7.0+</td><td>APIv1</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v7.0.0">V7 Spec and ServerOptions</a></td></tr>
-<tr><td>v5.11</td><td>v5.10+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.11.0">Unwrap errors</a></td></tr>
-<tr><td>v5.10</td><td>v5.10+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.10.0">ClientHooks</a></td></tr>
-<tr><td>v5.8</td><td>v5.8+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.8.0">Marlformed Error</a></td></tr>
-<tr><td>v5</td><td>v5+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.0.0">First Public Release</a></td></tr>
+<tr><td><strong>v8.1</strong></td><td>v8.1+</td><td>APIv2</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v8.1.0">Error matching with errors.As</a></td></tr>
+<tr><td><strong>v8.0</strong></td><td>v7.1+</td><td>APIv2</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v8.0.0">Protobuf APIv2</a></td></tr>
+<tr><td><strong>v7.1</strong></td><td>v7.1+</td><td>APIv1</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v7.1.0">Interceptors</a></td></tr>
+<tr><td><strong>v7.0</strong></td><td>v7.0+</td><td>APIv1</td><td>V7</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v7.0.0">V7 Spec and ServerOptions</a></td></tr>
+<tr><td><strong>v5.11</strong></td><td>v5.10+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.11.0">Unwrap errors</a></td></tr>
+<tr><td><strong>v5.10</strong></td><td>v5.10+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.10.0">ClientHooks</a></td></tr>
+<tr><td><strong>v5.8</strong></td><td>v5.8+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.8.0">Marlformed Error</a></td></tr>
+<tr><td><strong>v5</strong></td><td>v5+</td><td>APIv1</td><td>V7, V5</td><td><a href="https://github.com/twitchtv/twirp/releases/tag/v5.0.0">First Public Release</a></td></tr>
 </tbody>
 </table>
-<p>This table includes only versions that have potential breaking changes. See <a href="https://github.com/twitchtv/twirp/releases">Releases</a> for notes on all versions.</p>
-<h3><a class="anchor" aria-hidden="true" id="go-twirp-and-protobuf"></a><a href="#go-twirp-and-protobuf" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Go Twirp and Protobuf</h3>
+<p>This table includes only versions that have potential breaking changes. Please read the <a href="https://github.com/twitchtv/twirp/releases">Release Notes</a> to ensure upgrading without issues.</p>
+<h3><a class="anchor" aria-hidden="true" id="go-twirp-and-protobuf-compatibility"></a><a href="#go-twirp-and-protobuf-compatibility" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Go Twirp and Protobuf compatibility</h3>
 <p>Both Twirp and Protobuf contain a runtime library and a code generator plugin. The generated code can have incompatibility issues with different versions of the library.</p>
 <p>Twirp (<a href="https://github.com/twitchtv/twirp">https://github.com/twitchtv/twirp</a>):</p>
 <ul>

@@ -43,6 +43,7 @@ package twirp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -355,14 +356,8 @@ func (e *wrappedErr) Cause() error  { return e.cause } // for github.com/pkg/err
 // Useful outside of the Twirp server (e.g. http middleware).
 // If err is not a twirp.Error, it will get wrapped with twirp.InternalErrorWith(err)
 func WriteError(resp http.ResponseWriter, err error) error {
-	return writeError(resp, err)
-}
-
-// writeError writes Twirp errors in the response.
-func writeError(resp http.ResponseWriter, err error) error {
-	// Non-twirp errors are wrapped as Internal (default)
-	twerr, ok := err.(Error)
-	if !ok {
+	var twerr Error
+	if !errors.As(err, &twerr) {
 		twerr = InternalErrorWith(err)
 	}
 

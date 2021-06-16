@@ -26,6 +26,7 @@ import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/internal/twirptest/importmapping/y"
 
 import bytes "bytes"
+import errors "errors"
 import io "io"
 import path "path"
 import url "net/url"
@@ -600,9 +601,9 @@ func WriteError(resp http.ResponseWriter, err error) {
 
 // writeError writes Twirp errors in the response and triggers hooks.
 func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks *twirp.ServerHooks) {
-	// Non-twirp errors are wrapped as Internal (default)
-	twerr, ok := err.(twirp.Error)
-	if !ok {
+	// Convert to a twirp.Error. Non-twirp errors are converted to internal errors.
+	var twerr twirp.Error
+	if !errors.As(err, &twerr) {
 		twerr = twirp.InternalErrorWith(err)
 	}
 

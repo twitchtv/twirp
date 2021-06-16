@@ -54,6 +54,8 @@ func WithServerPathPrefix(prefix string) ServerOption {
 // This is now disabled by default, because JSON serialization is
 // commonly used for manual debugging, in which case it is useful
 // to see the full shape of the response.
+// See: https://pkg.go.dev/google.golang.org/protobuf/encoding/protojson
+// See: https://developers.google.com/protocol-buffers/docs/proto3#json
 func WithServerJSONSkipDefaults(skipDefaults bool) ServerOption {
 	return func(opts *ServerOptions) {
 		opts.setOpt("jsonSkipDefaults", skipDefaults)
@@ -61,11 +63,12 @@ func WithServerJSONSkipDefaults(skipDefaults bool) ServerOption {
 	}
 }
 
-// WithServerJSONCamelCaseNames configures JSON serialization to use
-// lowerCamelCase field names rather than the original proto field names.
-// It is disabled by default, because JSON is commonly used for manual
-// debugging, but sometimes converting to lowerCamelCase is needed
-// to match the default canonical encoding on other proto-json parsers.
+// WithServerJSONCamelCaseNames configures JSON serialization to use the
+// default proto3 JSON encoding (lowerCamelCase) rather than the original
+// proto field names. Twirp uses the original proto field names by default,
+// because JSON encoding is often used for manual debugging of the API,
+// but this option allows better compatibility with other proto-json parsers.
+// See: https://pkg.go.dev/google.golang.org/protobuf/encoding/protojson
 // See: https://developers.google.com/protocol-buffers/docs/proto3#json
 func WithServerJSONCamelCaseNames(jsonCamelCase bool) ServerOption {
 	return func(opts *ServerOptions) {

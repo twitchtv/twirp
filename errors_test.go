@@ -15,12 +15,13 @@ package twirp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http/httptest"
 	"sync"
 	"testing"
 
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 )
 
 func TestWithMetaRaces(t *testing.T) {
@@ -43,12 +44,50 @@ func TestWithMetaRaces(t *testing.T) {
 	}
 }
 
-func TestErrorCause(t *testing.T) {
-	rootCause := errors.New("this is only a test")
+func TestPkgErrorCause(t *testing.T) {
+	rootCause := pkgerrors.New("this is only a test")
 	twerr := InternalErrorWith(rootCause)
-	cause := errors.Cause(twerr)
+	cause := pkgerrors.Cause(twerr)
 	if cause != rootCause {
 		t.Errorf("got wrong cause for err. have=%q, want=%q", cause, rootCause)
+	}
+}
+
+func TestWrapError(t *testing.T) {
+	rootCause := errors.New("cause")
+	twerr := NewError(NotFound, "it ain't there")
+	err := WrapError(twerr, rootCause)
+	cause := pkgerrors.Cause(err)
+	if cause != rootCause {
+		t.Errorf("got wrong cause. got=%q, want=%q", cause, rootCause)
+	}
+	wantMsg := "twirp error not_found: it ain't there"
+	if gotMsg := err.Error(); gotMsg != wantMsg {
+		t.Errorf("got wrong error text. got=%q, want=%q", gotMsg, wantMsg)
+	}
+}
+
+type myError string
+
+func (e myError) Error() string {
+	return string(e)
+}
+
+func TestInternalErrorWith_Unwrap(t *testing.T) {
+	myErr := myError("myError")
+	wrErr := fmt.Errorf("wrapped: %w", myErr) // double wrap
+	twerr := InternalErrorWith(wrErr)
+
+	if !errors.Is(twerr, myErr) {
+		t.Errorf("expected errors.Is to match the error wrapped by twirp.InternalErrorWith")
+	}
+
+	var errTarget myError
+	if !errors.As(twerr, &errTarget) {
+		t.Errorf("expected errors.As to match the error wrapped by twirp.InternalErrorWith")
+	}
+	if errTarget.Error() != myErr.Error() {
+		t.Errorf("invalid value for errTarget.Error(). have=%q, want=%q", errTarget.Error(), myErr.Error())
 	}
 }
 
@@ -130,19 +169,5 @@ func TestWriteError_WithNonTwirpError(t *testing.T) {
 	if gotTwerrJSON.Msg != ""+nonTwerr.Error() {
 		t.Errorf("got wrong error message. have=%s, want=%s", gotTwerrJSON.Msg, nonTwerr.Error())
 		return
-	}
-}
-
-func TestWrapError(t *testing.T) {
-	rootCause := errors.New("cause")
-	twerr := NewError(NotFound, "it ain't there")
-	err := WrapError(twerr, rootCause)
-	cause := errors.Cause(err)
-	if cause != rootCause {
-		t.Errorf("got wrong cause. got=%q, want=%q", cause, rootCause)
-	}
-	wantMsg := "twirp error not_found: it ain't there"
-	if gotMsg := err.Error(); gotMsg != wantMsg {
-		t.Errorf("got wrong error text. got=%q, want=%q", gotMsg, wantMsg)
 	}
 }

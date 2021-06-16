@@ -17,6 +17,7 @@ import (
 	bytes "bytes"
 	"context"
 	json "encoding/json"
+	io "io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -58,13 +59,8 @@ func TestJSONSerializationServiceWithDefaults(t *testing.T) {
 	if resp.StatusCode != 200 {
 		t.Fatalf("manual EchoJSON invalid status, have=%d, want=200", resp.StatusCode)
 	}
-	buf := new(bytes.Buffer)
-	_, _ = buf.ReadFrom(resp.Body)
-	var objmap map[string]json.RawMessage
-	err = json.Unmarshal(buf.Bytes(), &objmap)
-	if err != nil {
-		t.Fatalf("json.Unmarshal err=%q", err)
-	}
+
+	objmap := readJSONAsMap(t, resp.Body)
 	for _, field := range []string{"query", "page_number", "hell", "foobar", "snippets", "all_empty"} {
 		if _, ok := objmap[field]; !ok {
 			t.Fatalf("expected JSON response to include field %q", field)
@@ -212,4 +208,56 @@ func TestJSONSerializationServiceSkipDefaults(t *testing.T) {
 	if have, want := msg2.Snippets[0], "s1"; have != want {
 		t.Fatalf("invalid msg2.Snippets[0], have=%v, want=%v", have, want)
 	}
+}
+
+func TestJSONSerializationCamelCase(t *testing.T) {
+	s := httptest.NewServer(
+		NewJSONSerializationServer(
+			&JSONSerializationService{},
+			twirp.WithServerJSONCamelCaseNames(true),
+		),
+	)
+	defer s.Close()
+
+	reqBody := bytes.NewBuffer([]byte(`{"pageNumber": 123}`))
+	req, _ := http.NewRequest("POST", s.URL+"/twirp/JSONSerialization/EchoJSON", reqBody)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("manual EchoJSON err=%q", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("manual EchoJSON invalid status, have=%d, want=200", resp.StatusCode)
+	}
+
+	objmap := readJSONAsMap(t, resp.Body)
+
+	// response includes camelCase names
+	for _, field := range []string{"query", "pageNumber", "hell", "foobar", "snippets", "allEmpty"} {
+		if _, ok := objmap[field]; !ok {
+			t.Fatalf("expected JSON response to include camelCase field %q", field)
+		}
+	}
+
+	// response does not include original snake_case names
+	for _, field := range []string{"page_number", "all_empty"} {
+		if _, ok := objmap[field]; ok {
+			t.Fatalf("expected JSON response to NOT include snake_case field %q", field)
+		}
+	}
+}
+
+//
+// Test helpers
+//
+
+func readJSONAsMap(t *testing.T, body io.Reader) map[string]json.RawMessage {
+	buf := new(bytes.Buffer)
+	_, _ = buf.ReadFrom(body)
+	var objmap map[string]json.RawMessage
+	err := json.Unmarshal(buf.Bytes(), &objmap)
+	if err != nil {
+		t.Fatalf("json.Unmarshal err=%q", err)
+	}
+	return objmap
 }

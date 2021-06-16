@@ -27,6 +27,7 @@ import google_protobuf "google.golang.org/protobuf/types/known/emptypb"
 import google_protobuf1 "google.golang.org/protobuf/types/known/wrapperspb"
 
 import bytes "bytes"
+import errors "errors"
 import io "io"
 import path "path"
 import url "net/url"
@@ -239,6 +240,7 @@ type svcServer struct {
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCase    bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewSvcServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -250,6 +252,8 @@ func NewSvcServer(svc Svc, opts ...interface{}) TwirpServer {
 	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	jsonCamelCase := false
+	_ = serverOpts.ReadOpt("jsonCamelCase", &jsonCamelCase)
 	var pathPrefix string
 	if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {
 		pathPrefix = "/twirp" // default prefix
@@ -261,6 +265,7 @@ func NewSvcServer(svc Svc, opts ...interface{}) TwirpServer {
 		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		pathPrefix:       pathPrefix,
 		jsonSkipDefaults: jsonSkipDefaults,
+		jsonCamelCase:    jsonCamelCase,
 	}
 }
 
@@ -413,7 +418,7 @@ func (s *svcServer) serveSendJSON(ctx context.Context, resp http.ResponseWriter,
 
 	ctx = callResponsePrepared(ctx, s.hooks)
 
-	marshaler := &protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: !s.jsonSkipDefaults}
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
 	respBytes, err := marshaler.Marshal(respContent)
 	if err != nil {
 		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
@@ -597,9 +602,9 @@ func WriteError(resp http.ResponseWriter, err error) {
 
 // writeError writes Twirp errors in the response and triggers hooks.
 func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks *twirp.ServerHooks) {
-	// Non-twirp errors are wrapped as Internal (default)
-	twerr, ok := err.(twirp.Error)
-	if !ok {
+	// Convert to a twirp.Error. Non-twirp errors are converted to internal errors.
+	var twerr twirp.Error
+	if !errors.As(err, &twerr) {
 		twerr = twirp.InternalErrorWith(err)
 	}
 

@@ -24,6 +24,7 @@ import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
 import bytes "bytes"
+import errors "errors"
 import io "io"
 import path "path"
 import url "net/url"
@@ -133,6 +134,7 @@ type emptyServer struct {
 	hooks            *twirp.ServerHooks
 	pathPrefix       string // prefix for routing
 	jsonSkipDefaults bool   // do not include unpopulated fields (default values) in the response
+	jsonCamelCase    bool   // JSON fields are serialized as lowerCamelCase rather than keeping the original proto names
 }
 
 // NewEmptyServer builds a TwirpServer that can be used as an http.Handler to handle
@@ -144,6 +146,8 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
+	jsonCamelCase := false
+	_ = serverOpts.ReadOpt("jsonCamelCase", &jsonCamelCase)
 	var pathPrefix string
 	if ok := serverOpts.ReadOpt("pathPrefix", &pathPrefix); !ok {
 		pathPrefix = "/twirp" // default prefix
@@ -155,6 +159,7 @@ func NewEmptyServer(svc Empty, opts ...interface{}) TwirpServer {
 		interceptor:      twirp.ChainInterceptors(serverOpts.Interceptors...),
 		pathPrefix:       pathPrefix,
 		jsonSkipDefaults: jsonSkipDefaults,
+		jsonCamelCase:    jsonCamelCase,
 	}
 }
 
@@ -308,9 +313,9 @@ func WriteError(resp http.ResponseWriter, err error) {
 
 // writeError writes Twirp errors in the response and triggers hooks.
 func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks *twirp.ServerHooks) {
-	// Non-twirp errors are wrapped as Internal (default)
-	twerr, ok := err.(twirp.Error)
-	if !ok {
+	// Convert to a twirp.Error. Non-twirp errors are converted to internal errors.
+	var twerr twirp.Error
+	if !errors.As(err, &twerr) {
 		twerr = twirp.InternalErrorWith(err)
 	}
 

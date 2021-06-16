@@ -101,6 +101,38 @@ func TestWriteError(t *testing.T) {
 	}
 }
 
+func TestWriteError_WithNonTwirpError(t *testing.T) {
+	resp := httptest.NewRecorder()
+	nonTwerr := errors.New("not a twirp error")
+	err := WriteError(resp, nonTwerr)
+	if err != nil {
+		t.Errorf("got an error from WriteError when not expecting one: %s", err)
+		return
+	}
+
+	if resp.Code != 500 {
+		t.Errorf("got wrong status. have=%d, want=%d", resp.Code, 500)
+		return
+	}
+
+	var gotTwerrJSON twerrJSON
+	err = json.NewDecoder(resp.Body).Decode(&gotTwerrJSON)
+	if err != nil {
+		t.Errorf("got an error decoding response body: %s", err)
+		return
+	}
+
+	if ErrorCode(gotTwerrJSON.Code) != Internal {
+		t.Errorf("got wrong error code. have=%s, want=%s", gotTwerrJSON.Code, Internal)
+		return
+	}
+
+	if gotTwerrJSON.Msg != ""+nonTwerr.Error() {
+		t.Errorf("got wrong error message. have=%s, want=%s", gotTwerrJSON.Msg, nonTwerr.Error())
+		return
+	}
+}
+
 func TestWrapError(t *testing.T) {
 	rootCause := errors.New("cause")
 	twerr := NewError(NotFound, "it ain't there")

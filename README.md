@@ -40,6 +40,7 @@ Here is a list of some third-party implementations in other languages.
 | **JavaScript** |    ✓    |         | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
 | **Typescript** |    ✓    |    ✓    | [https://github.com/hopin-team/twirp-ts](https://github.com/hopin-team/twirp-ts)
 | **Typescript** |    ✓    |         | [github.com/larrymyers/protoc-gen-twirp_typescript](https://github.com/larrymyers/protoc-gen-twirp_typescript)
+| **Typescript** |    ✓    |    ✓    | [https://github.com/tatethurston/TwirpScript](https://github.com/tatethurston/TwirpScript)
 | **Ruby**       |    ✓    |    ✓    | [github.com/twitchtv/twirp-ruby](https://github.com/twitchtv/twirp-ruby)
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
 | **Scala**      |    ✓    |    ✓    | [github.com/soundcloud/twinagle](https://github.com/soundcloud/twinagle)

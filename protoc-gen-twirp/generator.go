@@ -156,6 +156,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 
 	// Showtime! Generate the response.
 	resp := new(plugin.CodeGeneratorResponse)
+	resp.SupportedFeatures = proto.Uint64(uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
 	for _, f := range t.genFiles {
 		respFile := t.generate(f)
 		if respFile != nil {

@@ -171,3 +171,21 @@ func TestWriteError_WithNonTwirpError(t *testing.T) {
 		return
 	}
 }
+
+func TestCodeAsError(t *testing.T) {
+	c := NotFound
+	var _ Error = c // twirp.ErrorCode implements twirp.Error
+
+	if c.Code() != NotFound {
+		t.Errorf("got wrong error code. have=%s, want=%s", c.Code(), NotFound)
+	}
+	if c.Msg() != "not_found" {
+		t.Errorf("got wrong msg. have=%s, want=%s", c.Msg(), "not_found")
+	}
+	if c.Error() != "not_found" {
+		t.Errorf("got wrong error. have=%s, want=%s", c.Error(), "not_found")
+	}
+	if c.Meta("foobar") != "" {
+		t.Errorf("expected code.Meta to be empty. have=%q", c.Meta("foobar"))
+	}
+}

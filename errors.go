@@ -239,6 +239,20 @@ const (
 	NoError ErrorCode = ""
 )
 
+// ErrorCode implements twirp.Error, as a plain error with the same code and msg string values.
+
+func (c ErrorCode) Code() ErrorCode                { return c }
+func (c ErrorCode) Msg() string                    { return string(c) }
+func (c ErrorCode) WithMeta(key, val string) Error { return NewError(c, string(c)).WithMeta(key, val) }
+func (c ErrorCode) Meta(key string) string         { return "" }
+func (c ErrorCode) MetaMap() map[string]string     { return nil }
+func (c ErrorCode) Error() string                  { return string(c) }
+
+// WithMsg returns a copy of the error but with the specified msg.
+func (c ErrorCode) WithMsg(msg string) Error {
+	return NewError(c, msg)
+}
+
 // ServerHTTPStatusFromErrorCode maps a Twirp error type into a similar HTTP
 // response status. It is used by the Twirp server handler to set the HTTP
 // response status code. Returns 0 if the ErrorCode is invalid.

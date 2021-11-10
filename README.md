@@ -49,6 +49,7 @@ Here is a list of some third-party implementations in other languages.
 | **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
 | **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
+| **Swift**      |    ✓    |         | [github.com/CrazyHulk/protoc-gen-swiftwirp](https://github.com/CrazyHulk/protoc-gen-swiftwirp)
 
 
 ### Support and Community

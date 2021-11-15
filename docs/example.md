@@ -115,8 +115,8 @@ func (s *Server) MakeHat(ctx context.Context, size *pb.Size) (hat *pb.Hat, err e
     }
     return &pb.Hat{
         Inches:  size.Inches,
-        Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(4)],
-        Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(3)],
+        Color: []string{"white", "black", "brown", "red", "blue"}[rand.Intn(5)],
+        Name:  []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(4)],
     }, nil
 }
 ```

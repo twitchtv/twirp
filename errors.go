@@ -73,6 +73,21 @@ type Error interface {
 	Error() string
 }
 
+// code.Error(msg) builds a new Twirp error with code and msg. Example:
+//   twirp.NotFound.Error("Resource not found")
+//   twirp.Internal.Error("Oops")
+func (code ErrorCode) Error(msg string) Error {
+	return NewError(code, msg)
+}
+
+// code.Errorf(msg, args...) builds a new Twirp error with code and formatted msg.
+// The format may include "%w" to wrap other errors. Examples:
+//   twirp.Internal.Error("Oops: %w", originalErr)
+//   twirp.NotFound.Error("Resource not found with id: %q", resourceID)
+func (code ErrorCode) Errorf(msgFmt string, a ...interface{}) Error {
+	return NewErrorf(code, msgFmt, a...)
+}
+
 // WrapError allows Twirp errors to wrap other errors.
 // The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
 // or errors.Is from the standard errors package on Go 1.13+.
@@ -83,48 +98,55 @@ func WrapError(twerr Error, err error) Error {
 	}
 }
 
-// NewError is the generic constructor for a twirp.Error. The ErrorCode must be
-// one of the valid predefined constants, otherwise it will be converted to an
-// error {type: Internal, msg: "invalid error type {{code}}"}. If you need to
-// add metadata, use .WithMeta(key, value) method after building the error.
+// NewError builds a twirp.Error. The code must be one of the valid predefined constants.
+// To add metadata, use .WithMeta(key, value) method after building the error.
 func NewError(code ErrorCode, msg string) Error {
-	if IsValidErrorCode(code) {
-		return &twerr{
-			code: code,
-			msg:  msg,
-		}
+	if !IsValidErrorCode(code) {
+		return &twerr{code: Internal, msg: "invalid error type " + string(code)}
 	}
-	return &twerr{
-		code: Internal,
-		msg:  "invalid error type " + string(code),
-	}
+	return &twerr{code: code, msg: msg}
 }
 
-// NotFoundError constructor for the common NotFound error.
+// NewErrorf builds a twirp.Error with a formatted msg.
+// The format may include "%w" to wrap other errors. Examples:
+//   twirp.NewErrorf(twirp.Internal, "Oops: %w", originalErr)
+//   twirp.NewErrorf(twirp.NotFound, "resource with id: %q", resourceID)
+func NewErrorf(code ErrorCode, msgFmt string, a ...interface{}) Error {
+	err := fmt.Errorf(msgFmt, a...)      // format error message, may include "%w" with an original error
+	twerr := NewError(code, err.Error()) // use the error as msg
+	return WrapError(twerr, err)         // wrap so the original error can be identified with errors.Is
+}
+
+// NotFoundError is a convenience constructor for NotFound errors.
 func NotFoundError(msg string) Error {
 	return NewError(NotFound, msg)
 }
 
-// InvalidArgumentError constructor for the common InvalidArgument error. Can be
-// used when an argument has invalid format, is a number out of range, is a bad
-// option, etc).
+// InvalidArgumentError is a convenience constructor for InvalidArgument errors.
+// The argument name is included on the "argument" metadata for convenience.
 func InvalidArgumentError(argument string, validationMsg string) Error {
 	err := NewError(InvalidArgument, argument+" "+validationMsg)
 	err = err.WithMeta("argument", argument)
 	return err
 }
 
-// RequiredArgumentError is a more specific constructor for InvalidArgument
-// error. Should be used when the argument is required (expected to have a
-// non-zero value).
+// RequiredArgumentError builds an InvalidArgument error.
+// Useful when a request argument is expected to have a non-zero value.
 func RequiredArgumentError(argument string) Error {
 	return InvalidArgumentError(argument, "is required")
 }
 
-// InternalError constructor for the common Internal error. Should be used to
-// specify that something bad or unexpected happened.
+// InternalError is a convenience constructor for Internal errors.
 func InternalError(msg string) Error {
 	return NewError(Internal, msg)
+}
+
+// InternalErrorf uses the formatted message as the internal error msg.
+// The format may include "%w" to wrap other errors. Examples:
+//   twirp.InternalErrorf("database error: %w", err)
+//   twirp.InternalErrorf("failed to load resource %q: %w", resourceID, originalErr)
+func InternalErrorf(msgFmt string, a ...interface{}) Error {
+	return NewErrorf(Internal, msgFmt, a...)
 }
 
 // InternalErrorWith makes an internal error, wrapping the original error and using it

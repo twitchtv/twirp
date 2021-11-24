@@ -54,8 +54,8 @@ export PATH=$GOBIN:$PATH
 Install generators:
 
 ```sh
-go install github.com/twitchtv/twirp/protoc-gen-twirp
-go install google.golang.org/protobuf/cmd/protoc-gen-go
+go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 ```
 
 

@@ -13,4 +13,4 @@
 
 package importmapping
 
-//go:generate sh gen.sh
+//go:generate ./gen.sh

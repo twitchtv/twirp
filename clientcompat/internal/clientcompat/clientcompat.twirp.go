@@ -1222,13 +1222,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 	if err != nil {
 		return ctx, wrapInternal(err, "failed to do request")
 	}
-
-	defer func() {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = wrapInternal(cerr, "failed to close response body")
-		}
-	}()
+	defer func() { _ = resp.Body.Close() }()
 
 	if err = ctx.Err(); err != nil {
 		return ctx, wrapInternal(err, "aborted because context was done")

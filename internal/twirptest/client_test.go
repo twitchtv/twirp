@@ -16,7 +16,6 @@ package twirptest
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -680,56 +679,4 @@ type wrappedHTTPClient struct {
 func (c *wrappedHTTPClient) Do(req *http.Request) (resp *http.Response, err error) {
 	c.wasCalled = true
 	return c.client.Do(req)
-}
-
-func TestClientReturnsCloseErrors(t *testing.T) {
-	h := PickyHatmaker(1)
-	s := httptest.NewServer(NewHaberdasherServer(h, nil))
-	defer s.Close()
-
-	httpClient := &bodyCloseErrClient{base: http.DefaultClient}
-
-	testcase := func(client Haberdasher) func(*testing.T) {
-		return func(t *testing.T) {
-			_, err := client.MakeHat(context.Background(), &Size{Inches: 1})
-			if err == nil {
-				t.Error("expected an error when body fails to close, have nil")
-			} else {
-				if errors.Cause(err) != bodyCloseErr {
-					t.Errorf("got wrong root cause for error, have=%v, want=%v", err, bodyCloseErr)
-				}
-			}
-		}
-	}
-	t.Run("json client", testcase(NewHaberdasherJSONClient(s.URL, httpClient)))
-	t.Run("protobuf client", testcase(NewHaberdasherProtobufClient(s.URL, httpClient)))
-}
-
-// bodyCloseErrClient implements HTTPClient, but the response bodies it returns
-// give an error when they are closed.
-type bodyCloseErrClient struct {
-	base HTTPClient
-}
-
-func (c *bodyCloseErrClient) Do(req *http.Request) (*http.Response, error) {
-	resp, err := c.base.Do(req)
-	if resp == nil {
-		return resp, err
-	}
-	resp.Body = &errBodyCloser{resp.Body}
-	return resp, nil
-}
-
-var bodyCloseErr = errors.New("failed closing")
-
-type errBodyCloser struct {
-	base io.ReadCloser
-}
-
-func (ec *errBodyCloser) Read(p []byte) (int, error) {
-	return ec.base.Read(p)
-}
-
-func (ec *errBodyCloser) Close() error {
-	return bodyCloseErr
 }

@@ -35,11 +35,11 @@ Here is a list of some third-party implementations in other languages.
 |----------------|---------|---------|------------|
 | **Python3**    |    ✓    |    ✓    | [github.com/verloop/twirpy](https://github.com/verloop/twirpy)
 | **Java**       |    ✓    |    ✓    | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
-| **Java**       |         |    ✓    | [https://github.com/devork/flit](https://github.com/devork/flit)
+| **Java**       |         |    ✓    | [github.com/devork/flit](https://github.com/devork/flit)
 | **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
 | **JavaScript** |    ✓    |         | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
 | **JavaScript** |    ✓    |    ✓    | [github.com/tatethurston/TwirpScript](https://github.com/tatethurston/TwirpScript)
-| **Typescript** |    ✓    |    ✓    | [https://github.com/hopin-team/twirp-ts](https://github.com/hopin-team/twirp-ts)
+| **Typescript** |    ✓    |    ✓    | [github.com/hopin-team/twirp-ts](https://github.com/hopin-team/twirp-ts)
 | **Typescript** |    ✓    |         | [github.com/larrymyers/protoc-gen-twirp_typescript](https://github.com/larrymyers/protoc-gen-twirp_typescript)
 | **Typescript** |    ✓    |    ✓    | [github.com/tatethurston/TwirpScript](https://github.com/tatethurston/TwirpScript)
 | **Ruby**       |    ✓    |    ✓    | [github.com/twitchtv/twirp-ruby](https://github.com/twitchtv/twirp-ruby)

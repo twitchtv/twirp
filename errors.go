@@ -59,15 +59,15 @@ type Error interface {
 
 	// WithMeta returns a copy of the Error with the given key-value pair attached
 	// as metadata. If the key is already set, it is overwritten.
-	WithMeta(key string, val string) Error
+	WithMeta(key string, val interface{}) Error
 
 	// Meta returns the stored value for the given key. If the key has no set
 	// value, Meta returns an empty string. There is no way to distinguish between
 	// an unset value and an explicit empty string.
-	Meta(key string) string
+	Meta(key string) interface{}
 
 	// MetaMap returns the complete key-value metadata map stored on the error.
-	MetaMap() map[string]string
+	MetaMap() map[string]interface{}
 
 	// Error returns a string of the form "twirp error <Type>: <Msg>"
 	Error() string
@@ -318,24 +318,24 @@ func IsValidErrorCode(code ErrorCode) bool {
 type twerr struct {
 	code ErrorCode
 	msg  string
-	meta map[string]string
+	meta map[string]interface{}
 }
 
 func (e *twerr) Code() ErrorCode { return e.code }
 func (e *twerr) Msg() string     { return e.msg }
 
-func (e *twerr) Meta(key string) string {
+func (e *twerr) Meta(key string) interface{} {
 	if e.meta != nil {
 		return e.meta[key] // also returns "" if key is not in meta map
 	}
 	return ""
 }
 
-func (e *twerr) WithMeta(key string, value string) Error {
+func (e *twerr) WithMeta(key string, value interface{}) Error {
 	newErr := &twerr{
 		code: e.code,
 		msg:  e.msg,
-		meta: make(map[string]string, len(e.meta)),
+		meta: make(map[string]interface{}, len(e.meta)),
 	}
 	for k, v := range e.meta {
 		newErr.meta[k] = v
@@ -344,7 +344,7 @@ func (e *twerr) WithMeta(key string, value string) Error {
 	return newErr
 }
 
-func (e *twerr) MetaMap() map[string]string {
+func (e *twerr) MetaMap() map[string]interface{} {
 	return e.meta
 }
 
@@ -360,12 +360,12 @@ type wrappedErr struct {
 	cause   error
 }
 
-func (e *wrappedErr) Code() ErrorCode            { return e.wrapper.Code() }
-func (e *wrappedErr) Msg() string                { return e.wrapper.Msg() }
-func (e *wrappedErr) Meta(key string) string     { return e.wrapper.Meta(key) }
-func (e *wrappedErr) MetaMap() map[string]string { return e.wrapper.MetaMap() }
-func (e *wrappedErr) Error() string              { return e.wrapper.Error() }
-func (e *wrappedErr) WithMeta(key string, val string) Error {
+func (e *wrappedErr) Code() ErrorCode                 { return e.wrapper.Code() }
+func (e *wrappedErr) Msg() string                     { return e.wrapper.Msg() }
+func (e *wrappedErr) Meta(key string) interface{}     { return e.wrapper.Meta(key) }
+func (e *wrappedErr) MetaMap() map[string]interface{} { return e.wrapper.MetaMap() }
+func (e *wrappedErr) Error() string                   { return e.wrapper.Error() }
+func (e *wrappedErr) WithMeta(key string, val interface{}) Error {
 	return &wrappedErr{
 		wrapper: e.wrapper.WithMeta(key, val),
 		cause:   e.cause,
@@ -399,9 +399,9 @@ func WriteError(resp http.ResponseWriter, err error) error {
 
 // JSON serialization for errors
 type twerrJSON struct {
-	Code string            `json:"code"`
-	Msg  string            `json:"msg"`
-	Meta map[string]string `json:"meta,omitempty"`
+	Code string                 `json:"code"`
+	Msg  string                 `json:"msg"`
+	Meta map[string]interface{} `json:"meta,omitempty"`
 }
 
 // marshalErrorToJSON returns JSON from a twirp.Error, that can be used as HTTP error response body.

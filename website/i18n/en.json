@@ -41,6 +41,10 @@
         "title": "Meet Twirp!",
         "sidebar_label": "Overview"
       },
+      "migrate_to_twirp": {
+        "title": "Migrate APIs to Twirp",
+        "sidebar_label": "Migrate APIs to Twirp"
+      },
       "mux": {
         "title": "Muxing Twirp with other HTTP services",
         "sidebar_label": "Muxing Twirp services"

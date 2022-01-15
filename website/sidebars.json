@@ -1,26 +1,18 @@
 {
-    "docs": {
-        "Getting started": [
-            "intro",
-            "install",
-            "example",
-            "best_practices"
-        ],
-        "Beyond the basics": [
-            "routing",
-            "errors",
-            "proto_and_json",
-            "hooks",
-            "mux",
-            "headers",
-            "command_line",
-            "curl",
-            "version_matrix"
-        ],
-        "Formal specification": [
-            "spec_v5",
-            "spec_v6",
-            "spec_v7"
-        ]
-    }
+  "docs": {
+    "Getting started": ["intro", "install", "example", "best_practices"],
+    "Beyond the basics": [
+      "routing",
+      "errors",
+      "proto_and_json",
+      "hooks",
+      "mux",
+      "headers",
+      "command_line",
+      "curl",
+      "migrate_to_twirp",
+      "version_matrix"
+    ],
+    "Formal specification": ["spec_v5", "spec_v6", "spec_v7"]
+  }
 }

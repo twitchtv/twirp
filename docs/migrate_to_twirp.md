@@ -6,11 +6,11 @@ sidebar_label: Migrate APIs to Twirp
 
 ## Migrate a REST API to Twirp
 
-Migrating existing REST/JSON APIs to Twirp is a case-by-case scenario. There's no one-size-fits-all process for it.
+Migrating existing REST/JSON APIs to Twirp is a case-by-case scenario. Unfortunately, it involves creating a new service, generating a new client, and migrating callers to use the new endpoints in the new client.
 
-REST/JSON APIs have a huge variety of ways to be defined, but Twirp APIs are restricted to requests in the form `POST [<prefix>]/[<package>.]<Service>/<Method>` (see [Routing and Serialization](routing.md)). That limitation is what allows to build simple and consistent API schemas, but it also means that each REST API endpoint will have a different way to be translated into a Twirp endpoint.
+Twirp APIs are restricted to requests in the form `POST [<prefix>]/[<package>.]<Service>/<Method>` (see [Routing and Serialization](routing.md)). That limitation is what allows to build simple and consistent API schemas, but it also means that each REST API endpoint will have a different way to be translated into a Twirp endpoint. Most REST/JSON APIs don't have strongly defined schemas, and tend to have quirks and edge cases that are hard to automate.
 
-The good news is that you can have Twirp services working together with regular REST APIs, and slowly migrate your older APIs as needed. The general approach involves the following steps:
+Here are some recommendations to do a full service migration:
 
 1.  Identify all the API endpoints in your old service, including request parameters, valid responses and possible errors. Also, identify all the API callers (upstream services) and let them know about the migration, they will need to update their client to use the new Twirp client when available.
 2.  Write a Protobuf schema with the same endpoints. Remember that Twirp endpoints depend on the Protobuf message used as request, but can also read [HTTP headers](headers.md) if needed. Respect Protobuf [naming and best practices](best_practices.md) when possible, but don't try and significantly change the API design of your application during the migration, it will be a lot easier to migrate callers to the new API if the new endpoints closely resemble the old endpoints. Try to use parameter types that are similar to the older parameters. Use comments on the schema to clarify edge cases.

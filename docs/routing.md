@@ -18,8 +18,8 @@ POST [<prefix>]/[<package>.]<Service>/<Method>
 
 Where:
 
- * The `<prefix>` is "/twirp" by default, but it is optional and can be configured with other paths like "/my/custom/prefix" (see `twirp.WithServerPathPrefix`).
- * The `<package>`, `<Service>` and `<Method>` names are the same values used in the `.proto` file where the service was defined.
+- The `<prefix>` is "/twirp" by default, but it is optional and can be configured with other paths like "/my/custom/prefix" (see `twirp.WithServerPathPrefix`).
+- The `<package>`, `<Service>` and `<Method>` names are the same values used in the `.proto` file where the service was defined.
 
 For example, to make a hat with the [Haberdasher service](example.md):
 
@@ -39,14 +39,14 @@ The `Content-Type` header is required and must be either `application/json` or
 `application/protobuf`. JSON is easier for debugging (particularly when making
 requests with cURL), but Protobuf is better in almost every other way. Please
 use Protobuf in real code. See
-[Protobuf and JSON](https://github.com/twitchtv/twirp/wiki/Protobuf-and-JSON)
+[Protobuf and JSON](protobuf_and_json.md)
 for more details.
 
 ### JSON serialization
 
 The JSON format generally matches the
 [official spec](https://developers.google.com/protocol-buffers/docs/proto3#json)'s
-rules for JSON serialization.  In a nutshell: _all_
+rules for JSON serialization. In a nutshell: _all_
 fields must be set, _no_ extra fields may be set, and `null` means "I want to
 leave this field blank".
 One exception to this is that names match the proto names, this is considered more predictable to those writing custom JSON clients.
@@ -67,4 +67,3 @@ POST /twirp/twirp.example.haberdasher.Haberdasher/INVALIDROUTE
     "meta": {"twirp_invalid_route": "POST /twirp/twirp.example.haberdasher.Haberdasher/INVALIDROUTE"}
 }
 ```
-

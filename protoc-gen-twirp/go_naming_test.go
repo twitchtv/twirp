@@ -67,3 +67,40 @@ func TestGoPackageOption(t *testing.T) {
 		testcase("github.com/example/foo;bar", "github.com/example/foo", "bar", true))
 	t.Run("non dotted import with package", testcase("foo;bar", "foo", "bar", true))
 }
+
+func TestGoFileName(t *testing.T) {
+	testcase := func(srcrelpaths bool, modprefix, fname, gopkg, wantName string) func(t2 *testing.T) {
+		return func(t *testing.T) {
+			f := &descriptor.FileDescriptorProto{
+				Name: &fname,
+				Options: &descriptor.FileOptions{
+					GoPackage: &gopkg,
+				},
+			}
+
+			tw := &twirp{
+				sourceRelativePaths: srcrelpaths,
+				modulePrefix:        modprefix,
+			}
+
+			if name := tw.goFileName(f); name != wantName {
+				t.Errorf("wrong goFileName, have=%q want=%q", name, wantName)
+			}
+		}
+	}
+
+	t.Run("paths=source_relative",
+		testcase(true, "",
+			"rpc/v1/service.proto", "example.com/module/package/rpc/v1",
+			"rpc/v1/service.twirp.go"))
+
+	t.Run("paths=import,module=example.com/module/package",
+		testcase(false, "example.com/module/package",
+			"rpc/v1/service.proto", "example.com/module/package/rpc/v1",
+			"rpc/v1/service.twirp.go"))
+
+	t.Run("paths=import,module=example.com/module/package/",
+		testcase(false, "example.com/module/package/",
+			"rpc/v1/service.proto", "example.com/module/package/rpc/v1",
+			"rpc/v1/service.twirp.go"))
+}

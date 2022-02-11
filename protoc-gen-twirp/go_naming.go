@@ -82,7 +82,7 @@ func (t *twirp) goFileName(f *descriptor.FileDescriptorProto) string {
 	// otherwise, the directory is taken from the option go_package
 	if impPath, _, ok := goPackageOption(f); ok && impPath != "" {
 		if t.modulePrefix != "" {
-			impPath = strings.TrimPrefix(impPath, t.modulePrefix)
+			impPath = strings.TrimPrefix(strings.TrimPrefix(impPath, t.modulePrefix), "/")
 		}
 
 		// Replace the existing dirname with the import path from go_package

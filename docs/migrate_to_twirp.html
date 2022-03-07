@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Migrate APIs to Twirp · Twirp</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="## Migrate REST/JSON APIs to Twirp"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Migrate APIs to Twirp · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="## Migrate REST/JSON APIs to Twirp"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v7.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">Routing and Serialization</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Hooks and Interceptors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Generator Flags</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/migrate_to_twirp.html">Migrate APIs to Twirp</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/version_matrix.html">Version Compatibility</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Previous)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Archived)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v7.html">Version 7 (Current)</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Migrate APIs to Twirp</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="migrate-restjson-apis-to-twirp"></a><a href="#migrate-restjson-apis-to-twirp" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Migrate REST/JSON APIs to Twirp</h2>
+<p>Migrating existing REST/JSON APIs to Twirp is a case-by-case scenario. Unfortunately, it involves creating a new service, generating a new client, and migrating callers to use the new endpoints in the new client.</p>
+<p>Twirp APIs are restricted to requests in the form <code>POST [&lt;prefix&gt;]/[&lt;package&gt;.]&lt;Service&gt;/&lt;Method&gt;</code> (see <a href="/twirp/docs/routing.html">Routing and Serialization</a>). That limitation is what allows building simple and consistent API schemas. In the other hand, REST/JSON APIs usually don't have strongly defined schemas and tend to have edge cases that need special attention when being translated into Twirp endpoints.</p>
+<p>The process is a case-by-case scenario, but we can highlight a few common steps:</p>
+<ol>
+<li>Identify all the API endpoints in your old service, including request parameters, valid responses and possible errors. Also, identify all the API callers (upstream services) and let them know about the migration, they will soon need to update their client to use the new Twirp client when available.</li>
+<li>Write a Protobuf schema. Respect <a href="https://developers.google.com/protocol-buffers/docs/style">Protobuf naming and best practices</a> when possible, but don't try and significantly change the API design of your application during the migration; it will be a lot easier to migrate callers to the new API if the new endpoints are closely related to the old endpoints. Try to use parameter types that are similar to the old parameters. Use comments on the schema to clarify edge cases.</li>
+<li>If the API is too big, it may be better to only migrate a few endpoints first. Protobuf schemas are good at evolving over time, you can always complete the migration for a few endpoints and add more endpoints later.</li>
+<li>Generate code and implement your new API methods. You may be able to re-use some of the older code from the previous endpoints. One way to do this is to implement the new service in a subfolder inside the same project, and then mount the new Twirp handler in a sub-route (see <a href="/twirp/docs/mux.html">Muxing Twirp with other services</a>).</li>
+<li>Make sure to track stats about API endpoint usage, so you can see the traffic being migrated to the new endpoints. Use <a href="/twirp/docs/hooks.html">hooks, interceptors</a> and/or HTTP <a href="/twirp/docs/mux.html">middleware</a> as needed.</li>
+<li>When the new Twirp service is ready, the API callers (upstream services) need to import the new Twirp client and update their calls to use the new Twirp API. This is why making the new API similar to the old one is useful. Some services may be able to just replace the old client with the new one and start sending traffic to the new endpoints, relying on their staging/canary environment for testing. Other services may want to implement a rollout slider to migrate traffic slowly (10%, 50%, etc.). The slider can be implemented in different ways. Here's a very naive implememtation in Go to allow 10% traffic on the new client: <code>if r.Intn(100) &lt; 10 { callNewClient() } else { callOldClient() }</code>. In more complex cases, it is also possible to make client that implements the same Twirp service interface, but with options to split the traffic between the new API and the old API.</li>
+<li>When all traffic is migrated, don't forget to clean up the old code. If the old API is impossible to remove completely, it may be useful to re-implement old endpoints as shim calls to the new Twirp endpoints.</li>
+</ol>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/twirp/docs/curl.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">cURL</span></a><a class="docs-next button" href="/twirp/docs/version_matrix.html"><span>Version Compatibility</span><span class="arrow-next"> →</span></a></div></div></div></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2022 Twitch Interactive, Inc.</section></footer></div></body></html>

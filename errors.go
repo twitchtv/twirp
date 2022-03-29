@@ -92,6 +92,7 @@ func (code ErrorCode) Errorf(msgFmt string, a ...interface{}) Error {
 // The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
 // or errors.Is from the standard errors package on Go 1.13+.
 func WrapError(twerr Error, err error) Error {
+	twerr = twerr.WithMeta("cause", err.Error())
 	return &wrappedErr{
 		wrapper: twerr,
 		cause:   err,

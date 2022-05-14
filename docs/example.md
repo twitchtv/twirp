@@ -60,7 +60,10 @@ To generate code run the `protoc` compiler pointed at your service's `.proto`
 files:
 
 ```sh
-$ protoc --twirp_out=. --go_out=paths=. rpc/haberdasher/service.proto
+$ protoc --go_out=. --twirp_out=. \
+  --go_opt=paths=source_relative \
+  --twirp_opt=paths=source_relative \
+  rpc/haberdasher/service.proto
 ```
 
 See [Generator Command Line Arguments](command_line.md) for details about running the generator.
@@ -155,6 +158,14 @@ func main() {
   http.ListenAndServe(":8080", twirpHandler)
 }
 ```
+
+Before you can run server, create go module and tidy to import dependencies
+
+```sh
+go mod init github.com/example
+go mod tidy
+```
+
 
 If you `go run ./cmd/server/main.go`, you'll be running your server at
 `localhost:8080`. All that's left is to create a client!

@@ -11,24 +11,27 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package main
+
+package haberdasherserver
 
 import (
-	"fmt"
-	"io"
-	"time"
+	"context"
+	"math/rand"
+
+	pb "github.com/example/rpc/haberdasher"
+	"github.com/twitchtv/twirp"
 )
 
-type LoggingStatter struct {
-	io.Writer
-}
+// Server implements the Haberdasher service
+type Server struct{}
 
-func (ls LoggingStatter) Inc(metric string, val int64, rate float32) error {
-	_, err := fmt.Fprintf(ls, "incr %s: %d @ %f\n", metric, val, rate)
-	return err
-}
-
-func (ls LoggingStatter) TimingDuration(metric string, val time.Duration, rate float32) error {
-	_, err := fmt.Fprintf(ls, "time %s: %s @ %f\n", metric, val, rate)
-	return err
+func (s *Server) MakeHat(ctx context.Context, size *pb.Size) (hat *pb.Hat, err error) {
+	if size.Inches <= 0 {
+		return nil, twirp.InvalidArgumentError("inches", "I can't make a hat that small!")
+	}
+	return &pb.Hat{
+		Inches: size.Inches,
+		Color:  []string{"white", "black", "brown", "red", "blue"}[rand.Intn(5)],
+		Name:   []string{"bowler", "baseball cap", "top hat", "derby"}[rand.Intn(4)],
+	}, nil
 }

@@ -471,7 +471,7 @@ func (t *twirp) generateUtils() {
 	t.P()
 
 	t.P(`// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.`)
-	t.P(`// If the URL is unparsable, the baseURL is returned unchaged.`)
+	t.P(`// If the URL is unparsable, the baseURL is returned unchanged.`)
 	t.P(`func sanitizeBaseURL(baseURL string) string {`)
 	t.P(`  u, err := `, t.pkgs["url"], `.Parse(baseURL)`)
 	t.P(`  if err != nil {`)

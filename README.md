@@ -51,6 +51,7 @@ Here is a list of some third-party implementations in other languages.
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
 | **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
 | **Swift**      |    ✓    |         | [github.com/CrazyHulk/protoc-gen-swiftwirp](https://github.com/CrazyHulk/protoc-gen-swiftwirp)
+| **Crystal**    |    ✓    |    ✓    | [github.com/mloughran/twirp.cr](https://github.com/mloughran/twirp.cr)
 
 
 ### Support and Community

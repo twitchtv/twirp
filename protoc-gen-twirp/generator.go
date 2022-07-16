@@ -471,7 +471,7 @@ func (t *twirp) generateUtils() {
 	t.P()
 
 	t.P(`// sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.`)
-	t.P(`// If the URL is unparsable, the baseURL is returned unchaged.`)
+	t.P(`// If the URL is unparsable, the baseURL is returned unchanged.`)
 	t.P(`func sanitizeBaseURL(baseURL string) string {`)
 	t.P(`  u, err := `, t.pkgs["url"], `.Parse(baseURL)`)
 	t.P(`  if err != nil {`)
@@ -1011,7 +1011,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 	t.P(`  }`)
 	t.P()
 
-	t.P(`  // Using ReadOpt allows backwards and forwads compatibility with new options in the future`)
+	t.P(`  // Using ReadOpt allows backwards and forwards compatibility with new options in the future`)
 	t.P(`  literalURLs := false`)
 	t.P(`  _ = clientOpts.ReadOpt("literalURLs", &literalURLs)`)
 	t.P(`  var pathPrefix string`)
@@ -1149,7 +1149,7 @@ func (t *twirp) generateServer(file *descriptor.FileDescriptorProto, service *de
 	t.P(`func New`, servName, `Server(svc `, servName, `, opts ...interface{}) TwirpServer {`)
 	t.P(`  serverOpts := newServerOpts(opts)`)
 	t.P()
-	t.P(`  // Using ReadOpt allows backwards and forwads compatibility with new options in the future`)
+	t.P(`  // Using ReadOpt allows backwards and forwards compatibility with new options in the future`)
 	t.P(`  jsonSkipDefaults := false`)
 	t.P(`  _ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)`)
 	t.P(`  jsonCamelCase := false`)

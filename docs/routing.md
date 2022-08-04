@@ -55,14 +55,14 @@ One exception to this is that names match the proto names, this is considered mo
 
 Errors returned by Twirp servers use non-200 HTTP status codes and always have
 JSON-encoded bodies (even if the request was Protobuf-encoded). The body JSON
-has three fields `{type, msg, meta}`. For example:
+has three fields `{code, msg, meta}`. For example:
 
 ```
 POST /twirp/twirp.example.haberdasher.Haberdasher/INVALIDROUTE
 
 404 Not Found
 {
-    "type": "bad_route",
+    "code": "bad_route",
     "msg": "no handler for path /twirp/twirp.example.haberdasher.Haberdasher/INVALIDROUTE",
     "meta": {"twirp_invalid_route": "POST /twirp/twirp.example.haberdasher.Haberdasher/INVALIDROUTE"}
 }

@@ -69,7 +69,7 @@ type Error interface {
 	// MetaMap returns the complete key-value metadata map stored on the error.
 	MetaMap() map[string]string
 
-	// Error returns a string of the form "twirp error <Type>: <Msg>"
+	// Error returns a string of the form "twirp error <Code>: <Msg>"
 	Error() string
 }
 

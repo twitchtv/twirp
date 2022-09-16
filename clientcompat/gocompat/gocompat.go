@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -28,7 +28,7 @@ import (
 
 func main() {
 	var in clientcompat.ClientCompatMessage
-	inBytes, err := ioutil.ReadAll(os.Stdin)
+	inBytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		log.Fatalf("read stdin err: %v", err)
 	}

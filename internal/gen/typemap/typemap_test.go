@@ -14,7 +14,7 @@
 package typemap
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -25,7 +25,7 @@ import (
 )
 
 func loadTestPb(t *testing.T) []*descriptor.FileDescriptorProto {
-	f, err := ioutil.ReadFile(filepath.Join("testdata", "fileset.pb"))
+	f, err := os.ReadFile(filepath.Join("testdata", "fileset.pb"))
 	require.NoError(t, err, "unable to read testdata protobuf file")
 
 	set := new(descriptor.FileDescriptorSet)

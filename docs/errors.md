@@ -4,7 +4,9 @@ title: "Errors"
 sidebar_label: "Errors"
 ---
 
-Twirp errors are JSON responses with `code`, `msg` and (optional) `meta` keys:
+Twirp errors are JSON responses with `code`, `msg` and (optional) `meta` keys.
+
+Example of `internal` error:
 
 ```json
 {
@@ -13,60 +15,50 @@ Twirp errors are JSON responses with `code`, `msg` and (optional) `meta` keys:
 }
 ```
 
-Common error codes are `internal`, `not_found`, `invalid_argument` and `permission_denied`. See [twirp.ErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode) for the full list of available codes.
+Example of `not_found` error with metadata:
 
-The [Errors Spec](spec_v7.md#error-codes) has more details about the protocol and HTTP status mapping.
-
-In Go, Twirp errors satisfy the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface. An easy way to instantiate Twirp errors is using the [twirp.NewError](https://pkg.go.dev/github.com/twitchtv/twirp#NewError) constructor.
-
-
-### Go Clients
-
-Twirp clients always return errors that can be cast to the `twirp.Error` interface.
-
-```go
-resp, err := client.MakeHat(ctx, req)
-if err != nil {
-    if twerr, ok := err.(twirp.Error); ok {
-        // twerr.Code()
-        // twerr.Msg()
-        // twerr.Meta("foobar")
-    }
+```json
+{
+  "code": "not_found",
+  "msg": "user not found",
+  "meta": {
+    "user_id": "123",
+    "retry": "no",
+  },
 }
 ```
 
-Transport-level errors (like connection errors) are returned as internal errors by default. If desired, the original client-side error can be unwrapped:
+Valid Twirp Error Codes:
 
-```go
-resp, err := client.MakeHat(ctx, req)
-if err != nil {
-    if twerr, ok := err.(twirp.Error); ok {
-        if twerr.Code() == twirp.Internal {
-            if transportErr := errors.Unwrap(twerr); transportErr != nil {
-                // transportErr could be something like an HTTP connection error
-            }
-        }
-    }
-}
-```
+ * `internal` (500)
+ * `not_found` (404)
+ * `invalid_argument` (400)
+ * `unauthenticated` (401)
+ * `permission_denied` (403)
+ * `already_exists` (409)
+ * ... see all codes on the [Errors Spec](spec_v7.md#error-codes).
 
-### Go Services
+Twirp services map each error code to a equivalent HTTP status to make it easy to check for errors on middleware.
 
-Example implementation returning Twirp errors:
+In Go, Twirp errors satisfy the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface. The `twirp` package provides error constructors from the codes (e.g. `twirp.Internal.Error("something went wrong")`) and a generic constructor [twirp.NewError](https://pkg.go.dev/github.com/twitchtv/twirp#NewError). Check the [errors.go](https://github.com/twitchtv/twirp/blob/main/errors.go) file for more examples!
+
+
+### Returning Twirp errors from Go Services
+
+Example service implementation returning Twirp errors:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
     if req.UserId == "" {
-        return nil, twirp.NewError(twirp.InvalidArgument, "user_id is required")
+        return nil, twirp.InvalidArgument.Error("user_id is required").WithMeta("arg", "user_id")
     }
 
     user, err := s.DB.FindByID(ctx, req.UserID)
-    if err != nil {
-        return nil, twirp.WrapError(twirp.NewError(twirp.Internal, "something went wrong"), err)
+    if errors.Is(err, DB_NOT_FOUND) {
+        return nil, twirp.NotFound.Error("user not found")
     }
-
-    if user == nil {
-        return nil, twirp.NewError(twirp.NotFound, "user not found")
+    if err != nil {
+        return nil, twirp.Internal.Errorf("DB error: %w", err)
     }
 
     return &pb.FindUserResp{
@@ -76,21 +68,64 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
-Errors that can be matched as `twirp.Error` are sent through the wire and returned with the same code in the client.
+Error values that implement the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface are sent through the wire and returned with the same `code`, `msg` and `meta` in the client.
 
-Regular non-twirp errors are automatically wrapped as internal errors (using [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith)). The original error is accessible in service hooks and middleware (e.g. using `errors.Unwrap`). But the original error is NOT serialized through the network; clients cannot access the original error, and will instead receive a `twirp.Error` with code `twirp.Internal`.
+Regular non-twirp errors are automatically wrapped as internal errors (using [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith)). The original error can be unwrapped and accessed on service hooks and middleware (e.g. using `errors.Unwrap`). But the original error is NOT serialized through the network; clients cannot access the original error, and will instead receive a `twirp.Error` with code `internal`.
 
 Example returning a non-twirp error:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
-    return nil, errors.New("this non-twirp error will be serialized as a twirp.Internal error")
+    return nil, errors.New("will be serialized as twirp.Internal")
 }
 ```
 
-Twirp matches with `errors.As(err, &twerr)` to know if a returned error is a `twirp.Error` or not.
+### Handling errors on Go Clients
 
-**NOTE**: versions older than `v8.1.0` do a type cast `err.(twirp.Error)` instead of matching with `errors.As(err, &twerr)`. This means that wrapped Twirp errors or custom implementations that respond to `As(interface{}) bool` are returned as internal errors, instead of being returned as the appropriate Twirp error. See release [v8.1.0](https://github.com/twitchtv/twirp/releases/tag/v8.1.0) for more details.
+Twirp clients return errors that can always be cast to the `twirp.Error` interface. Unpack the error type to access the `Code()`, `Msg()` and `Meta(key)` properties:
+
+```go
+resp, err := client.FindUser(ctx, req)
+if err != nil {
+    if twerr, ok := err.(twirp.Error); ok {
+        if twerr.Code() == twirp.NotFound {
+            fmt.Println("not found")
+        } else {
+            fmt.Printf("Twirp error %s: %q", twerr.Code(), twerr.Msg())
+        }
+    }
+}
+```
+
+You can also use [errors.Is](https://pkg.go.dev/errors#Is) and [errors.As](https://pkg.go.dev/errors#As) to check and unwrap Twirp errors:
+
+```go
+resp, err := client.MakeHat(ctx, req)
+var twerr twirp.Error
+if errors.As(err, &twerr) {
+    if twerr.Code() == twirp.NotFound {
+        fmt.Println("not found")
+    } else {
+        fmt.Printf("Twirp error %s: %q", twerr.Code(), twerr.Msg())
+    }
+}
+```
+
+Transport-level errors (like connection errors) are returned as internal errors by default. If desired, the original client-side network error can be unwrapped:
+
+```go
+resp, err := client.MakeHat(ctx, req)
+var twerr twirp.Error
+if errors.As(err, &twerr) {
+    if twerr.Code() == twirp.Internal {
+        if transportErr := errors.Unwrap(twerr); transportErr != nil {
+            // transportErr could be something like an HTTP connection error
+        }
+    }
+}
+```
+
+If the server error was wrapping an original service error, that can not be accessed in the client; only the twirp error properties `code`, `msg` and `meta` are serialized over the network.
 
 
 ### HTTP Errors from Intermediary Proxies
@@ -129,10 +164,9 @@ Arbitrary string metadata can be added to any error. For example, a service may 
 
 ```go
 if unavailable {
-    twerr := twirp.NewError(twirp.Unavailable, "taking a nap ...")
-    twerr = twerr.WithMeta("retryable", "true")
-    twerr = twerr.WithMeta("retry_after", "15s")
-    return nil, twerr
+    return nil, twirp.Unavailable.Error("taking a nap ...").
+        WithMeta("retryable", "true").
+        WithMeta("retry_after", "15s")
 }
 ```
 
@@ -140,16 +174,13 @@ Metadata is available on the client as expected:
 
 ```go
 if twerr.Code() == twirp.Unavailable {
-    if twerr.Meta("retry_after") != "" {
-        // ... retry after twerr.Meta("retry_after")
+    if twerr.Meta("retryable") == "true" {
+        fmt.Printf("retry after %s", twerr.Meta("retry_after"))
     }
 }
 ```
 
-Error metadata can only have string values. This is to simplify error parsing by clients.
-If your service requires errors with complex metadata, you should consider adding client
-wrappers on top of the auto-generated clients, or just include business-logic errors as
-part of the Protobuf messages (add an error field to proto messages).
+Error metadata can only have string values. This is to simplify error parsing by clients. If your service requires errors with complex metadata, you should consider adding client wrappers on top of the auto-generated clients, or add specific business-logic errors as a speficic error field on the Protobuf messages.
 
 
 ### Writing HTTP Errors outside Twirp services
@@ -157,7 +188,7 @@ part of the Protobuf messages (add an error field to proto messages).
 Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses and error codes _outside_ Twirp servers, such as HTTP middleware, you can call [twirp.WriteError](https://pkg.go.dev/github.com/twitchtv/twirp#WriteError).
 
 ```go
-twerr := twirp.NewError(twirp.Unauthenticated, "invalid token")
+twerr := twirp.Unauthenticated.Error("invalid token")
 twirp.WriteError(respWriter, twerr)
 ```
 

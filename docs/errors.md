@@ -51,12 +51,12 @@ Valid Twirp Error Codes:
 
 Twirp services map each error code to a equivalent HTTP status to make it easy to check for errors on middleware (See [twirp.ServerHTTPStatusFromErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode)).
 
-In Go, Twirp errors satisfy the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface. The `twirp` package provides error constructors from the codes (e.g. `twirp.Internal.Error("something went wrong")`) (added on v8.1.1), and a generic constructor [twirp.NewError](https://pkg.go.dev/github.com/twitchtv/twirp#NewError). Check the [errors.go file for examples](https://github.com/twitchtv/twirp/blob/main/errors.go).
-
 
 ## Server Side: Returning Error Responses
 
 A Twirp endpoint may return an error. If the error value implements the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface, it will be serialized and received by the client with the exact same `code`, `msg` and `meta` properties.
+
+The `twirp` package provides error constructors for each code. For example, to build an internal error: `twirp.Internal.Error("oops")`. There is also a generic constructor [twirp.NewError](https://pkg.go.dev/github.com/twitchtv/twirp#NewError). Anything that implements the `twirp.Error` interface counts as a Twirp error. Check the [errors.go file for details](https://github.com/twitchtv/twirp/blob/main/errors.go).
 
 Example of an endpoint returning Twirp errors:
 
@@ -83,33 +83,31 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
-If the error is a vanila (non-twirp) error, it will be automatically wrapped as an internal error with [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith)). The original error can be unwrapped and accessed on service hooks and middleware (e.g. using [errors.Unwrap](https://pkg.go.dev/errors#Unwrap) or [errors.As](https://pkg.go.dev/errors#As)), but not on the client; the original error is not serialized through the network, and the client will instead receive an `internal` error with the same error message.
+If the endpoint returns a vanilla (non-twirp) error, it will be automatically wrapped as an **internal** error with [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith)).
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
-    err := errors.New("vanila error")
-
+    err := errors.New("oops")
     return nil, err
 }
 ```
 
-This code is equivalent to explicitly using the wrapper:
+Using the wrapper explicitly is equivalent; the client will receive the same internal error.
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
-    err := errors.New("vanila error")
-
+    err := errors.New("oops")
     return nil, twirp.InternalErrorWith(err)
 }
 ```
 
-Which is also equivalent to building an internal error wrapping the original like this:
+And that is equivalent to building the internal error like this:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
-    err := errors.New("vanila error")
+    err := errors.New("oops")
 
-	return twirp.Internal.Errorf("%w", err.Error()).
+	return twirp.Internal.Errorf("%w", err).
         WithMeta("cause", fmt.Sprintf("%T", err))
 }
 ```
@@ -119,9 +117,7 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses and error codes _outside_ Twirp servers, such as HTTP middleware, you can call [twirp.WriteError](https://pkg.go.dev/github.com/twitchtv/twirp#WriteError).
 
 ```go
-twerr := twirp.Unauthenticated.Error("invalid token")
-
-twirp.WriteError(respWriter, twerr)
+twirp.WriteError(responseWriter, twirp.Unauthenticated.Error("invalid token"))
 ```
 
 

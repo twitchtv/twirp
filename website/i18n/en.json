@@ -5,9 +5,9 @@
     "previous": "Previous",
     "tagline": "Simple RPC framework powered by protobuf",
     "docs": {
-      "'best_practices'": {
-        "title": "'Best Practices'",
-        "sidebar_label": "'Best Practices'"
+      "best_practices": {
+        "title": "Best Practices",
+        "sidebar_label": "Best Practices"
       },
       "command_line": {
         "title": "Generator Flags for the Protoc Compiler",

@@ -6,7 +6,7 @@ package x
 import context "context"
 import fmt "fmt"
 import http "net/http"
-import ioutil "io/ioutil"
+import io "io"
 import json "encoding/json"
 import strconv "strconv"
 import strings "strings"
@@ -20,7 +20,6 @@ import twirp_internal_twirptest_importmapping_y "github.com/twitchtv/twirp/inter
 
 import bytes "bytes"
 import errors "errors"
-import io "io"
 import path "path"
 import url "net/url"
 
@@ -61,7 +60,7 @@ func NewSvc1ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 		o(&clientOpts)
 	}
 
-	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	// Using ReadOpt allows backwards and forwards compatibility with new options in the future
 	literalURLs := false
 	_ = clientOpts.ReadOpt("literalURLs", &literalURLs)
 	var pathPrefix string
@@ -153,7 +152,7 @@ func NewSvc1JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 		o(&clientOpts)
 	}
 
-	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	// Using ReadOpt allows backwards and forwards compatibility with new options in the future
 	literalURLs := false
 	_ = clientOpts.ReadOpt("literalURLs", &literalURLs)
 	var pathPrefix string
@@ -241,7 +240,7 @@ type svc1Server struct {
 func NewSvc1Server(svc Svc1, opts ...interface{}) TwirpServer {
 	serverOpts := newServerOpts(opts)
 
-	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	// Using ReadOpt allows backwards and forwards compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
 	jsonCamelCase := false
@@ -439,7 +438,7 @@ func (s *svc1Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
-	buf, err := ioutil.ReadAll(req.Body)
+	buf, err := io.ReadAll(req.Body)
 	if err != nil {
 		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
@@ -633,7 +632,7 @@ func writeError(ctx context.Context, resp http.ResponseWriter, err error, hooks 
 }
 
 // sanitizeBaseURL parses the the baseURL, and adds the "http" scheme if needed.
-// If the URL is unparsable, the baseURL is returned unchaged.
+// If the URL is unparsable, the baseURL is returned unchanged.
 func sanitizeBaseURL(baseURL string) string {
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -647,9 +646,12 @@ func sanitizeBaseURL(baseURL string) string {
 
 // baseServicePath composes the path prefix for the service (without <Method>).
 // e.g.: baseServicePath("/twirp", "my.pkg", "MyService")
-//       returns => "/twirp/my.pkg.MyService/"
+//
+//	returns => "/twirp/my.pkg.MyService/"
+//
 // e.g.: baseServicePath("", "", "MyService")
-//       returns => "/MyService/"
+//
+//	returns => "/MyService/"
 func baseServicePath(prefix, pkg, service string) string {
 	fullServiceName := service
 	if pkg != "" {
@@ -755,7 +757,7 @@ func errorFromResponse(resp *http.Response) twirp.Error {
 		return twirpErrorFromIntermediary(statusCode, msg, location)
 	}
 
-	respBodyBytes, err := ioutil.ReadAll(resp.Body)
+	respBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return wrapInternal(err, "failed to read server error response body")
 	}
@@ -955,7 +957,7 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 		return ctx, errorFromResponse(resp)
 	}
 
-	respBodyBytes, err := ioutil.ReadAll(resp.Body)
+	respBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ctx, wrapInternal(err, "failed to read response body")
 	}

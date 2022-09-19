@@ -16,7 +16,6 @@ package twirp
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -64,7 +63,7 @@ func TestSourceCodeLicenseHeaders(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		fileBytes, err := ioutil.ReadAll(file)
+		fileBytes, err := io.ReadAll(file)
 		if err != nil {
 			return err
 		}

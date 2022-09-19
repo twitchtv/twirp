@@ -20,10 +20,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -83,7 +83,7 @@ func TestServerJSONWithMalformedRequest(t *testing.T) {
 		t.Fatalf("Expected 400 BadRequest when sending malformed request, got %d", resp.StatusCode)
 	}
 	// Make sure the response is meaningful
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
@@ -114,7 +114,7 @@ func TestServerJSONWithUnknownFields(t *testing.T) {
 	}()
 
 	// Make sure that the returned hat is valid and has empty (zero-value) size
-	respBytes, err := ioutil.ReadAll(resp.Body) // read manually first in case jsonpb.Unmarshal so it can be printed for debugging
+	respBytes, err := io.ReadAll(resp.Body) // read manually first in case jsonpb.Unmarshal so it can be printed for debugging
 	if err != nil {
 		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
@@ -149,7 +149,7 @@ func TestServerProtobufMalformedRequest(t *testing.T) {
 		t.Fatalf("Expected 400 BadRequest when sending malformed request, got %d", resp.StatusCode)
 	}
 	// Make sure the response is meaningful
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("Could not even read bytes from response: %q", err.Error())
 	}
@@ -436,7 +436,7 @@ func TestHooks(t *testing.T) {
 			base: http.DefaultTransport,
 			rewrite: func(r *http.Request) *http.Request {
 				r.ContentLength = 1
-				r.Body = ioutil.NopCloser(io.LimitReader(r.Body, 1))
+				r.Body = io.NopCloser(io.LimitReader(r.Body, 1))
 				return r
 			},
 		}
@@ -987,7 +987,7 @@ func testMuxingTwirpServer(t *testing.T, prefix string, handler TwirpServer) {
 		t.Errorf("health check endpoint err=%q", err)
 	} else {
 		if resp.StatusCode != 200 {
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			t.Errorf("got a non-200 response from /health: %d", resp.StatusCode)
 			t.Logf("response body: %s", body)
 			t.Logf("response read err: %s", err)
@@ -1451,7 +1451,7 @@ func TestReflection(t *testing.T) {
 	})
 	t.Run("ProtoGenTwirpVersion", func(t *testing.T) {
 		// Should match whatever is in the file at protoc-gen-twirp/version.go
-		file, err := ioutil.ReadFile("../gen/version.go")
+		file, err := os.ReadFile("../gen/version.go")
 		if err != nil {
 			t.Fatalf("unable to load version file: %v", err)
 		}
@@ -1657,7 +1657,7 @@ func TestRequestBodyError(t *testing.T) {
 			}
 
 			// validate error message
-			respBytes, err := ioutil.ReadAll(w.Body)
+			respBytes, err := io.ReadAll(w.Body)
 			if err != nil {
 				t.Fatalf("Could not even read bytes from response: %q", err.Error())
 			}

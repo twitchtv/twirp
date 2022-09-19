@@ -18,7 +18,7 @@ package descriptors
 import (
 	"bytes"
 	"compress/gzip"
-	"io/ioutil"
+	"io"
 
 	"google.golang.org/protobuf/proto"
 	protobuf "google.golang.org/protobuf/types/descriptorpb"
@@ -36,7 +36,7 @@ func UnpackFile(gz []byte) (*protobuf.FileDescriptorProto, error) {
 	}
 	defer r.Close()
 
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to uncompress descriptor")
 	}

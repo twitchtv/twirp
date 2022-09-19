@@ -15,7 +15,6 @@ package gen
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 
 	"google.golang.org/protobuf/proto"
@@ -50,7 +49,7 @@ Outer:
 }
 
 func readGenRequest(r io.Reader) *plugin.CodeGeneratorRequest {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		Error(err, "reading input")
 	}

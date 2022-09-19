@@ -8,7 +8,7 @@ package multiple
 import context "context"
 import fmt "fmt"
 import http "net/http"
-import ioutil "io/ioutil"
+import io "io"
 import json "encoding/json"
 import strconv "strconv"
 import strings "strings"
@@ -57,7 +57,7 @@ func NewSvc2ProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 		o(&clientOpts)
 	}
 
-	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	// Using ReadOpt allows backwards and forwards compatibility with new options in the future
 	literalURLs := false
 	_ = clientOpts.ReadOpt("literalURLs", &literalURLs)
 	var pathPrefix string
@@ -196,7 +196,7 @@ func NewSvc2JSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientOp
 		o(&clientOpts)
 	}
 
-	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	// Using ReadOpt allows backwards and forwards compatibility with new options in the future
 	literalURLs := false
 	_ = clientOpts.ReadOpt("literalURLs", &literalURLs)
 	var pathPrefix string
@@ -331,7 +331,7 @@ type svc2Server struct {
 func NewSvc2Server(svc Svc2, opts ...interface{}) TwirpServer {
 	serverOpts := newServerOpts(opts)
 
-	// Using ReadOpt allows backwards and forwads compatibility with new options in the future
+	// Using ReadOpt allows backwards and forwards compatibility with new options in the future
 	jsonSkipDefaults := false
 	_ = serverOpts.ReadOpt("jsonSkipDefaults", &jsonSkipDefaults)
 	jsonCamelCase := false
@@ -532,7 +532,7 @@ func (s *svc2Server) serveSendProtobuf(ctx context.Context, resp http.ResponseWr
 		return
 	}
 
-	buf, err := ioutil.ReadAll(req.Body)
+	buf, err := io.ReadAll(req.Body)
 	if err != nil {
 		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return
@@ -712,7 +712,7 @@ func (s *svc2Server) serveSamePackageProtoImportProtobuf(ctx context.Context, re
 		return
 	}
 
-	buf, err := ioutil.ReadAll(req.Body)
+	buf, err := io.ReadAll(req.Body)
 	if err != nil {
 		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
 		return

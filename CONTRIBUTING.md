@@ -49,19 +49,20 @@ dependencies we know about, build the core, and run tests. A few notes:
 
 ## Contributing Documentation
 
-Twirp's docs are generated with [Docusaurus](https://docusaurus.io/). You can
-safely edit anything inside the [docs](./docs) directory, adding new pages or
-editing them. You can edit the sidebar by editing
-[website/sidebars.json](./website/sidebars.json).
+Twirp's docs are generated with [Docusaurus](https://docusaurus.io/). You can safely edit anything inside the [docs](./docs) directory, adding new pages or editing them. You can edit the sidebar by editing [website/sidebars.json](./website/sidebars.json).
 
-Then, to render your changes, run docusaurus's local server. See [Install docusaurus on your machine](https://docusaurus.io/docs/en/installation.html).
+To render and review your changes, run docusaurus's local server. See [Install docusaurus on your machine](https://docusaurus.io/docs/en/installation.html).
 
-1.  `cd website`
-2.  `npm install`
-3.  `npm start`
-4.  Navigate to http://localhost:3000/twirp.
+1. `cd website`
+2. `npm install`
+3. `npm start`
+4. Navigate to http://localhost:3000/twirp to see how it looks.
 
-Follow [this guide](https://docusaurus.io/docs/en/tutorial-publish-site) to publish changes to the `gh-pages` branch.
+Publish the new docs on the `gh-pages` branch. See [this guide](https://docusaurus.io/docs/en/tutorial-publish-site) for details.
+
+```
+GIT_USER=<your-github-username> CURRENT_BRANCH=gh-pages USE_SSH=true npm run publish-gh-pages
+```
 
 ## Making a New Release
 

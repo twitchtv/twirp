@@ -4,15 +4,15 @@ title: "Errors"
 sidebar_label: "Errors"
 ---
 
-A Twirp error has the properties:
+A Twirp error has:
 
  * **code**: identifies the type of error.
  * **msg**: free-form message with detailed information about the error. It is meant for humans, to assist with debugging. Programs should not try to parse the error message.
- * (optional) **meta**: key-value pairs with arbitrary string metadata.
+ * **meta**: (optional) key-value pairs with arbitrary string metadata.
 
 ## Error Codes
 
-Valid Twirp error codes (and equivalent HTTP status):
+Valid Twirp error codes (HTTP status):
 
  * `internal` (500)
  * `not_found` (404)
@@ -24,7 +24,7 @@ Valid Twirp error codes (and equivalent HTTP status):
 
 To map a [twirp.ErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode) into the equivalent HTTP status, use the helper [twirp.ServerHTTPStatusFromErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode)).
 
-# Error responses
+## Overview
 
 A Twirp endpoint returns a [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error). For example, a "Permission
 

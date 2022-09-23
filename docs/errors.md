@@ -4,9 +4,29 @@ title: "Errors"
 sidebar_label: "Errors"
 ---
 
+A Twirp error has:
+
+ * **code**: identifies the type of error.
+ * **msg**: free-form message with detailed information about the error. It is meant for humans, to assist with debugging. Programs should not try to parse the error message.
+ * **meta**: (optional) key-value pairs with arbitrary string metadata.
+
+## Error Codes
+
+Valid Twirp error codes (HTTP status):
+
+ * `internal` (500)
+ * `not_found` (404)
+ * `invalid_argument` (400)
+ * `unauthenticated` (401)
+ * `permission_denied` (403)
+ * `already_exists` (409)
+ * ... more on the [Errors Spec](spec_v7.md#error-codes)
+
+To map a [twirp.ErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode) into the equivalent HTTP status, use the helper [twirp.ServerHTTPStatusFromErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode)).
+
 ## Overview
 
-Service endpoint returns a Twirp error:
+A Twirp endpoint returns a [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error). For example, a "Permission
 
 ```go
 func (s *Server) Foo(ctx context.Context, req *pb.FooRequest) (*pb.FooResp, error) {
@@ -17,7 +37,7 @@ func (s *Server) Foo(ctx context.Context, req *pb.FooRequest) (*pb.FooResp, erro
 Twirp serializes the response as a JSON with `code` and `msg` keys:
 
 ```json
-// HTTP status code: 403
+// HTTP status: 403
 {
   "code": "permission_denied",
   "msg": "this door is closed"
@@ -28,33 +48,15 @@ The auto-generated client de-serializes and returns the same Twirp error:
 
 ```go
 resp, err := client.Foo(ctx, req)
-if err != nil {
-    err.Error() //=> "twirp error permission_deined: this door is closed"
-
-    twerr := err.(twirp.Error)
+if twerr, ok := err.(twirp.Error); ok {
     twerr.Code() // => twirp.PermissionDenied
     twerr.Msg() //=> "this door is closed"
 }
 ```
 
-## Error Codes
-
-Valid Twirp Error Codes:
-
- * `internal` (500)
- * `not_found` (404)
- * `invalid_argument` (400)
- * `unauthenticated` (401)
- * `permission_denied` (403)
- * `already_exists` (409)
- * ... see all available codes on the [Errors Spec](spec_v7.md#error-codes).
-
-Twirp services map each error code to a equivalent HTTP status to make it easy to check for errors on middleware (See [twirp.ServerHTTPStatusFromErrorCode](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode)).
-
-
 ## Server Side: Returning Error Responses
 
-A Twirp endpoint may return an error. If the error value implements the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface, it will be serialized and received by the client with the exact same `code`, `msg` and `meta` properties.
+A Twirp endpoint may return an error. If the error value implements the  interface, it will be serialized and received by the client with the exact same `code`, `msg` and `meta` properties.
 
 The `twirp` package provides error constructors for each code. For example, to build an internal error: `twirp.Internal.Error("oops")`. There is also a generic constructor [twirp.NewError](https://pkg.go.dev/github.com/twitchtv/twirp#NewError). Anything that implements the `twirp.Error` interface counts as a Twirp error. Check the [errors.go file for details](https://github.com/twitchtv/twirp/blob/main/errors.go).
 
@@ -112,7 +114,7 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
-### Error responses from outside Twirp endpoints
+#### Middleware, outside Twirp endpoints
 
 Twirp services can be [muxed with other HTTP services](mux.md). For consistent responses and error codes _outside_ Twirp servers, such as HTTP middleware, you can call [twirp.WriteError](https://pkg.go.dev/github.com/twitchtv/twirp#WriteError).
 

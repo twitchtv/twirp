@@ -32,7 +32,6 @@ Here is a list of some third-party implementations in other languages.
 
 |    Language    | Clients | Servers | Repository |
 |----------------|---------|---------|------------|
-| **Go**         |    ✓    |    ✓    | [github.com/twitchtv/twirp](https://github.com/twitchtv/twirp)
 | **Python3**    |    ✓    |    ✓    | [github.com/verloop/twirpy](https://github.com/verloop/twirpy)
 | **Java**       |    ✓    |    ✓    | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
 | **Java**       |         |    ✓    | [github.com/devork/flit](https://github.com/devork/flit)

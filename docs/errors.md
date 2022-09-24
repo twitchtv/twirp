@@ -4,17 +4,17 @@ title: "Errors"
 sidebar_label: "Errors"
 ---
 
-A Twirp error has the properties:
+A Twirp error has the following properties:
 
  * **code**: Identifies the type of error.
  * **msg**: Free-form message with detailed information about the error. This is for humans, to help with debugging. Programs should not try to parse the error message.
  * **meta**: (optional) key-value pairs with arbitrary string metadata. Useful to define subtypes under the same code, or add extra fields for the callers.
 
-In Go, any value that implements the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface is considered a Twirp error.
+On the network, an error is represented as a JSON response with those properties. In Go, any value that implements the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface is considered a Twirp error. Other languages have different ways to represent the errors, but they always have the same properties and valid set of codes.
 
 ## Error Codes
 
-Valid Twirp error codes and the [equivalent HTTP status](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode):
+Twirp error codes with equivalent [HTTP status](https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode):
 
  * `internal` (500)
  * `not_found` (404)
@@ -26,7 +26,7 @@ Valid Twirp error codes and the [equivalent HTTP status](https://pkg.go.dev/gith
 
 ## Overview
 
-Twirp endpoint may return an error. For example:
+A Twirp service may implement an endpoint that returns an error. For example:
 
 ```go
 func (s *Server) OpenDoor(ctx context.Context, req *pb.OpenDoorRequest) (*pb.OpenDoorResp, error) {
@@ -44,7 +44,7 @@ The service HTTP response becomes be the error serialized as JSON:
 }
 ```
 
-Calling the endpoint from an auto-generated client will receive the same Twirp error:
+Calling the endpoint from an auto-generated client will result on the same error, that can be inspected through the properties on the [twirp.Error](https://pkg.go.dev/github.com/twitchtv/twirp#Error) interface:
 
 ```go
 resp, err := client.OpenDoor(ctx, req)
@@ -107,7 +107,7 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 
 If the endpoint returns a vanilla (non-twirp) error, it will be automatically wrapped using [twirp.InternalErrorWith(err)](https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith).
 
-The following examples are all equivalent, the client receives the same internal error.
+The following examples are equivalent (the client receives the same internal error).
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
@@ -115,7 +115,7 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
-Is equivalent to:
+Is equivalent to wrap the error with the helper:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {
@@ -123,7 +123,7 @@ func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.Fin
 }
 ```
 
-Which is also equivalent to building this error from scratch:
+Which is also equivalent to building the error from scratch this way:
 
 ```go
 func (s *Server) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb.FindUserResp, error) {

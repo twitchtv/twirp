@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Errors · Twirp</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="A Twirp error has:"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Errors · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="A Twirp error has:"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v7.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">Routing and Serialization</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Hooks and Interceptors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Generator Flags</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/migrate_to_twirp.html">Migrate APIs to Twirp</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/version_matrix.html">Version Compatibility</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Previous)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Archived)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v7.html">Version 7 (Current)</a></li></ul></div></div></section></div><script>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Errors · Twirp</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="A Twirp error has the properties:"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Errors · Twirp"/><meta property="og:type" content="website"/><meta property="og:url" content="https://twitchtv.github.io/twirp/index.html"/><meta property="og:description" content="A Twirp error has the properties:"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/twirp/undefined"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/twirp/js/scrollSpy.js"></script><link rel="stylesheet" href="/twirp/css/main.css"/><script src="/twirp/js/codetabs.js"></script></head><body class="sideNavVisible"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/twirp/"><h2 class="headerTitle">Twirp</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/twirp/docs/intro.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="/twirp/docs/spec_v7.html" target="_self">Spec</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Beyond the basics</span></h2></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/intro.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/install.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/example.html">Usage Example</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/best_practices.html">Best Practices</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Beyond the basics</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/routing.html">Routing and Serialization</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/twirp/docs/errors.html">Errors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/proto_and_json.html">Protobuf and JSON</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/hooks.html">Hooks and Interceptors</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/mux.html">Muxing Twirp services</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/headers.html">Custom HTTP Headers</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/command_line.html">Generator Flags</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/curl.html">cURL</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/migrate_to_twirp.html">Migrate APIs to Twirp</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/version_matrix.html">Version Compatibility</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Formal specification</h3><ul class=""><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v5.html">Version 5 (Previous)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v6.html">Version 6 (Archived)</a></li><li class="navListItem"><a class="navItem" href="/twirp/docs/spec_v7.html">Version 7 (Current)</a></li></ul></div></div></section></div><script>
             var coll = document.getElementsByClassName('collapsible');
             var checkActiveCategory = true;
             for (var i = 0; i < coll.length; i++) {
@@ -54,14 +54,15 @@
                 };
               }
             });
-        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Errors</h1></header><article><div><span><p>A Twirp error has:</p>
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Errors</h1></header><article><div><span><p>A Twirp error has the properties:</p>
 <ul>
-<li><strong>code</strong>: identifies the type of error.</li>
-<li><strong>msg</strong>: free-form message with detailed information about the error. It is meant for humans, to assist with debugging. Programs should not try to parse the error message.</li>
-<li><strong>meta</strong>: (optional) key-value pairs with arbitrary string metadata.</li>
+<li><strong>code</strong>: Identifies the type of error.</li>
+<li><strong>msg</strong>: Free-form message with detailed information about the error. This is for humans, to help with debugging. Programs should not try to parse the error message.</li>
+<li><strong>meta</strong>: (optional) key-value pairs with arbitrary string metadata. Useful to define subtypes under the same code, or add extra fields for the callers.</li>
 </ul>
+<p>In Go, any value that implements the <a href="https://pkg.go.dev/github.com/twitchtv/twirp#Error">twirp.Error</a> interface is considered a Twirp error.</p>
 <h2><a class="anchor" aria-hidden="true" id="error-codes"></a><a href="#error-codes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Error Codes</h2>
-<p>Valid Twirp error codes (HTTP status):</p>
+<p>Valid Twirp error codes and the <a href="https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode">equivalent HTTP status</a>:</p>
 <ul>
 <li><code>internal</code> (500)</li>
 <li><code>not_found</code> (404)</li>
@@ -71,35 +72,53 @@
 <li><code>already_exists</code> (409)</li>
 <li>... more on the <a href="/twirp/docs/spec_v7.html#error-codes">Errors Spec</a></li>
 </ul>
-<p>To map a <a href="https://pkg.go.dev/github.com/twitchtv/twirp#ErrorCode">twirp.ErrorCode</a> into the equivalent HTTP status, use the helper <a href="https://pkg.go.dev/github.com/twitchtv/twirp#ServerHTTPStatusFromErrorCode">twirp.ServerHTTPStatusFromErrorCode</a>).</p>
 <h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
-<p>A Twirp endpoint returns a <a href="https://pkg.go.dev/github.com/twitchtv/twirp#Error">twirp.Error</a>. For example, a &quot;Permission</p>
-<pre><code class="hljs css language-go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">Foo</span><span class="hljs-params">(ctx context.Context, req *pb.FooRequest)</span> <span class="hljs-params">(*pb.FooResp, error)</span></span> {
+<p>Twirp endpoint may return an error. For example:</p>
+<pre><code class="hljs css language-go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">OpenDoor</span><span class="hljs-params">(ctx context.Context, req *pb.OpenDoorRequest)</span> <span class="hljs-params">(*pb.OpenDoorResp, error)</span></span> {
     <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.PermissionDenied.Error(<span class="hljs-string">"this door is closed"</span>)
 }
 </code></pre>
-<p>Twirp serializes the response as a JSON with <code>code</code> and <code>msg</code> keys:</p>
+<p>The service HTTP response becomes be the error serialized as JSON:</p>
 <pre><code class="hljs css language-json"><span class="hljs-comment">// HTTP status: 403</span>
 {
   <span class="hljs-attr">"code"</span>: <span class="hljs-string">"permission_denied"</span>,
   <span class="hljs-attr">"msg"</span>: <span class="hljs-string">"this door is closed"</span>
 }
 </code></pre>
-<p>The auto-generated client de-serializes and returns the same Twirp error:</p>
-<pre><code class="hljs css language-go">resp, err := client.Foo(ctx, req)
+<p>Calling the endpoint from an auto-generated client will receive the same Twirp error:</p>
+<pre><code class="hljs css language-go">resp, err := client.OpenDoor(ctx, req)
 <span class="hljs-keyword">if</span> twerr, ok := err.(twirp.Error); ok {
     twerr.Code() <span class="hljs-comment">// =&gt; twirp.PermissionDenied</span>
-    twerr.Msg() <span class="hljs-comment">//=&gt; "this door is closed"</span>
+    twerr.Msg()  <span class="hljs-comment">//=&gt; "this door is closed"</span>
 }
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="server-side-returning-error-responses"></a><a href="#server-side-returning-error-responses" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Server Side: Returning Error Responses</h2>
-<p>A Twirp endpoint may return an error. If the error value implements the  interface, it will be serialized and received by the client with the exact same <code>code</code>, <code>msg</code> and <code>meta</code> properties.</p>
-<p>The <code>twirp</code> package provides error constructors for each code. For example, to build an internal error: <code>twirp.Internal.Error(&quot;oops&quot;)</code>. There is also a generic constructor <a href="https://pkg.go.dev/github.com/twitchtv/twirp#NewError">twirp.NewError</a>. Anything that implements the <code>twirp.Error</code> interface counts as a Twirp error. Check the <a href="https://github.com/twitchtv/twirp/blob/main/errors.go">errors.go file for details</a>.</p>
-<p>Example of an endpoint returning Twirp errors:</p>
+<p>The <code>twirp</code> package provides a variety of error constructors. Check the <a href="https://github.com/twitchtv/twirp/blob/main/errors.go">errors.go file for details</a>. Some examples:</p>
+<pre><code class="hljs css language-go"><span class="hljs-comment">// (twirp.Code).Error(msg) to build a new error from the code</span>
+twirp.Internal.Error(<span class="hljs-string">"oops"</span>)
+twirp.NotFound.Error(<span class="hljs-string">"user not found"</span>)
+twirp.InvalidArgument.Error(<span class="hljs-string">"user_id must be alphanumeric"</span>)
+
+<span class="hljs-comment">// (twirp.Code).Errorf(msg, ...args) to wrap other errors</span>
+twirp.Internal.Errorf(<span class="hljs-string">"Failed to perform operation: w%"</span>, err)
+
+<span class="hljs-comment">// Generic constructor</span>
+twirp.NewError(twirp.InvalidArgument, <span class="hljs-string">"user_id must be alphanumeric"</span>)
+
+<span class="hljs-comment">// Any value that implements the twirp.Error interface</span>
+myOwnTwirpErrImpl{code: twirp.NotFound}
+</code></pre>
+<p>Example of a Twirp endpoint that returns errors:</p>
 <pre><code class="hljs css language-go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">FindUser</span><span class="hljs-params">(ctx context.Context, req *pb.FindUserRequest)</span> <span class="hljs-params">(*pb.FindUserResp, error)</span></span> {
     <span class="hljs-comment">// Validation errors</span>
     <span class="hljs-keyword">if</span> req.UserId == <span class="hljs-string">""</span> {
         <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InvalidArgument.Error(<span class="hljs-string">"user_id is required"</span>)
+    }
+    <span class="hljs-keyword">if</span> !isAlphanumeric(req.UserId) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InvalidArgument.Error(<span class="hljs-string">"user_id must be alphanumeric"</span>)
+    }
+    <span class="hljs-keyword">if</span> !isAuthorized(ctx, req.UserId) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.PermissionDenied.Error(<span class="hljs-string">"not allowed to access user profiles"</span>)
     }
 
     <span class="hljs-comment">// Perform some operation</span>
@@ -117,22 +136,20 @@
     }, <span class="hljs-literal">nil</span>
 }
 </code></pre>
-<p>If the endpoint returns a vanilla (non-twirp) error, it will be automatically wrapped as an <strong>internal</strong> error with <a href="https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith">twirp.InternalErrorWith(err)</a>).</p>
+<p>If the endpoint returns a vanilla (non-twirp) error, it will be automatically wrapped using <a href="https://pkg.go.dev/github.com/twitchtv/twirp#InternalErrorWith">twirp.InternalErrorWith(err)</a>.</p>
+<p>The following examples are all equivalent, the client receives the same internal error.</p>
 <pre><code class="hljs css language-go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">FindUser</span><span class="hljs-params">(ctx context.Context, req *pb.FindUserRequest)</span> <span class="hljs-params">(*pb.FindUserResp, error)</span></span> {
-    err := errors.New(<span class="hljs-string">"oops"</span>)
-    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, err
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, errors.New(<span class="hljs-string">"vanilla"</span>)
 }
 </code></pre>
-<p>Using the wrapper explicitly is equivalent; the client will receive the same internal error.</p>
+<p>Is equivalent to:</p>
 <pre><code class="hljs css language-go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">FindUser</span><span class="hljs-params">(ctx context.Context, req *pb.FindUserRequest)</span> <span class="hljs-params">(*pb.FindUserResp, error)</span></span> {
-    err := errors.New(<span class="hljs-string">"oops"</span>)
-    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InternalErrorWith(err)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.InternalErrorWith(errors.New(<span class="hljs-string">"vanilla"</span>))
 }
 </code></pre>
-<p>And that is equivalent to building the internal error like this:</p>
+<p>Which is also equivalent to building this error from scratch:</p>
 <pre><code class="hljs css language-go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Server)</span> <span class="hljs-title">FindUser</span><span class="hljs-params">(ctx context.Context, req *pb.FindUserRequest)</span> <span class="hljs-params">(*pb.FindUserResp, error)</span></span> {
-    err := errors.New(<span class="hljs-string">"oops"</span>)
-
+    err := errors.New(<span class="hljs-string">"vanilla"</span>)
     <span class="hljs-keyword">return</span> twirp.Internal.Errorf(<span class="hljs-string">"%w"</span>, err).
         WithMeta(<span class="hljs-string">"cause"</span>, fmt.Sprintf(<span class="hljs-string">"%T"</span>, err))
 }
@@ -142,7 +159,7 @@
 <pre><code class="hljs css language-go">twirp.WriteError(responseWriter, twirp.Unauthenticated.Error(<span class="hljs-string">"invalid token"</span>))
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="client-side-handling-error-responses"></a><a href="#client-side-handling-error-responses" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Client Side: Handling Error Responses</h2>
-<p>Twirp clients return errors that can always be cast to the <code>twirp.Error</code> interface. Unpack the error type to access the <code>Code()</code>, <code>Msg()</code> and <code>Meta(key)</code> properties:</p>
+<p>Twirp clients return errors that can always be cast to the <code>twirp.Error</code> interface. Unpack the error type to access the <code>Code()</code>, <code>Msg()</code> and <code>Meta(key)</code> properties. For example:</p>
 <pre><code class="hljs css language-go">resp, err := client.FindUser(ctx, req)
 <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> {
     <span class="hljs-keyword">if</span> twerr, ok := err.(twirp.Error); ok {
@@ -207,15 +224,15 @@ deserialized into a Twirp error.</p>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="metadata"></a><a href="#metadata" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metadata</h2>
 <p>In addition to <code>code</code> and <code>msg</code>, Twirp errors can optionally include arbitrary string metadata in the <code>meta</code> field.</p>
-<p>For example, some server code could return an error like this:</p>
+<p>Use the chainable method <a href="https://pkg.go.dev/github.com/twitchtv/twirp#Error.WithMeta">WithMeta(key, val)</a> to add extra metadata to a Twirp error. For example:</p>
 <pre><code class="hljs css language-go"><span class="hljs-keyword">if</span> unavailable {
     <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, twirp.Unavailable.Error(<span class="hljs-string">"taking a nap ..."</span>).
         WithMeta(<span class="hljs-string">"retryable"</span>, <span class="hljs-string">"true"</span>).
         WithMeta(<span class="hljs-string">"retry_after"</span>, <span class="hljs-string">"15s"</span>)
 }
 </code></pre>
-<p>Twirp serializes the response as a JSON with the additional <code>meta</code> field:</p>
-<pre><code class="hljs css language-json"><span class="hljs-comment">// HTTP status code: 503</span>
+<p>Twirp serializes the response as JSON with the additional <code>meta</code> field:</p>
+<pre><code class="hljs css language-json"><span class="hljs-comment">// HTTP status: 503</span>
 {
   <span class="hljs-attr">"code"</span>: <span class="hljs-string">"unavailable"</span>,
   <span class="hljs-attr">"msg"</span>: <span class="hljs-string">"taking a nap ..."</span>,
@@ -225,7 +242,7 @@ deserialized into a Twirp error.</p>
   }
 }
 </code></pre>
-<p>Metadata is available on the client using the <code>.Meta(key)</code> accessor:</p>
+<p>Metadata is available on the client through the <a href="https://pkg.go.dev/github.com/twitchtv/twirp#Error.Meta">Meta(key)</a> accessor:</p>
 <pre><code class="hljs css language-go"><span class="hljs-keyword">if</span> twerr.Code() == twirp.Unavailable {
     <span class="hljs-keyword">if</span> twerr.Meta(<span class="hljs-string">"retryable"</span>) == <span class="hljs-string">"true"</span> {
         fmt.Printf(<span class="hljs-string">"retry after %s"</span>, twerr.Meta(<span class="hljs-string">"retry_after"</span>))

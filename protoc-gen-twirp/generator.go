@@ -819,7 +819,7 @@ func (t *twirp) generateUtils() {
 
 	t.P(`// doJSONRequest makes a JSON request to the remote Twirp service.`)
 	t.P(`func doJSONRequest(ctx `, t.pkgs["context"], `.Context, client HTTPClient, hooks *`, t.pkgs["twirp"], `.ClientHooks, url string, in, out `, t.pkgs["proto"], `.Message) (_ `, t.pkgs["context"], `.Context, err error) {`)
-	t.P(`  marshaler := &`, t.pkgs["protojson"], `.MarshalOptions{UseProtoNames: true}`)
+	t.P(`  marshaler := &`, t.pkgs["protojson"], `.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}`)
 	t.P(`  reqBytes, err := marshaler.Marshal(in)`)
 	t.P(`  if err != nil {`)
 	t.P(`    return ctx, wrapInternal(err, "failed to marshal json request")`)

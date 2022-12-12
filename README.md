@@ -32,25 +32,25 @@ Here is a list of some third-party implementations in other languages.
 
 |    Language    | Clients | Servers | Repository |
 |----------------|---------|---------|------------|
-| **Python3**    |    ✓    |    ✓    | [github.com/verloop/twirpy](https://github.com/verloop/twirpy)
+| **Crystal**    |    ✓    |    ✓    | [github.com/mloughran/twirp.cr](https://github.com/mloughran/twirp.cr)
+| **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
+| **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
 | **Java**       |    ✓    |    ✓    | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
 | **Java**       |         |    ✓    | [github.com/devork/flit](https://github.com/devork/flit)
 | **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)
 | **JavaScript** |    ✓    |         | [github.com/Xe/twirp-codegens/cmd/protoc-gen-twirp_jsbrowser](https://github.com/Xe/twirp-codegens)
 | **JavaScript** |    ✓    |    ✓    | [github.com/tatethurston/TwirpScript](https://github.com/tatethurston/TwirpScript)
-| **Typescript** |    ✓    |    ✓    | [github.com/hopin-team/twirp-ts](https://github.com/hopin-team/twirp-ts)
-| **Typescript** |    ✓    |    ✓    | [github.com/tatethurston/TwirpScript](https://github.com/tatethurston/TwirpScript)
-| **Typescript** |    ✓    |    ✓    | [github.com/timostamm/protobuf-ts](https://github.com/timostamm/protobuf-ts)
+| **Kotlin**     |    ✓    |         | [github.com/collectiveidea/twirp-kmm](https://github.com/collectiveidea/twirp-kmm)
+| **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
+| **Python3**    |    ✓    |    ✓    | [github.com/verloop/twirpy](https://github.com/verloop/twirpy)
 | **Ruby**       |    ✓    |    ✓    | [github.com/twitchtv/twirp-ruby](https://github.com/twitchtv/twirp-ruby)
 | **Rust**       |    ✓    |    ✓    | [github.com/cretz/prost-twirp](https://github.com/cretz/prost-twirp)
 | **Scala**      |    ✓    |    ✓    | [github.com/soundcloud/twinagle](https://github.com/soundcloud/twinagle)
 | **Swagger**    |    ✓    |    ✓    | [github.com/go-bridget/twirp-swagger-gen](https://github.com/go-bridget/twirp-swagger-gen)
-| **PHP**        |    ✓    |    ✓    | [github.com/twirphp/twirp](https://github.com/twirphp/twirp)
-| **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
-| **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
 | **Swift**      |    ✓    |         | [github.com/CrazyHulk/protoc-gen-swiftwirp](https://github.com/CrazyHulk/protoc-gen-swiftwirp)
-| **Crystal**    |    ✓    |    ✓    | [github.com/mloughran/twirp.cr](https://github.com/mloughran/twirp.cr)
-| **Kotlin**     |    ✓    |         | [github.com/collectiveidea/twirp-kmm](https://github.com/collectiveidea/twirp-kmm)
+| **Typescript** |    ✓    |    ✓    | [github.com/hopin-team/twirp-ts](https://github.com/hopin-team/twirp-ts)
+| **Typescript** |    ✓    |    ✓    | [github.com/tatethurston/TwirpScript](https://github.com/tatethurston/TwirpScript)
+| **Typescript** |    ✓    |    ✓    | [github.com/timostamm/protobuf-ts](https://github.com/timostamm/protobuf-ts)
 
 ### Support and Community
 

@@ -35,6 +35,7 @@ Here is a list of some third-party implementations in other languages.
 | **Crystal**    |    ✓    |    ✓    | [github.com/mloughran/twirp.cr](https://github.com/mloughran/twirp.cr)
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
 | **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
+| **Go**         |         |    ✓    | [github.com/emcfarlane/larking](https://github.com/emcfarlane/larking)
 | **Java**       |    ✓    |    ✓    | [github.com/fajran/protoc-gen-twirp_java_jaxrs](https://github.com/fajran/protoc-gen-twirp_java_jaxrs)
 | **Java**       |         |    ✓    | [github.com/devork/flit](https://github.com/devork/flit)
 | **JavaScript** |    ✓    |         | [github.com/thechriswalker/protoc-gen-twirp_js](https://github.com/thechriswalker/protoc-gen-twirp_js)

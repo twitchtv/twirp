@@ -60,7 +60,7 @@ To generate code run the `protoc` compiler pointed at your service's `.proto`
 files:
 
 ```sh
-$ protoc --twirp_out=. --go_out=paths=. rpc/haberdasher/service.proto
+$ protoc --twirp_out=. --go_out=. rpc/haberdasher/service.proto
 ```
 
 See [Generator Command Line Arguments](command_line.md) for details about running the generator.

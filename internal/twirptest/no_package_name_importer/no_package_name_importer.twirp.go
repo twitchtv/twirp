@@ -20,6 +20,7 @@ import no_package_name "github.com/twitchtv/twirp/internal/twirptest/no_package_
 
 import bytes "bytes"
 import errors "errors"
+import os "os"
 import path "path"
 import url "net/url"
 
@@ -951,7 +952,10 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 
 	if err = ctx.Err(); err != nil {
 		if resp.Body != nil {
-			_, _ = io.ReadAll(resp.Body) // make sure the response body is fully read
+			// make sure the response body is fully read
+			if _, copyErr := io.Copy(io.Discard, resp.Body); copyErr != nil {
+				fmt.Fprintf(os.Stderr, "failed to copy the response body on ctx error: %v\n", copyErr)
+			}
 		}
 		return ctx, wrapInternal(err, "aborted because context was done")
 	}

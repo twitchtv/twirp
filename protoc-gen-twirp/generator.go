@@ -108,6 +108,7 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 	t.registerPackageName("url")
 	t.registerPackageName("fmt")
 	t.registerPackageName("errors")
+	t.registerPackageName("os")
 
 	// Time to figure out package names of objects defined in protobuf. First,
 	// we'll figure out the name for the package we're generating.
@@ -348,6 +349,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 func (t *twirp) generateUtilImports() {
 	t.P(`import `, t.pkgs["bytes"], ` "bytes"`)
 	t.P(`import `, t.pkgs["errors"], ` "errors"`)
+	t.P(`import `, t.pkgs["os"], ` "os"`)
 	t.P(`import `, t.pkgs["path"], ` "path"`)
 	t.P(`import `, t.pkgs["url"], ` "net/url"`)
 }

@@ -948,6 +948,9 @@ func doProtobufRequest(ctx context.Context, client HTTPClient, hooks *twirp.Clie
 	defer func() { _ = resp.Body.Close() }()
 
 	if err = ctx.Err(); err != nil {
+		if resp.Body != nil {
+			_, _ = io.ReadAll(resp.Body) // make sure the response body is fully read
+		}
 		return ctx, wrapInternal(err, "aborted because context was done")
 	}
 

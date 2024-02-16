@@ -80,7 +80,7 @@ can be modified by HTTP middleware before being used by the Twirp method.
 
 In more detail, you could do the following:
 
- * Write some middleware (a `func(http.Handler) http.Handler)` that reads the
+ * Write some middleware (a `func(http.Handler) http.Handler`) that reads the
    header's value and stores it in the request context.
  * Wrap your Twirp server with the middleware you wrote.
  * Inside your service, pull the header value out through the context.

@@ -98,7 +98,7 @@ type MessageDefinition struct {
 	// publicly imported, what File was that import performed in?
 	File *descriptor.FileDescriptorProto
 	// Parent is the parent message, if this was defined as a nested message. If
-	// this was defiend at the top level, parent is nil.
+	// this was defined at the top level, parent is nil.
 	Parent *MessageDefinition
 	// Comments describes the comments surrounding a message's definition. If it
 	// was publicly imported, then these comments are from the actual source file,

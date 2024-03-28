@@ -158,11 +158,11 @@ func TestInternalErrorWith_Unwrap(t *testing.T) {
 	}
 }
 
-type errorResponeWriter struct {
+type errorResponseWriter struct {
 	*httptest.ResponseRecorder
 }
 
-func (errorResponeWriter) Write([]byte) (int, error) {
+func (errorResponseWriter) Write([]byte) (int, error) {
 	return 0, errors.New("this is only a test")
 }
 
@@ -204,7 +204,7 @@ func TestWriteError(t *testing.T) {
 		return
 	}
 
-	errResp := &errorResponeWriter{ResponseRecorder: resp}
+	errResp := &errorResponseWriter{ResponseRecorder: resp}
 
 	// Writing again should error out as headers are being rewritten
 	err = twirp.WriteError(errResp, twerr)

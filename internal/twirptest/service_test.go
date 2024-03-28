@@ -1621,7 +1621,7 @@ func TestRequestBodyError(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testname, func(t *testing.T) {
-			// test case validate reqest body read error handling
+			// test case validate request body read error handling
 			var s Haberdasher
 			hooks := &twirp.ServerHooks{Error: func(ctx context.Context, err twirp.Error) context.Context {
 				if ctxErr := tc.expectedError; err.Code() != ctxErr {

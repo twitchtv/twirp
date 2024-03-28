@@ -60,7 +60,7 @@ Gopher slack [here](https://invite.slack.golangbridge.org/).
 
 ### Releases
 
-Twirp follows semantic versioning through git tags, and uses Github Releases for
+Twirp follows semantic versioning through git tags, and uses GitHub Releases for
 release notes and upgrade guides:
 [Twirp Releases](https://github.com/twitchtv/twirp/releases)
 

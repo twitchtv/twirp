@@ -36,7 +36,7 @@ func WithServerInterceptors(interceptors ...Interceptor) ServerOption {
 
 // WithServerPathPrefix specifies a different prefix for routing.
 // If not specified, the "/twirp" prefix is used by default.
-// An empty value "" can be speficied to use no prefix.
+// An empty value "" can be specified to use no prefix.
 // The clients must be configured to send requests using the same prefix.
 // URL format: "<baseURL>[<prefix>]/<package>.<Service>/<Method>"
 // More info on Twirp docs: https://twitchtv.github.io/twirp/docs/routing.html

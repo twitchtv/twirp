@@ -394,7 +394,7 @@ func TestClientContextToHook(t *testing.T) {
 	}
 
 	if !requestCalled {
-		t.Error("misssing RequestPrepared hook call")
+		t.Error("missing RequestPrepared hook call")
 	}
 	if !responseCalled {
 		t.Error("missing ResponseReceived hook call")

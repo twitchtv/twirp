@@ -1,0 +1,7 @@
+[{
+    "relation": ["lookalikes/allowlist"],
+    "target": { "namespace": "web", "site": "https://twitchtv.github.io" }
+},{
+    "relation": ["looksalike/allowlist"],
+    "target": { "namespace": "web", "site": "https://twitch.tv" }
+}]

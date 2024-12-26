@@ -16,13 +16,14 @@
 which protoc
 PROTOC_EXISTS=$?
 if [ $PROTOC_EXISTS -eq 0 ]; then
-	PROTOC_VERSION=`protoc --version`
-    if [[ $PROTOC_VERSION == "libprotoc 3."* ]]; then
+	PROTOC_VERSION=$(protoc --version | awk '{print $2}')
+	PROTOC_MAJOR_VERSION=$(echo "$PROTOC_VERSION" | cut -d '.' -f 1)
+    if [[ "$PROTOC_MAJOR_VERSION" -ge 3 ]]; then
         echo "protoc version: $PROTOC_VERSION"
 		exit 0
 	fi
-	echo "required protoc v3, but found: $PROTOC_VERSION"
+	echo "required protoc v3 or newer, but found: $PROTOC_VERSION"
 	exit 1
 fi
-echo "Please install protoc v3. See https://grpc.io/docs/protoc-installation/, for example in MacOS: brew install protobuf"
+echo "Please install protoc v3 or newer. See https://grpc.io/docs/protoc-installation/, for example in MacOS: brew install protobuf"
 exit 1

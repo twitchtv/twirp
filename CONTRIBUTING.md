@@ -34,8 +34,7 @@ Twirp uses github pull requests. Fork, hack away at your changes and submit. Mos
 
 - Add tests that cover your contribution. Overall code coverage should not decrease.
 - Twirp officially supports the last 3 releases of Go.
-- Protobuf version 3.x.x to generate code with the protoc command.
-- For linters and other tools, we use [retool](https://github.com/twitchtv/retool). If `make setup` is not able to install it, you can install it in your path with `go get github.com/twitchtv/retool` and then install tools with `retool build`.
+- Protobuf version 3.x.x or later to generate code with the protoc command.
 
 ### Running tests
 

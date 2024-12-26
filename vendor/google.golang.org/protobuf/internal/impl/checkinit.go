@@ -8,18 +8,18 @@ import (
 	"sync"
 
 	"google.golang.org/protobuf/internal/errors"
-	pref "google.golang.org/protobuf/reflect/protoreflect"
-	piface "google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
-func (mi *MessageInfo) checkInitialized(in piface.CheckInitializedInput) (piface.CheckInitializedOutput, error) {
+func (mi *MessageInfo) checkInitialized(in protoiface.CheckInitializedInput) (protoiface.CheckInitializedOutput, error) {
 	var p pointer
 	if ms, ok := in.Message.(*messageState); ok {
 		p = ms.pointer()
 	} else {
 		p = in.Message.(*messageReflectWrapper).pointer()
 	}
-	return piface.CheckInitializedOutput{}, mi.checkInitializedPointer(p)
+	return protoiface.CheckInitializedOutput{}, mi.checkInitializedPointer(p)
 }
 
 func (mi *MessageInfo) checkInitializedPointer(p pointer) error {
@@ -35,6 +35,12 @@ func (mi *MessageInfo) checkInitializedPointer(p pointer) error {
 		}
 		return nil
 	}
+
+	var presence presence
+	if mi.presenceOffset.IsValid() {
+		presence = p.Apply(mi.presenceOffset).PresenceInfo()
+	}
+
 	if mi.extensionOffset.IsValid() {
 		e := p.Apply(mi.extensionOffset).Extensions()
 		if err := mi.isInitExtensions(e); err != nil {
@@ -45,6 +51,33 @@ func (mi *MessageInfo) checkInitializedPointer(p pointer) error {
 		if !f.isRequired && f.funcs.isInit == nil {
 			continue
 		}
+
+		if f.presenceIndex != noPresence {
+			if !presence.Present(f.presenceIndex) {
+				if f.isRequired {
+					return errors.RequiredNotSet(string(mi.Desc.Fields().ByNumber(f.num).FullName()))
+				}
+				continue
+			}
+			if f.funcs.isInit != nil {
+				f.mi.init()
+				if f.mi.needsInitCheck {
+					if f.isLazy && p.Apply(f.offset).AtomicGetPointer().IsNil() {
+						lazy := *p.Apply(mi.lazyOffset).LazyInfoPtr()
+						if !lazy.AllowedPartial() {
+							// Nothing to see here, it was checked on unmarshal
+							continue
+						}
+						mi.lazyUnmarshal(p, f.num)
+					}
+					if err := f.funcs.isInit(p.Apply(f.offset), f); err != nil {
+						return err
+					}
+				}
+			}
+			continue
+		}
+
 		fptr := p.Apply(f.offset)
 		if f.isPointer && fptr.Elem().IsNil() {
 			if f.isRequired {
@@ -68,7 +101,7 @@ func (mi *MessageInfo) isInitExtensions(ext *map[int32]ExtensionField) error {
 	}
 	for _, x := range *ext {
 		ei := getExtensionFieldInfo(x.Type())
-		if ei.funcs.isInit == nil {
+		if ei.funcs.isInit == nil || x.isUnexpandedLazy() {
 			continue
 		}
 		v := x.Value()
@@ -90,7 +123,7 @@ var (
 // needsInitCheck reports whether a message needs to be checked for partial initialization.
 //
 // It returns true if the message transitively includes any required or extension fields.
-func needsInitCheck(md pref.MessageDescriptor) bool {
+func needsInitCheck(md protoreflect.MessageDescriptor) bool {
 	if v, ok := needsInitCheckMap.Load(md); ok {
 		if has, ok := v.(bool); ok {
 			return has
@@ -101,7 +134,7 @@ func needsInitCheck(md pref.MessageDescriptor) bool {
 	return needsInitCheckLocked(md)
 }
 
-func needsInitCheckLocked(md pref.MessageDescriptor) (has bool) {
+func needsInitCheckLocked(md protoreflect.MessageDescriptor) (has bool) {
 	if v, ok := needsInitCheckMap.Load(md); ok {
 		// If has is true, we've previously determined that this message
 		// needs init checks.

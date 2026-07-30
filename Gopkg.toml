@@ -12,10 +12,6 @@
   version = "1.26.0"
 
 [[override]]
-  name = "github.com/pkg/errors"
-  version = "0.8.0"
-
-[[override]]
   name = "github.com/stretchr/testify"
   version = "1.2.0"
 

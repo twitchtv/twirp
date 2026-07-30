@@ -14,7 +14,8 @@
 package typemap
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -61,7 +62,7 @@ func (r *Registry) ServiceComments(file *descriptor.FileDescriptorProto, svc *de
 			return commentsAtPath(path, file), nil
 		}
 	}
-	return DefinitionComments{}, errors.Errorf("service not found in file")
+	return DefinitionComments{}, errors.New("service not found in file")
 }
 
 func (r *Registry) MethodComments(file *descriptor.FileDescriptorProto, svc *descriptor.ServiceDescriptorProto, method *descriptor.MethodDescriptorProto) (DefinitionComments, error) {
@@ -76,7 +77,7 @@ func (r *Registry) MethodComments(file *descriptor.FileDescriptorProto, svc *des
 			}
 		}
 	}
-	return DefinitionComments{}, errors.Errorf("service not found in file")
+	return DefinitionComments{}, errors.New("service not found in file")
 }
 
 func (r *Registry) MethodInputDefinition(method *descriptor.MethodDescriptorProto) *MessageDefinition {
@@ -223,34 +224,34 @@ func messageDefsForFile(f *descriptor.FileDescriptorProto, filesByName map[strin
 //
 // Examples:
 //
-//   optional int32 foo = 1;  // Comment attached to foo.
-//   // Comment attached to bar.
-//   optional int32 bar = 2;
+//	optional int32 foo = 1;  // Comment attached to foo.
+//	// Comment attached to bar.
+//	optional int32 bar = 2;
 //
-//   optional string baz = 3;
-//   // Comment attached to baz.
-//   // Another line attached to baz.
+//	optional string baz = 3;
+//	// Comment attached to baz.
+//	// Another line attached to baz.
 //
-//   // Comment attached to qux.
-//   //
-//   // Another line attached to qux.
-//   optional double qux = 4;
+//	// Comment attached to qux.
+//	//
+//	// Another line attached to qux.
+//	optional double qux = 4;
 //
-//   // Detached comment for corge. This is not leading or trailing comments
-//   // to qux or corge because there are blank lines separating it from
-//   // both.
+//	// Detached comment for corge. This is not leading or trailing comments
+//	// to qux or corge because there are blank lines separating it from
+//	// both.
 //
-//   // Detached comment for corge paragraph 2.
+//	// Detached comment for corge paragraph 2.
 //
-//   optional string corge = 5;
-//   /* Block comment attached
-//    * to corge.  Leading asterisks
-//    * will be removed. */
-//   /* Block comment attached to
-//    * grault. */
-//   optional int32 grault = 6;
+//	optional string corge = 5;
+//	/* Block comment attached
+//	 * to corge.  Leading asterisks
+//	 * will be removed. */
+//	/* Block comment attached to
+//	 * grault. */
+//	optional int32 grault = 6;
 //
-//   // ignored detached comments.
+//	// ignored detached comments.
 type DefinitionComments struct {
 	Leading         string
 	Trailing        string

@@ -3,26 +3,40 @@
 
 package google_protobuf_imports
 
-import context "context"
-import fmt "fmt"
-import http "net/http"
-import io "io"
-import json "encoding/json"
-import strconv "strconv"
-import strings "strings"
+import (
+	context "context"
+	fmt "fmt"
 
-import protojson "google.golang.org/protobuf/encoding/protojson"
-import proto "google.golang.org/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+	http "net/http"
 
-import google_protobuf "google.golang.org/protobuf/types/known/emptypb"
-import google_protobuf1 "google.golang.org/protobuf/types/known/wrapperspb"
+	io "io"
 
-import bytes "bytes"
-import errors "errors"
-import path "path"
-import url "net/url"
+	json "encoding/json"
+
+	strconv "strconv"
+
+	strings "strings"
+
+	protojson "google.golang.org/protobuf/encoding/protojson"
+
+	proto "google.golang.org/protobuf/proto"
+
+	twirp "github.com/twitchtv/twirp"
+
+	ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+
+	google_protobuf "google.golang.org/protobuf/types/known/emptypb"
+
+	google_protobuf1 "google.golang.org/protobuf/types/known/wrapperspb"
+
+	bytes "bytes"
+
+	errors "errors"
+
+	path "path"
+
+	url "net/url"
+)
 
 // Version compatibility assertion.
 // If the constant is not defined in the package, that likely means
@@ -827,7 +841,7 @@ func isHTTPRedirect(status int) bool {
 }
 
 // wrapInternal wraps an error with a prefix as an Internal error.
-// The original error cause is accessible by github.com/pkg/errors.Cause.
+// The original error can be inspected with errors.Is/As.
 func wrapInternal(err error, prefix string) twirp.Error {
 	return twirp.InternalErrorWith(&wrappedError{prefix: prefix, cause: err})
 }
@@ -838,8 +852,8 @@ type wrappedError struct {
 }
 
 func (e *wrappedError) Error() string { return e.prefix + ": " + e.cause.Error() }
-func (e *wrappedError) Unwrap() error { return e.cause } // for go1.13 + errors.Is/As
-func (e *wrappedError) Cause() error  { return e.cause } // for github.com/pkg/errors
+func (e *wrappedError) Unwrap() error { return e.cause } // for errors.Is/As
+func (e *wrappedError) Cause() error  { return e.cause } // for legacy error packages
 
 // ensurePanicResponses makes sure that rpc methods causing a panic still result in a Twirp Internal
 // error response (status 500), and error hooks are properly called with the panic wrapped as an error.
@@ -872,14 +886,14 @@ func errFromPanic(p interface{}) error {
 
 // internalWithCause is a Twirp Internal error wrapping an original error cause,
 // but the original error message is not exposed on Msg(). The original error
-// can be checked with go1.13+ errors.Is/As, and also by (github.com/pkg/errors).Unwrap
+// can be checked with errors.Is/As.
 type internalWithCause struct {
 	msg   string
 	cause error
 }
 
-func (e *internalWithCause) Unwrap() error                               { return e.cause } // for go1.13 + errors.Is/As
-func (e *internalWithCause) Cause() error                                { return e.cause } // for github.com/pkg/errors
+func (e *internalWithCause) Unwrap() error                               { return e.cause } // for errors.Is/As
+func (e *internalWithCause) Cause() error                                { return e.cause } // for legacy error packages
 func (e *internalWithCause) Error() string                               { return e.msg + ": " + e.cause.Error() }
 func (e *internalWithCause) Code() twirp.ErrorCode                       { return twirp.Internal }
 func (e *internalWithCause) Msg() string                                 { return e.msg }

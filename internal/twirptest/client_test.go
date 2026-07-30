@@ -15,15 +15,14 @@ package twirptest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/twitchtv/twirp"
 )
 
@@ -595,9 +594,8 @@ func TestClientErrorsCanBeCaused(t *testing.T) {
 	if err == nil {
 		t.Errorf("JSON MakeHat err is unexpectedly nil")
 	}
-	cause := errCause(err)
-	if cause != rootErr {
-		t.Errorf("JSON MakeHat err cause is %q, want %q", cause, rootErr)
+	if !errors.Is(err, rootErr) {
+		t.Errorf("JSON MakeHat err does not wrap %q: %q", rootErr, err)
 	}
 
 	client = NewHaberdasherProtobufClient("", httpClient)
@@ -605,9 +603,8 @@ func TestClientErrorsCanBeCaused(t *testing.T) {
 	if err == nil {
 		t.Errorf("Protobuf MakeHat err is unexpectedly nil")
 	}
-	cause = errCause(err)
-	if cause != rootErr {
-		t.Errorf("Protobuf MakeHat err cause is %q, want %q", cause, rootErr)
+	if !errors.Is(err, rootErr) {
+		t.Errorf("Protobuf MakeHat err does not wrap %q: %q", rootErr, err)
 	}
 }
 
@@ -659,15 +656,6 @@ type failingTransport struct {
 
 func (t failingTransport) RoundTrip(*http.Request) (*http.Response, error) {
 	return nil, t.err
-}
-
-func errCause(err error) error {
-	cause := errors.Cause(err)
-	if uerr, ok := cause.(*url.Error); ok {
-		// in go1.8+, http.Client errors are wrapped in *url.Error
-		cause = uerr.Err
-	}
-	return cause
 }
 
 // wrappedHTTPClient implements HTTPClient, but can be inspected during tests.

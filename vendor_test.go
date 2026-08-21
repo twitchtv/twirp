@@ -21,12 +21,10 @@ import (
 )
 
 func TestNoExternalDeps(t *testing.T) {
-	// Twirp commits its vendor directory so that 'go get' works for its main
-	// packages, but vendoring dependencies of the 'twirp' package could cause
-	// problems for users.
-	//
-	// The simplest way to make things safe is to have no non-stdlib dependencies
-	// in the twirp package.
+	// The importable 'twirp' package must have no non-stdlib dependencies, so
+	// that importing it never forces external modules onto users. Test-only and
+	// main-package dependencies (protobuf, testify, etc.) are allowed elsewhere
+	// in the module, but not in the core 'twirp' package itself.
 
 	wd, err := os.Getwd()
 	if err != nil {

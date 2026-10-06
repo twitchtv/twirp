@@ -1,5 +1,4 @@
-PATH := ${PWD}/_tools/bin:${PWD}/bin:${PATH}
-export GO111MODULE=off
+PATH := ${PWD}/bin:${PATH}
 
 all: setup test_all
 
@@ -7,8 +6,8 @@ all: setup test_all
 
 setup:
 	./check_protoc_version.sh
-	GOPATH="$$PWD/_tools" GOBIN="$$PWD/_tools/bin" go get github.com/twitchtv/retool
-	./_tools/bin/retool build
+	GOBIN="$$PWD/bin" go install github.com/kisielk/errcheck@v1.20.0
+	GOBIN="$$PWD/bin" go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26.0
 
 generate:
 	# Recompile and install generator
@@ -19,7 +18,7 @@ generate:
 test_all: setup test test_clientcompat
 
 test: generate
-	./_tools/bin/errcheck ./internal/twirptest
+	./bin/errcheck ./internal/twirptest
 	go test -race ./...
 
 test_clientcompat: generate

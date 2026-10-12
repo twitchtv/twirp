@@ -92,7 +92,7 @@ func (r *Registry) MessageDefinition(name string) *MessageDefinition {
 }
 
 type MessageDefinition struct {
-	// Descriptor is is the DescriptorProto defining the message.
+	// Descriptor is the DescriptorProto defining the message.
 	Descriptor *descriptor.DescriptorProto
 	// File is the File that the message was defined in. Or, if it has been
 	// publicly imported, what File was that import performed in?

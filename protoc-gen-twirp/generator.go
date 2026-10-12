@@ -1516,7 +1516,7 @@ func (t *twirp) generateServiceMetadataAccessors(file *descriptor.FileDescriptor
 }
 
 func (t *twirp) generateFileDescriptor(file *descriptor.FileDescriptorProto) {
-	// Copied straight of of protoc-gen-go, which trims out comments.
+	// Copied straight of protoc-gen-go, which trims out comments.
 	pb := proto.Clone(file).(*descriptor.FileDescriptorProto)
 	pb.SourceCodeInfo = nil
 

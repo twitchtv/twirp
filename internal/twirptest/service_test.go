@@ -697,7 +697,7 @@ func TestErrorWithRetryableMeta(t *testing.T) {
 	}
 
 	if twerr.Meta("retryable") != "true" {
-		t.Errorf("expected error to be retryable, but it isnt")
+		t.Errorf("expected error to be retryable, but it isn't")
 	}
 	if twerr.Msg() != eMsg {
 		t.Errorf("expected error Msg to be %q, but found %q", eMsg, twerr.Msg())
@@ -1551,7 +1551,7 @@ func (errReader) Read(p []byte) (n int, err error) {
 
 // Test failures when reading the request.
 // The request could be incomplete because the client timed out, which in most cases is signaled by
-// a context cancelation or timeout. In those cases, the twirp handled would properly identify and return those errors.
+// a context cancellation or timeout. In those cases, the twirp handled would properly identify and return those errors.
 func TestRequestBodyError(t *testing.T) {
 	type contextUpdate func(ctx context.Context) (context.Context, context.CancelFunc)
 	testCases := []struct {

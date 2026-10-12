@@ -31,7 +31,6 @@ import (
 	"testing"
 	"time"
 
-	pkgerrors "github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/twitchtv/twirp"
@@ -1141,10 +1140,8 @@ func TestPanicsTriggerErrorHooks(t *testing.T) {
 	errHook := &twirp.ServerHooks{
 		Error: func(ctx context.Context, twerr twirp.Error) context.Context {
 			errHookCalled = true
-			// The error should have a .Cause containing the panic value for inspection
-			err := pkgerrors.Cause(twerr)
-			if err != panicValue {
-				t.Fatalf("Unexpected error cause from panic: %v", err)
+			if !errors.Is(twerr, panicValue) {
+				t.Fatalf("Unexpected error cause from panic: %v", twerr)
 			}
 			return ctx
 		},

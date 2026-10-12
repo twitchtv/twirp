@@ -21,7 +21,6 @@ import (
 	"sync"
 	"testing"
 
-	pkgerrors "github.com/pkg/errors"
 	"github.com/twitchtv/twirp"
 )
 
@@ -111,12 +110,11 @@ func TestWithMetaRaces(t *testing.T) {
 	}
 }
 
-func TestPkgErrorCause(t *testing.T) {
-	rootCause := pkgerrors.New("this is only a test")
+func TestInternalErrorWithCause(t *testing.T) {
+	rootCause := errors.New("this is only a test")
 	twerr := twirp.InternalErrorWith(rootCause)
-	cause := pkgerrors.Cause(twerr)
-	if cause != rootCause {
-		t.Errorf("got wrong cause for err. have=%q, want=%q", cause, rootCause)
+	if !errors.Is(twerr, rootCause) {
+		t.Errorf("error does not wrap root cause. have=%q, want=%q", twerr, rootCause)
 	}
 }
 
@@ -124,9 +122,8 @@ func TestWrapError(t *testing.T) {
 	rootCause := errors.New("cause")
 	twerr := twirp.NewError(twirp.NotFound, "it ain't there")
 	err := twirp.WrapError(twerr, rootCause)
-	cause := pkgerrors.Cause(err)
-	if cause != rootCause {
-		t.Errorf("got wrong cause. got=%q, want=%q", cause, rootCause)
+	if !errors.Is(err, rootCause) {
+		t.Errorf("error does not wrap root cause. got=%q, want=%q", err, rootCause)
 	}
 	wantMsg := "twirp error not_found: it ain't there"
 	if gotMsg := err.Error(); gotMsg != wantMsg {

@@ -15,10 +15,10 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os/exec"
 
-	"github.com/pkg/errors"
 	"github.com/twitchtv/twirp/clientcompat/internal/clientcompat"
 	"google.golang.org/protobuf/proto"
 )
@@ -28,7 +28,7 @@ func runClient(clientBin string, msg *clientcompat.ClientCompatMessage) (resp []
 
 	msgBytes, err := proto.Marshal(msg)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "unable to marshal ClientCompatMessage message")
+		return nil, "", fmt.Errorf("unable to marshal ClientCompatMessage message: %w", err)
 	}
 	cmd.Stdin = bytes.NewReader(msgBytes)
 
@@ -38,14 +38,14 @@ func runClient(clientBin string, msg *clientcompat.ClientCompatMessage) (resp []
 
 	err = cmd.Run()
 	if err != nil {
-		err = errors.Wrap(err, "error running client binary")
+		err = fmt.Errorf("error running client binary: %w", err)
 		log.Printf("client stdout: %s", stdout.String())
 		log.Printf("client stderr: %s", stderr.String())
 		return nil, "", err
 	}
 
 	if stdout.Len() > 0 && stderr.Len() > 0 {
-		return nil, "", errors.Errorf("client bin should write to either stdout or stderr, but never both in one invocation")
+		return nil, "", fmt.Errorf("client bin should write to either stdout or stderr, but never both in one invocation")
 	}
 	if stderr.Len() > 0 {
 		return nil, stderr.String(), err
@@ -58,7 +58,7 @@ func runClientNoop(serverURL string, clientBin string) (resp *clientcompat.Empty
 	req := &clientcompat.Empty{}
 	reqBytes, err := proto.Marshal(req)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "unable to marshal Empty message")
+		return nil, "", fmt.Errorf("unable to marshal Empty message: %w", err)
 	}
 	msg := &clientcompat.ClientCompatMessage{
 		ServiceAddress: serverURL,
@@ -75,7 +75,7 @@ func runClientNoop(serverURL string, clientBin string) (resp *clientcompat.Empty
 		resp = new(clientcompat.Empty)
 		err = proto.Unmarshal(respBytes, resp)
 		if err != nil {
-			return nil, "", errors.Wrap(err, "unable to unmarshal stdout from client bin as an Empty response")
+			return nil, "", fmt.Errorf("unable to unmarshal stdout from client bin as an Empty response: %w", err)
 		}
 	}
 	return resp, code, nil
@@ -84,7 +84,7 @@ func runClientNoop(serverURL string, clientBin string) (resp *clientcompat.Empty
 func runClientMethod(serverURL string, clientBin string, req *clientcompat.Req) (resp *clientcompat.Resp, twirpErrCode string, err error) {
 	reqBytes, err := proto.Marshal(req)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "unable to marshal Req")
+		return nil, "", fmt.Errorf("unable to marshal Req: %w", err)
 	}
 	msg := &clientcompat.ClientCompatMessage{
 		ServiceAddress: serverURL,
@@ -101,7 +101,7 @@ func runClientMethod(serverURL string, clientBin string, req *clientcompat.Req) 
 		resp = new(clientcompat.Resp)
 		err = proto.Unmarshal(respBytes, resp)
 		if err != nil {
-			return nil, "", errors.Wrap(err, "unable to unmarshal stdout from client bin as a Resp")
+			return nil, "", fmt.Errorf("unable to unmarshal stdout from client bin as a Resp: %w", err)
 		}
 	}
 

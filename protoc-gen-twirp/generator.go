@@ -30,7 +30,6 @@ import (
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 	plugin "google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/pkg/errors"
 	"github.com/twitchtv/twirp/internal/gen"
 	"github.com/twitchtv/twirp/internal/gen/stringutils"
 	"github.com/twitchtv/twirp/internal/gen/typemap"
@@ -189,7 +188,7 @@ func deduceGenPkgName(genFiles []*descriptor.FileDescriptorProto) (string, error
 			name = stringutils.CleanIdentifier(name)
 			if genPkgName != "" && genPkgName != name {
 				// Make sure they're all set consistently.
-				return "", errors.Errorf("files have conflicting go_package settings, must be the same: %q and %q", genPkgName, name)
+				return "", fmt.Errorf("files have conflicting go_package settings, must be the same: %q and %q", genPkgName, name)
 			}
 			genPkgName = name
 		}
@@ -205,7 +204,7 @@ func deduceGenPkgName(genFiles []*descriptor.FileDescriptorProto) (string, error
 		name, _ := goPackageName(f)
 		name = stringutils.CleanIdentifier(name)
 		if genPkgName != "" && genPkgName != name {
-			return "", errors.Errorf("files have conflicting package names, must be the same or overridden with go_package: %q and %q", genPkgName, name)
+			return "", fmt.Errorf("files have conflicting package names, must be the same or overridden with go_package: %q and %q", genPkgName, name)
 		}
 		genPkgName = name
 	}
@@ -669,7 +668,7 @@ func (t *twirp) generateUtils() {
 	t.P()
 
 	t.P(`// wrapInternal wraps an error with a prefix as an Internal error.`)
-	t.P(`// The original error cause is accessible by github.com/pkg/errors.Cause.`)
+	t.P(`// The original error can be inspected with errors.Is/As.`)
 	t.P(`func wrapInternal(err error, prefix string) `, t.pkgs["twirp"], `.Error {`)
 	t.P(`	return `, t.pkgs["twirp"], `.InternalErrorWith(&wrappedError{prefix: prefix, cause: err})`)
 	t.P(`}`)
@@ -678,8 +677,8 @@ func (t *twirp) generateUtils() {
 	t.P(`	cause  error`)
 	t.P(`}`)
 	t.P(`func (e *wrappedError) Error() string { return e.prefix + ": " + e.cause.Error() }`)
-	t.P(`func (e *wrappedError) Unwrap() error  { return e.cause } // for go1.13 + errors.Is/As `)
-	t.P(`func (e *wrappedError) Cause() error  { return e.cause } // for github.com/pkg/errors`)
+	t.P(`func (e *wrappedError) Unwrap() error  { return e.cause } // for errors.Is/As`)
+	t.P(`func (e *wrappedError) Cause() error  { return e.cause } // for legacy error packages`)
 	t.P()
 
 	t.P(`// ensurePanicResponses makes sure that rpc methods causing a panic still result in a Twirp Internal`)
@@ -713,13 +712,13 @@ func (t *twirp) generateUtils() {
 	t.P(``)
 	t.P(`// internalWithCause is a Twirp Internal error wrapping an original error cause,`)
 	t.P(`// but the original error message is not exposed on Msg(). The original error`)
-	t.P(`// can be checked with go1.13+ errors.Is/As, and also by (github.com/pkg/errors).Unwrap`)
+	t.P(`// can be checked with errors.Is/As.`)
 	t.P(`type internalWithCause struct {`)
 	t.P(`	msg    string`)
 	t.P(`	cause  error`)
 	t.P(`}`)
-	t.P(`func (e *internalWithCause) Unwrap() error  { return e.cause } // for go1.13 + errors.Is/As`)
-	t.P(`func (e *internalWithCause) Cause() error  { return e.cause } // for github.com/pkg/errors`)
+	t.P(`func (e *internalWithCause) Unwrap() error  { return e.cause } // for errors.Is/As`)
+	t.P(`func (e *internalWithCause) Cause() error  { return e.cause } // for legacy error packages`)
 	t.P(`func (e *internalWithCause) Error() string { return e.msg + ": " + e.cause.Error()}`)
 	t.P(`func (e *internalWithCause) Code() `, t.pkgs["twirp"], `.ErrorCode { return `, t.pkgs["twirp"], `.Internal }`)
 	t.P(`func (e *internalWithCause) Msg() string                { return e.msg }`)

@@ -18,12 +18,11 @@ package descriptors
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 
 	"google.golang.org/protobuf/proto"
 	protobuf "google.golang.org/protobuf/types/descriptorpb"
-
-	"github.com/pkg/errors"
 )
 
 // UnpackFile reads gz as a gzipped, protobuf-encoded FileDescriptorProto. This
@@ -32,18 +31,18 @@ import (
 func UnpackFile(gz []byte) (*protobuf.FileDescriptorProto, error) {
 	r, err := gzip.NewReader(bytes.NewReader(gz))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open gzip reader")
+		return nil, fmt.Errorf("failed to open gzip reader: %w", err)
 	}
 	defer r.Close()
 
 	b, err := io.ReadAll(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to uncompress descriptor")
+		return nil, fmt.Errorf("failed to uncompress descriptor: %w", err)
 	}
 
 	fd := new(protobuf.FileDescriptorProto)
 	if err := proto.Unmarshal(b, fd); err != nil {
-		return nil, errors.Wrap(err, "malformed FileDescriptorProto")
+		return nil, fmt.Errorf("malformed FileDescriptorProto: %w", err)
 	}
 
 	return fd, nil
@@ -65,12 +64,12 @@ func MessageDescriptor(msg DescribableMessage) (*protobuf.FileDescriptorProto, *
 	gz, path := msg.Descriptor()
 	fd, err := UnpackFile(gz)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to unpack gzipped descriptor")
+		return nil, nil, fmt.Errorf("unable to unpack gzipped descriptor: %w", err)
 	}
 
 	d, err := MessageInFile(fd, path)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to find message")
+		return nil, nil, fmt.Errorf("unable to find message: %w", err)
 	}
 	return fd, d, nil
 }
@@ -78,12 +77,12 @@ func MessageDescriptor(msg DescribableMessage) (*protobuf.FileDescriptorProto, *
 // MessageInFile finds a message in fd using the given path as an address.
 func MessageInFile(fd *protobuf.FileDescriptorProto, path []int) (*protobuf.DescriptorProto, error) {
 	if path[0] > len(fd.MessageType) {
-		return nil, errors.Errorf("message index %d out of bounds on file", path[0])
+		return nil, fmt.Errorf("message index %d out of bounds on file", path[0])
 	}
 	d := fd.MessageType[path[0]]
 	for _, i := range path[1:] {
 		if i < 0 || i > len(d.NestedType) {
-			return nil, errors.Errorf("nested message index %d out of bounds on type %q", i, d.GetName())
+			return nil, fmt.Errorf("nested message index %d out of bounds on type %q", i, d.GetName())
 		}
 		d = d.NestedType[i]
 	}
@@ -106,11 +105,11 @@ func EnumDescriptor(enum DescribableEnum) (*protobuf.FileDescriptorProto, *proto
 	gz, path := enum.EnumDescriptor()
 	fd, err := UnpackFile(gz)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to unpack gzipped descriptor")
+		return nil, nil, fmt.Errorf("unable to unpack gzipped descriptor: %w", err)
 	}
 	ed, err := EnumInFile(fd, path)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to find enum")
+		return nil, nil, fmt.Errorf("unable to find enum: %w", err)
 	}
 	return fd, ed, nil
 }
@@ -120,7 +119,7 @@ func EnumInFile(fd *protobuf.FileDescriptorProto, path []int) (*protobuf.EnumDes
 	if len(path) == 1 {
 		// This is an enum declared at the top level of a file.
 		if path[0] < 0 || path[0] > len(fd.EnumType) {
-			return nil, errors.Errorf("enum index %d out of bounds on file", path[0])
+			return nil, fmt.Errorf("enum index %d out of bounds on file", path[0])
 		}
 		return fd.EnumType[path[0]], nil
 	}
@@ -134,11 +133,11 @@ func EnumInFile(fd *protobuf.FileDescriptorProto, path []int) (*protobuf.EnumDes
 	msgPath := path[0 : len(path)-1]
 	md, err := MessageInFile(fd, msgPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to find enum inside message")
+		return nil, fmt.Errorf("unable to find enum inside message: %w", err)
 	}
 	enumIdx := path[len(path)-1]
 	if enumIdx < 0 || enumIdx > len(md.EnumType) {
-		return nil, errors.Errorf("enum index %d out of bounds on message type %q", enumIdx, md.GetName())
+		return nil, fmt.Errorf("enum index %d out of bounds on message type %q", enumIdx, md.GetName())
 	}
 	return md.EnumType[enumIdx], nil
 }
@@ -159,12 +158,12 @@ func ServiceDescriptor(svc DescribableService) (*protobuf.FileDescriptorProto, *
 	gz, idx := svc.ServiceDescriptor()
 	fd, err := UnpackFile(gz)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to unpack gzipped descriptor")
+		return nil, nil, fmt.Errorf("unable to unpack gzipped descriptor: %w", err)
 	}
 
 	sd, err := ServiceInFile(fd, idx)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to find service")
+		return nil, nil, fmt.Errorf("unable to find service: %w", err)
 	}
 
 	return fd, sd, nil
@@ -174,7 +173,7 @@ func ServiceDescriptor(svc DescribableService) (*protobuf.FileDescriptorProto, *
 // FileDescriptorProto.
 func ServiceInFile(fd *protobuf.FileDescriptorProto, index int) (*protobuf.ServiceDescriptorProto, error) {
 	if index > len(fd.Service) {
-		return nil, errors.Errorf("service index %d out of bounds on file", index)
+		return nil, fmt.Errorf("service index %d out of bounds on file", index)
 	}
 	return fd.Service[index], nil
 }

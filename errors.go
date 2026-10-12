@@ -17,28 +17,27 @@
 //
 // For example, a server method may return an InvalidArgumentError:
 //
-//     if req.Order != "DESC" && req.Order != "ASC" {
-//         return nil, twirp.InvalidArgumentError("Order", "must be DESC or ASC")
-//     }
+//	if req.Order != "DESC" && req.Order != "ASC" {
+//	    return nil, twirp.InvalidArgumentError("Order", "must be DESC or ASC")
+//	}
 //
 // And the same twirp.Error is returned by the client, for example:
 //
-//     resp, err := twirpClient.RPCMethod(ctx, req)
-//     if err != nil {
-//         if twerr, ok := err.(twirp.Error); ok {
-//             switch twerr.Code() {
-//             case twirp.InvalidArgument:
-//                 log.Error("invalid argument "+twirp.Meta("argument"))
-//             default:
-//                 log.Error(twerr.Error())
-//             }
-//         }
-//     }
+//	resp, err := twirpClient.RPCMethod(ctx, req)
+//	if err != nil {
+//	    if twerr, ok := err.(twirp.Error); ok {
+//	        switch twerr.Code() {
+//	        case twirp.InvalidArgument:
+//	            log.Error("invalid argument "+twirp.Meta("argument"))
+//	        default:
+//	            log.Error(twerr.Error())
+//	        }
+//	    }
+//	}
 //
 // Clients may also return Internal errors if something failed on the system:
 // the server, the network, or the client itself (i.e. failure parsing
 // response).
-//
 package twirp
 
 import (
@@ -74,23 +73,24 @@ type Error interface {
 }
 
 // code.Error(msg) builds a new Twirp error with code and msg. Example:
-//   twirp.NotFound.Error("Resource not found")
-//   twirp.Internal.Error("Oops")
+//
+//	twirp.NotFound.Error("Resource not found")
+//	twirp.Internal.Error("Oops")
 func (code ErrorCode) Error(msg string) Error {
 	return NewError(code, msg)
 }
 
 // code.Errorf(msg, args...) builds a new Twirp error with code and formatted msg.
 // The format may include "%w" to wrap other errors. Examples:
-//   twirp.Internal.Error("Oops: %w", originalErr)
-//   twirp.NotFound.Error("Resource not found with id: %q", resourceID)
+//
+//	twirp.Internal.Error("Oops: %w", originalErr)
+//	twirp.NotFound.Error("Resource not found with id: %q", resourceID)
 func (code ErrorCode) Errorf(msgFmt string, a ...interface{}) Error {
 	return NewErrorf(code, msgFmt, a...)
 }
 
 // WrapError allows Twirp errors to wrap other errors.
-// The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
-// or errors.Is from the standard errors package on Go 1.13+.
+// The wrapped error can be inspected with errors.Is/As from the standard library.
 func WrapError(twerr Error, err error) Error {
 	return &wrappedErr{
 		wrapper: twerr,
@@ -109,8 +109,9 @@ func NewError(code ErrorCode, msg string) Error {
 
 // NewErrorf builds a twirp.Error with a formatted msg.
 // The format may include "%w" to wrap other errors. Examples:
-//   twirp.NewErrorf(twirp.Internal, "Oops: %w", originalErr)
-//   twirp.NewErrorf(twirp.NotFound, "resource with id: %q", resourceID)
+//
+//	twirp.NewErrorf(twirp.Internal, "Oops: %w", originalErr)
+//	twirp.NewErrorf(twirp.NotFound, "resource with id: %q", resourceID)
 func NewErrorf(code ErrorCode, msgFmt string, a ...interface{}) Error {
 	err := fmt.Errorf(msgFmt, a...)      // format error message, may include "%w" with an original error
 	twerr := NewError(code, err.Error()) // use the error as msg
@@ -143,8 +144,9 @@ func InternalError(msg string) Error {
 
 // InternalErrorf uses the formatted message as the internal error msg.
 // The format may include "%w" to wrap other errors. Examples:
-//   twirp.InternalErrorf("database error: %w", err)
-//   twirp.InternalErrorf("failed to load resource %q: %w", resourceID, originalErr)
+//
+//	twirp.InternalErrorf("database error: %w", err)
+//	twirp.InternalErrorf("failed to load resource %q: %w", resourceID, originalErr)
 func InternalErrorf(msgFmt string, a ...interface{}) Error {
 	return NewErrorf(Internal, msgFmt, a...)
 }
@@ -152,8 +154,7 @@ func InternalErrorf(msgFmt string, a ...interface{}) Error {
 // InternalErrorWith makes an internal error, wrapping the original error and using it
 // for the error message, and with metadata "cause" with the original error type.
 // This function is used by Twirp services to wrap non-Twirp errors as internal errors.
-// The wrapped error can be extracted later with (github.com/pkg/errors).Unwrap
-// or errors.Is from the standard errors package on Go 1.13+.
+// The wrapped error can be inspected with errors.Is/As from the standard library.
 func InternalErrorWith(err error) Error {
 	twerr := NewError(Internal, err.Error())
 	twerr = twerr.WithMeta("cause", fmt.Sprintf("%T", err)) // to easily tell apart wrapped internal errors from explicit ones
@@ -353,8 +354,7 @@ func (e *twerr) Error() string {
 }
 
 // wrappedErr is the error returned by twirp.InternalErrorWith(err), which is used by clients.
-// Implements Unwrap() to allow go 1.13+ errors.Is/As checks,
-// and Cause() to allow (github.com/pkg/errors).Unwrap.
+// Implements Unwrap() to allow errors.Is/As checks.
 type wrappedErr struct {
 	wrapper Error
 	cause   error
@@ -371,8 +371,8 @@ func (e *wrappedErr) WithMeta(key string, val string) Error {
 		cause:   e.cause,
 	}
 }
-func (e *wrappedErr) Unwrap() error { return e.cause } // for go1.13 + errors.Is/As
-func (e *wrappedErr) Cause() error  { return e.cause } // for github.com/pkg/errors
+func (e *wrappedErr) Unwrap() error { return e.cause } // for errors.Is/As
+func (e *wrappedErr) Cause() error  { return e.cause } // for legacy error packages
 
 // WriteError writes an HTTP response with a valid Twirp error format (code, msg, meta).
 // Useful outside of the Twirp server (e.g. http middleware).

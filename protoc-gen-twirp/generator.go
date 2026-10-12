@@ -155,7 +155,10 @@ func (t *twirp) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorR
 
 	// Showtime! Generate the response.
 	resp := new(plugin.CodeGeneratorResponse)
-	resp.SupportedFeatures = proto.Uint64(uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL))
+	resp.SupportedFeatures = proto.Uint64(
+		uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL | plugin.CodeGeneratorResponse_FEATURE_SUPPORTS_EDITIONS),
+	)
+	resp.MaximumEdition = proto.Int32(2023)
 	for _, f := range t.genFiles {
 		respFile := t.generate(f)
 		if respFile != nil {

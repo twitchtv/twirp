@@ -37,7 +37,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:acaa96db5d83347d36134c23782eda554b73fb1ac5915bbcb39c67d9a168db00"
+  digest = "1:a4ec7f4f82fe7a0cb94640d091fb67852ee56e0a46e418901184424361efa5a2"
   name = "google.golang.org/protobuf"
   packages = [
     "encoding/protojson",
@@ -46,6 +46,7 @@
     "internal/descfmt",
     "internal/descopts",
     "internal/detrand",
+    "internal/editiondefaults",
     "internal/encoding/defval",
     "internal/encoding/json",
     "internal/encoding/messageset",
@@ -59,6 +60,7 @@
     "internal/impl",
     "internal/order",
     "internal/pragma",
+    "internal/protolazy",
     "internal/set",
     "internal/strs",
     "internal/version",
@@ -72,9 +74,9 @@
     "types/known/wrapperspb",
     "types/pluginpb",
   ]
-  pruneopts = "NUT"
-  revision = "f2d1f6cbe10b90d22296ea09a7217081c2798009"
-  version = "v1.26.0"
+  pruneopts = "UT"
+  revision = "7fc5ff4e14aedbbbaab88f3a282551071c10e856"
+  version = "v1.36.1"
 
 [solve-meta]
   analyzer-name = "dep"

@@ -12,12 +12,12 @@ import (
 	"google.golang.org/protobuf/internal/flags"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	preg "google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/runtime/protoiface"
-	piface "google.golang.org/protobuf/runtime/protoiface"
 )
 
 var errDecode = errors.New("cannot parse invalid wire-format data")
+var errRecursionDepth = errors.New("exceeded maximum recursion depth")
 
 type unmarshalOptions struct {
 	flags    protoiface.UnmarshalInputFlags
@@ -25,6 +25,7 @@ type unmarshalOptions struct {
 		FindExtensionByName(field protoreflect.FullName) (protoreflect.ExtensionType, error)
 		FindExtensionByNumber(message protoreflect.FullName, field protoreflect.FieldNumber) (protoreflect.ExtensionType, error)
 	}
+	depth int
 }
 
 func (o unmarshalOptions) Options() proto.UnmarshalOptions {
@@ -33,17 +34,35 @@ func (o unmarshalOptions) Options() proto.UnmarshalOptions {
 		AllowPartial:   true,
 		DiscardUnknown: o.DiscardUnknown(),
 		Resolver:       o.resolver,
+
+		NoLazyDecoding: o.NoLazyDecoding(),
 	}
 }
 
-func (o unmarshalOptions) DiscardUnknown() bool { return o.flags&piface.UnmarshalDiscardUnknown != 0 }
+func (o unmarshalOptions) DiscardUnknown() bool {
+	return o.flags&protoiface.UnmarshalDiscardUnknown != 0
+}
 
-func (o unmarshalOptions) IsDefault() bool {
-	return o.flags == 0 && o.resolver == preg.GlobalTypes
+func (o unmarshalOptions) AliasBuffer() bool { return o.flags&protoiface.UnmarshalAliasBuffer != 0 }
+func (o unmarshalOptions) Validated() bool   { return o.flags&protoiface.UnmarshalValidated != 0 }
+func (o unmarshalOptions) NoLazyDecoding() bool {
+	return o.flags&protoiface.UnmarshalNoLazyDecoding != 0
+}
+
+func (o unmarshalOptions) CanBeLazy() bool {
+	if o.resolver != protoregistry.GlobalTypes {
+		return false
+	}
+	// We ignore the UnmarshalInvalidateSizeCache even though it's not in the default set
+	return (o.flags & ^(protoiface.UnmarshalAliasBuffer | protoiface.UnmarshalValidated | protoiface.UnmarshalCheckRequired)) == 0
 }
 
 var lazyUnmarshalOptions = unmarshalOptions{
-	resolver: preg.GlobalTypes,
+	resolver: protoregistry.GlobalTypes,
+
+	flags: protoiface.UnmarshalAliasBuffer | protoiface.UnmarshalValidated,
+
+	depth: protowire.DefaultRecursionLimit,
 }
 
 type unmarshalOutput struct {
@@ -52,7 +71,7 @@ type unmarshalOutput struct {
 }
 
 // unmarshal is protoreflect.Methods.Unmarshal.
-func (mi *MessageInfo) unmarshal(in piface.UnmarshalInput) (piface.UnmarshalOutput, error) {
+func (mi *MessageInfo) unmarshal(in protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
 	var p pointer
 	if ms, ok := in.Message.(*messageState); ok {
 		p = ms.pointer()
@@ -62,12 +81,13 @@ func (mi *MessageInfo) unmarshal(in piface.UnmarshalInput) (piface.UnmarshalOutp
 	out, err := mi.unmarshalPointer(in.Buf, p, 0, unmarshalOptions{
 		flags:    in.Flags,
 		resolver: in.Resolver,
+		depth:    in.Depth,
 	})
-	var flags piface.UnmarshalOutputFlags
+	var flags protoiface.UnmarshalOutputFlags
 	if out.initialized {
-		flags |= piface.UnmarshalInitialized
+		flags |= protoiface.UnmarshalInitialized
 	}
-	return piface.UnmarshalOutput{
+	return protoiface.UnmarshalOutput{
 		Flags: flags,
 	}, err
 }
@@ -82,12 +102,37 @@ var errUnknown = errors.New("unknown")
 
 func (mi *MessageInfo) unmarshalPointer(b []byte, p pointer, groupTag protowire.Number, opts unmarshalOptions) (out unmarshalOutput, err error) {
 	mi.init()
+	opts.depth--
+	if opts.depth < 0 {
+		return out, errRecursionDepth
+	}
 	if flags.ProtoLegacy && mi.isMessageSet {
 		return unmarshalMessageSet(mi, b, p, opts)
 	}
+
+	lazyDecoding := LazyEnabled() // default
+	if opts.NoLazyDecoding() {
+		lazyDecoding = false // explicitly disabled
+	}
+	if mi.lazyOffset.IsValid() && lazyDecoding {
+		return mi.unmarshalPointerLazy(b, p, groupTag, opts)
+	}
+	return mi.unmarshalPointerEager(b, p, groupTag, opts)
+}
+
+// unmarshalPointerEager is the message unmarshalling function for all messages that are not lazy.
+// The corresponding function for Lazy is in google_lazy.go.
+func (mi *MessageInfo) unmarshalPointerEager(b []byte, p pointer, groupTag protowire.Number, opts unmarshalOptions) (out unmarshalOutput, err error) {
+
 	initialized := true
 	var requiredMask uint64
 	var exts *map[int32]ExtensionField
+
+	var presence presence
+	if mi.presenceOffset.IsValid() {
+		presence = p.Apply(mi.presenceOffset).PresenceInfo()
+	}
+
 	start := len(b)
 	for len(b) > 0 {
 		// Parse the tag (field number and wire type).
@@ -145,6 +190,11 @@ func (mi *MessageInfo) unmarshalPointer(b []byte, p pointer, groupTag protowire.
 			if f.funcs.isInit != nil && !o.initialized {
 				initialized = false
 			}
+
+			if f.presenceIndex != noPresence {
+				presence.SetPresentUnatomic(f.presenceIndex, mi.presenceSize)
+			}
+
 		default:
 			// Possible extension.
 			if exts == nil && mi.extensionOffset.IsValid() {
@@ -202,7 +252,7 @@ func (mi *MessageInfo) unmarshalExtension(b []byte, num protowire.Number, wtyp p
 		var err error
 		xt, err = opts.resolver.FindExtensionByNumber(mi.Desc.FullName(), num)
 		if err != nil {
-			if err == preg.NotFound {
+			if err == protoregistry.NotFound {
 				return out, errUnknown
 			}
 			return out, errors.New("%v: unable to resolve extension %v: %v", mi.Desc.FullName(), num, err)
@@ -213,7 +263,7 @@ func (mi *MessageInfo) unmarshalExtension(b []byte, num protowire.Number, wtyp p
 		return out, errUnknown
 	}
 	if flags.LazyUnmarshalExtensions {
-		if opts.IsDefault() && x.canLazy(xt) {
+		if opts.CanBeLazy() && x.canLazy(xt) {
 			out, valid := skipExtension(b, xi, num, wtyp, opts)
 			switch valid {
 			case ValidationValid:
@@ -261,6 +311,13 @@ func skipExtension(b []byte, xi *extensionFieldInfo, num protowire.Number, wtyp 
 		if n < 0 {
 			return out, ValidationUnknown
 		}
+
+		if opts.Validated() {
+			out.initialized = true
+			out.n = n
+			return out, ValidationValid
+		}
+
 		out, st := xi.validation.mi.validate(v, 0, opts)
 		out.n = n
 		return out, st

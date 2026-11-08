@@ -32,6 +32,7 @@ Here is a list of some third-party implementations in other languages.
 
 |    Language    | Clients | Servers | Repository |
 |----------------|---------|---------|------------|
+| **C#**         |    ✓    |         | [github.com/pabloFuente/twirp-csharp](https://github.com/pabloFuente/twirp-csharp)
 | **Crystal**    |    ✓    |    ✓    | [github.com/mloughran/twirp.cr](https://github.com/mloughran/twirp.cr)
 | **Dart**       |    ✓    |         | [github.com/apptreesoftware/protoc-gen-twirp_dart](https://github.com/apptreesoftware/protoc-gen-twirp_dart)
 | **Elixir**     |    ✓    |    ✓    | [github.com/keathley/twirp-elixir](https://github.com/keathley/twirp-elixir)
